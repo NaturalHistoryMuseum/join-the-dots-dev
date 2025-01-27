@@ -1,0 +1,25 @@
+@import './base.css';
+
+#app {
+}
+
+a,
+.nav-header {
+  text-decoration: none !important;
+  color: white !important;
+  transition: 0.4s;
+}
+
+@media (min-width: 1024px) {
+  #app {
+    /* display: grid;
+    grid-template-columns: 1fr 1fr; */
+  }
+}
+
+:root {
+  --primary-col: #333d47;
+  --secondary-col: #87999e;
+  --bg-col: #f3f3f3;
+  --txt-col: #191919;
+}
