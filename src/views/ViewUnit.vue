@@ -58,10 +58,10 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get(`http://localhost:5000/api/unit/${this.unitId}`).then((response) => {
+      axios.get(`http://localhost:5000/api/data/unit/${this.unitId}`).then((response) => {
         this.unit = response.data
       })
     },
-  }
+  },
 }
 </script>

@@ -5,30 +5,38 @@ import NavLinks from './components/NavLinks.vue'
 <template>
   <header class="header-bar">
     <div class="title-header">
-      <button @click="navigateHome" class="icon-btn"><img alt="NHM logo" class="logo" src="@/assets/nhm_white_logo.png" /></button>
+      <button @click="navigateHome" class="icon-btn">
+        <img alt="NHM logo" class="logo" src="@/assets/nhm_white_logo.png" />
+      </button>
       <button @click="navigateHome" class="icon-btn"><h1 class="title">Join the Dots</h1></button>
       <div class="account-header">
         <div v-if="user">
           <p>Welcome, {{ user.name }} ({{ user.email }})</p>
           <!-- <button @click="logout">Logout</button> -->
-          <button @click="logout" class="icon-btn"><i alt="Logout Button" class="bi bi-box-arrow-in-right icon"  ></i></button>
+          <button @click="logout" class="icon-btn">
+            <i alt="Logout Button" class="bi bi-box-arrow-in-right icon"></i>
+          </button>
         </div>
         <div v-else>
-          <button @click="navigateAccount" class="icon-btn"><i alt="Account Button" class="bi bi-person-fill icon"  ></i></button>
-          <button @click="login" class="icon-btn"><i alt="Login Button" class="bi bi-box-arrow-in-left icon"  ></i></button>
+          <button @click="navigateAccount" class="icon-btn">
+            <i alt="Account Button" class="bi bi-person-fill icon"></i>
+          </button>
+          <button @click="login" class="icon-btn">
+            <i alt="Login Button" class="bi bi-box-arrow-in-left icon"></i>
+          </button>
           <!-- <button @click="login">Login with Microsoft</button> -->
         </div>
       </div>
     </div>
 
-      <div class="nav-header">
-        <NavLinks />
-      </div>
+    <div class="nav-header">
+      <NavLinks />
+    </div>
   </header>
 </template>
 
 <script>
-import { login, logout, getUser } from './authService'
+// import { login, logout, getUser } from './authService'
 
 export default {
   data() {
@@ -37,24 +45,23 @@ export default {
     }
   },
   async mounted() {
-    this.user = await getUser()
+    //Tries to get user and fails - look into this
+    // this.user = await getUser()
   },
   methods: {
-    login,
-    logout,
-    navigateAccount() {
-      this.$router.push('/account')
-    },
-    navigateHome() {
-      this.$router.push('/')
-    },
+    // login,
+    // logout,
+    // navigateAccount() {
+    //   this.$router.push('/account')
+    // },
+    // navigateHome() {
+    //   this.$router.push('/')
+    // },
   },
 }
 </script>
 
-
 <style>
-
 .header-bar {
   display: flex;
   justify-content: space-between;

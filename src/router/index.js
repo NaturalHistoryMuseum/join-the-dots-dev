@@ -41,6 +41,11 @@ const router = createRouter({
       name: 'account',
       component: AccountView,
     },
+    {
+      path: '/rescore',
+      name: 'rescore',
+      component: () => import('../views/RescoreView.vue'),
+    },
   ],
 })
 

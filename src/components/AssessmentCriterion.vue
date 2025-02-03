@@ -9,7 +9,7 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get('http://localhost:5000/api/assessment-criterion').then((response) => {
+      axios.get('http://localhost:5000/api/data/assessment-criterion').then((response) => {
         console.log(response.data)
         this.data = response.data
       })

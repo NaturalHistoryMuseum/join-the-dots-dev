@@ -14,7 +14,7 @@ export default {
   },
   mounted() {
     axios
-      .get('http://localhost:5000/api/category')
+      .get('http://localhost:5000/api/data/category')
       .then((response) => {
         this.data = response.data
         console.log(this.data)

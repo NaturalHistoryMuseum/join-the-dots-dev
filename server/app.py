@@ -90,6 +90,26 @@ def get_unit(unit_id):
     # Return the result as JSON
     return jsonify(result)
 
+@app.route('/api/section-units/<sectionId>', methods=['GET'])
+def get_section_units(sectionId):
+    # Connect to the database
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    # Fetch data from the database
+    cursor.execute("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, section.section_name, unit.*
+                   FROM jtd_live.collection_unit AS unit 
+                    LEFT JOIN jtd_live.section AS section ON unit.section_id = section.section_id
+                    LEFT JOIN jtd_live.division AS division ON section.division_id = division.division_id
+                    LEFT JOIN jtd_live.department AS department ON division.department_id = department.department_id
+                    WHERE  section.section_id = %i
+                   """ % int(sectionId))
+    result = cursor.fetchall()
+    # Close connection
+    cursor.close()
+    connection.close()
+    # Return the result as JSON
+    return jsonify(result)
+
 
 # Azure AD OAuth
 azure_blueprint = make_azure_blueprint(

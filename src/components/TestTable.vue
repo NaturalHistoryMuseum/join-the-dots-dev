@@ -91,7 +91,7 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get('http://localhost:5000/api/unit-department').then((response) => {
+      axios.get('http://localhost:5000/api/data/unit-department').then((response) => {
         this.units = response.data.map((unit) => ({
           ...unit,
           selected: false,

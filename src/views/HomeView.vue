@@ -8,8 +8,34 @@
         inceptos himenaeos. Nunc cursus auctor dui, vel cursus nunc cursus a. Aenean eu sem et dui
       </p>
     </div>
+    <div class="home-content">
+      <div>
+        <zoa-button label="Rescore" @click="navRescore" />
+      </div>
+      <div>
+        <zoa-button label="View units" />
+      </div>
+    </div>
   </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {}
+  },
+  methods: {
+    navRescore() {
+      this.$router.push({
+        path: '/rescore',
+        query: {
+          sectionId: '2',
+        },
+      })
+    },
+  },
+}
+</script>
 
 <style>
 .home {
@@ -22,6 +48,13 @@
   text-align: left;
 }
 
+.home-content {
+  display: grid;
+  align-items: stretch;
+  overflow: initial;
+  width: auto;
+  grid-template-rows: auto auto auto;
+}
 @media (max-width: 768px) {
   .home {
     padding: 0.5rem 1rem;
