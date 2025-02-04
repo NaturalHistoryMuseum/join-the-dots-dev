@@ -1,6 +1,7 @@
 <template>
   <div class="home">
     <div class="home-header">
+      <p>Welcome, {{ user.name }} ({{ user.email }})</p>
       <h1>Join the Dots Portal</h1>
       <p>
         Sed dictum tincidunt dolor quis finibus. Donec in tincidunt augue. Curabitur dapibus vel
@@ -22,7 +23,17 @@
 <script>
 export default {
   data() {
-    return {}
+    return {
+      user: [],
+    }
+  },
+  async mounted() {
+    // Check localStorage for stored user data
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      // Use stored user data if available
+      this.user = JSON.parse(storedUser)
+    }
   },
   methods: {
     navRescore() {

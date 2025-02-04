@@ -1,6 +1,6 @@
 <script setup>
 import { RouterView } from 'vue-router'
-import HeaderView from './HeaderView.vue';
+import HeaderView from './views/HeaderView.vue'
 </script>
 
 <template>
@@ -10,8 +10,6 @@ import HeaderView from './HeaderView.vue';
     <RouterView />
   </div>
 </template>
-
-
 
 <style scoped lang="scss">
 // @import 'fonts';

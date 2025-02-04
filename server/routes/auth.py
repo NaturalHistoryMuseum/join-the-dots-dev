@@ -1,29 +1,65 @@
-from flask import Blueprint, jsonify, session, redirect
-from flask_dance.contrib.azure import azure
-from ..services.auth_service import fetch_user_info
+from flask import Blueprint, redirect, request, session, jsonify
+from flask import current_app as app
+import msal
+import os
+import jwt
 
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint("auth", __name__)
 
-@auth_bp.route("/callback")
-def auth_callback():
-    if not azure.authorized:
-        return jsonify({"error": "User not authorized"}), 401
+CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
+TENANT_ID = os.getenv("AZURE_TENANT_ID")
+AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
+REDIRECT_URI = os.getenv("AZURE_REDIRECT_URI")
+SCOPES = []
 
-    user_info = fetch_user_info()
-    if not user_info:
-        return jsonify({"error": "Failed to fetch user info"}), 500
+# JWT Secret Key
+JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-key")
 
-    session["user"] = {
-        "email": user_info.get("userPrincipalName"),
-        "name": user_info.get("displayName"),
-    }
-    return redirect("http://localhost:5173/")
+# Initialize MSAL
+msal_app = msal.ConfidentialClientApplication(
+    CLIENT_ID, authority=AUTHORITY, client_credential=CLIENT_SECRET
+)
+
+@auth_bp.route("/login")
+def login():
+    """Redirects user to Microsoft Login page"""
+    print('login route')
+    auth_url = msal_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
+    print('/login did the thing')
+    print(auth_url)
+    return jsonify({"auth_url": auth_url})
+
+@auth_bp.route("/login/azure/authorized")
+def auth_redirect():
+    """Handles Azure AD login redirect"""
+    code = request.args.get("code")
+    if not code:
+        return jsonify({"error": "No auth code provided"}), 400
+
+    token_response = msal_app.acquire_token_by_authorization_code(code, SCOPES, redirect_uri=REDIRECT_URI)
+
+    if "access_token" in token_response:
+        user_info = token_response.get("id_token_claims")
+        # Save user info in session
+        session["user"] = user_info
+        print(user_info)
+        # Generate JWT Token
+        jwt_payload = {
+            "user_name": user_info['name'],
+            "email": user_info['preferred_username'],
+            "user_id": user_info['oid']
+            } 
+        jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
+
+        # Redirect to home page with user info in token
+        frontend_url = f"http://localhost:5173/?token={jwt_token}"
+        return redirect(frontend_url)
+    
+    return jsonify({"error": "Authentication failed"}), 401
 
 @auth_bp.route("/logout")
 def logout():
+    """Logs the user out by clearing the session"""
     session.clear()
-    return {"message": "Logged out"}
-
-@auth_bp.route("/check")
-def check_authorization():
-    return "User is authorized" if azure.authorized else "User is not authorized", 401
+    return jsonify({"message": "Logged out"})

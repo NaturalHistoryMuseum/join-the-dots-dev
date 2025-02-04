@@ -315,8 +315,8 @@ export default {
   padding: 0.5rem 0;
 }
 
-.header-cont {
-}
+/* .header-cont {
+} */
 
 /* Handle transition of ciretion details */
 .fade-enter-active,
