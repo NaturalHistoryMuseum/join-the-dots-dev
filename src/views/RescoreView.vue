@@ -1,6 +1,6 @@
 <template>
   <div class="rescore">
-    <div class="home-header">
+    <div class="main-header">
       <h1>Rescore</h1>
       <div v-if="units.length > 0">
         <h5>Section: {{ units[0].section_name }}</h5>
@@ -237,7 +237,7 @@ export default {
   align-items: center;
   padding: 0.5rem 2rem;
 }
-.home-header {
+.main-header {
   margin: 2rem 10rem;
   text-align: left;
 } */
@@ -247,7 +247,7 @@ export default {
   width: 20rem;
 }
 
-.rescore {
+.main-page {
   display: flex;
   flex-direction: column;
   padding: 0.5rem 2rem;

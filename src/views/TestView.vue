@@ -3,8 +3,10 @@ import TestTable from '../components/TestTable.vue'
 </script>
 
 <template>
-  <div id="test-page">
-    <h1>Test Page</h1>
+  <div id="test-page" class="main-page">
+    <div class="main-header">
+      <h1>Test Page</h1>
+    </div>
 
     <!-- Counter Section -->
     <div>
@@ -76,11 +78,6 @@ export default {
 </script>
 
 <style>
-#test-page {
-  /* font-family: Avenir, Helvetica, Arial, sans-serif; */
-  text-align: center;
-  margin-top: 50px;
-}
 table {
   margin: 20px auto;
   border-collapse: collapse;

@@ -4,6 +4,7 @@ import TestView from '../views/TestView.vue'
 import ViewUnit from '../views/ViewUnit.vue'
 import ReportsView from '../views/ReportsView.vue'
 import AccountView from '../views/AccountView.vue'
+import { currentUser } from '../services/authService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -45,6 +46,13 @@ const router = createRouter({
       path: '/rescore',
       name: 'rescore',
       component: () => import('../views/RescoreView.vue'),
+      beforeEnter: (to, from, next) => {
+        if (!currentUser.value || currentUser.value.role !== 'admin') {
+          next('/')
+        } else {
+          next()
+        }
+      },
     },
   ],
 })

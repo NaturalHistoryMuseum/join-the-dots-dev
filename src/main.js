@@ -18,6 +18,11 @@ import 'bootstrap-icons/font/bootstrap-icons.css'
 // Import BootstrapVue3
 import BootstrapVue3 from 'bootstrap-vue-3'
 
+// Import load user function
+import { loadUser } from './services/authService'
+
+loadUser()
+
 const app = createApp(App)
 
 app.use(createPinia())

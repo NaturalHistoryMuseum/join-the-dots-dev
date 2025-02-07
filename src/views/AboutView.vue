@@ -27,15 +27,15 @@ export default {
 </script>
 
 <template>
-  <div class="sub-header-bar">
-    <!-- <nav>
+  <!-- <div class="sub-header-bar"> -->
+  <!-- <nav>
       <RouterLink to="/about">Intro</RouterLink>
       <RouterLink to="/about">About</RouterLink>
       <RouterLink to="/about">User Guide</RouterLink>
     </nav> -->
-  </div>
-  <div class="about">
-    <div class="about-header">
+  <!-- </div> -->
+  <div class="main-page">
+    <div class="main-header">
       <h2>What is Join the Dots?</h2>
       <p>
         Join the Dots (JTD) is a cross–disciplinary collections assessment framework. It is based on
@@ -60,11 +60,6 @@ export default {
 </template>
 
 <style>
-.about {
-  /* display: flex; */
-  align-items: center;
-  padding: 0.5rem 2rem;
-}
 .about-header {
   margin: 2rem 10rem;
   text-align: left;

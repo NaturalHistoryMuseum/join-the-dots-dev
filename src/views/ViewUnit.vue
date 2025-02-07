@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    <div class="home-header">
+  <div class="main-page">
+    <div class="main-header">
       <h1>View Unit</h1>
       <p>Unit ID: {{ unitId }}</p>
       <p>Collection: {{ collection }}</p>
@@ -15,7 +15,7 @@
   align-items: center;
   padding: 0.5rem 2rem;
 }
-.home-header {
+.main-header {
   margin: 2rem 10rem;
   text-align: left;
 } */

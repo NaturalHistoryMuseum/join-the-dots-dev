@@ -3,9 +3,23 @@ from flask import current_app as app
 import msal
 import os
 import jwt
+# Test user database
+from server.database import get_test_db_connection
 
 auth_bp = Blueprint("auth", __name__)
 
+# Database connection
+def fetch_data(query, params=None):
+    """Helper function to execute a database query."""
+    connection = get_test_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(query, params or ())
+    result = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return result
+
+# Azure AD Config
 CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
 TENANT_ID = os.getenv("AZURE_TENANT_ID")
@@ -24,11 +38,34 @@ msal_app = msal.ConfidentialClientApplication(
 @auth_bp.route("/login")
 def login():
     """Redirects user to Microsoft Login page"""
-    print('login route')
     auth_url = msal_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
-    print('/login did the thing')
-    print(auth_url)
     return jsonify({"auth_url": auth_url})
+
+# @auth_bp.route("/login/azure/authorized")
+# def auth_redirect():
+#     """Handles Azure AD login redirect"""
+#     code = request.args.get("code")
+#     if not code:
+#         return jsonify({"error": "No auth code provided"}), 400
+
+#     token_response = msal_app.acquire_token_by_authorization_code(code, SCOPES, redirect_uri=REDIRECT_URI)
+
+#     if "access_token" in token_response:
+#         user_info = token_response.get("id_token_claims")
+#         # Save user info in session
+#         session["user"] = user_info
+#         # Generate JWT Token
+#         jwt_payload = {
+#             "user_name": user_info['name'],
+#             "email": user_info['preferred_username'],
+#             "user_id": user_info['oid']
+#             } 
+#         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
+#         # Redirect to home page with user info in token
+#         frontend_url = f"http://localhost:5173/?token={jwt_token}"
+#         return redirect(frontend_url)
+    
+#     return jsonify({"error": "Authentication failed"}), 401
 
 @auth_bp.route("/login/azure/authorized")
 def auth_redirect():
@@ -41,22 +78,57 @@ def auth_redirect():
 
     if "access_token" in token_response:
         user_info = token_response.get("id_token_claims")
-        # Save user info in session
-        session["user"] = user_info
-        print(user_info)
-        # Generate JWT Token
+        print('before fetch')
+        # Get user from db
+
+        connection = get_test_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute("""SELECT *
+                      FROM jtd_test.users
+                      WHERE azure_id = %s
+                   """, (str(user_info["oid"]),))
+        user = cursor.fetchone()
+        print('after fetch')
+        print('first get : ',user)
+
+        
+        if not user:
+            print('inserting')
+            # Add user if not present
+            cursor.execute("INSERT INTO jtd_test.users (azure_id, name, email, role) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 'user'))
+            connection.commit()
+            # fetch user again
+            cursor.execute("""SELECT *
+                      FROM jtd_test.users
+                      WHERE azure_id = %s
+                   """, (str(user_info["oid"]),))
+            user = cursor.fetchone()
+            print('user after second get', user)
+        print(user)
+        # Store user info in session
+        session["user"] = user
+        # Generate JWT token
         jwt_payload = {
-            "user_name": user_info['name'],
-            "email": user_info['preferred_username'],
-            "user_id": user_info['oid']
-            } 
+            "user_id": user["user_id"],
+            "name": user["name"],
+            "email": user["email"],
+            "role": user["role"]
+        }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
 
-        # Redirect to home page with user info in token
-        frontend_url = f"http://localhost:5173/?token={jwt_token}"
-        return redirect(frontend_url)
-    
+        session["jwt_token"] = jwt_token  # Store in session for later retrieval
+
+        return jsonify({"message": "Login successful"}), 200
+
     return jsonify({"error": "Authentication failed"}), 401
+
+@auth_bp.route("/auth/status")
+def auth_status():
+    """Check if the user has logged in and return their JWT token"""
+    if "jwt_token" in session:
+        return jsonify({"token": session["jwt_token"], "user": session["user"]}), 200
+    return jsonify({"error": "Not authenticated"}), 401
+
 
 @auth_bp.route("/logout")
 def logout():

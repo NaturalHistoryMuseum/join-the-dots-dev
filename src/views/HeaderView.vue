@@ -9,8 +9,9 @@ import NavLinks from '../components/NavLinks.vue'
         <img alt="NHM logo" class="logo" src="@/assets/nhm_white_logo.png" />
       </button>
       <button @click="navigateHome" class="icon-btn"><h1 class="title">Join the Dots</h1></button>
+
       <div class="account-header">
-        <div v-if="user">
+        <div v-if="currentUser">
           <button @click="navigateAccount" class="icon-btn">
             <i alt="Account Button" class="bi bi-person-fill icon"></i>
           </button>
@@ -19,9 +20,6 @@ import NavLinks from '../components/NavLinks.vue'
           </button>
         </div>
         <div v-else>
-          <button @click="navigateAccount" class="icon-btn">
-            <i alt="Account Button" class="bi bi-person-fill icon"></i>
-          </button>
           <button @click="login" class="icon-btn">
             <i alt="Login Button" class="bi bi-box-arrow-in-left icon"></i>
           </button>
@@ -37,8 +35,7 @@ import NavLinks from '../components/NavLinks.vue'
 </template>
 
 <script>
-import { login, logout } from '../services/authService'
-import { jwtDecode } from 'jwt-decode'
+import { login, logout, currentUser } from '../services/authService'
 
 export default {
   data() {
@@ -46,39 +43,10 @@ export default {
       user: null,
     }
   },
-  async mounted() {
-    // Function to extract query parameters from URL
-    function getQueryParam(param) {
-      const urlParams = new URLSearchParams(window.location.search)
-      return urlParams.get(param)
-    }
-
-    // Check localStorage for stored user data
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      // Use stored user data if available
-      this.user = JSON.parse(storedUser)
-    }
-
-    // Extract token from URL and store in localStorage
-    const token = getQueryParam('token')
-    if (token) {
-      const decodedToken = jwtDecode(token)
-      // Set user data from token
-      const user_name = decodedToken.user_name
-      const email = decodedToken.email
-      const user_id = decodedToken.user_id
-
-      if (user_name && email && user_id) {
-        // Set user data
-        this.user = { user_name: user_name, email: email, user_id: user_id }
-        // Save user data in localStorage
-        localStorage.setItem('user', JSON.stringify(this.user))
-      }
-    } else {
-      //console.error('Token not found in URL')
-    }
+  setup() {
+    return { currentUser }
   },
+  async mounted() {},
   methods: {
     login,
     logoutUser() {
@@ -134,7 +102,7 @@ header {
 }
 
 .logo {
-  height: 6rem;
+  height: 5rem;
   justify-self: flex-start;
 }
 .title {
@@ -142,7 +110,7 @@ header {
   color: white;
   margin: 0;
   margin-left: 3rem;
-  font-size: 3rem;
+  font-size: 2.5rem;
 }
 
 .icon-btn {
@@ -169,10 +137,10 @@ header {
     gap: 1rem;
   }
   .logo {
-    height: 5rem;
+    height: 4rem;
   }
   .title {
-    font-size: 2rem;
+    font-size: 1.8rem;
     margin-left: 2rem;
   }
   .icon {

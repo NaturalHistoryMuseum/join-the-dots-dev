@@ -5,11 +5,13 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.urandom(24)
+    # Force load .env file
+    load_dotenv(override=True)
 
     # Database Configuration
     MYSQL_HOST = os.getenv("MYSQL_HOST")
     MYSQL_USER = os.getenv("MYSQL_USER")
-    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
+    MYSQL_NEW_PASSWORD = os.getenv("MYSQL_NEW_PASSWORD")
     MYSQL_DB = os.getenv("MYSQL_DB")
 
     # Secondary Database Configuration

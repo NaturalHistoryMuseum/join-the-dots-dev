@@ -33,3 +33,8 @@ coverage
 
 # Microsoft Environment Keys
 /server/.env
+
+# Remove Flask Cache
+__pycache__/
+server/__pycache__/
+server/routes/__pycache__/
