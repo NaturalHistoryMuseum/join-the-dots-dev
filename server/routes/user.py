@@ -22,18 +22,16 @@ def fetch_data(query, params=None):
     connection.close()
     return result
 
-@user_bp.route('/all-users', methods=['GET'])
-def get_all_users():
-    print("getall users")
-    data = fetch_data("""SELECT *
-                      FROM jtd_test.users
-                   """)
-    return jsonify(data)
+# @user_bp.route('/all-users', methods=['GET'])
+# def get_all_users():
+#     data = fetch_data("""SELECT *
+#                       FROM jtd_test.users
+#                    """)
+#     return jsonify(data)
 
 
 @user_bp.route('/user/<azure_id>', methods=['GET'])
 def get_user(azure_id):
-    print("getall users")
     data = fetch_data("""SELECT *
                       FROM jtd_test.users
                       WHERE azure_id = %s

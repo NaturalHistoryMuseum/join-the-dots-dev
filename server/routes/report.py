@@ -11,8 +11,6 @@ TENANT_ID = os.getenv("AZURE_TENANT_ID")
 WORKSPACE_ID = os.getenv("WORKSPACE_ID")
 REPORT_ID = os.getenv("REPORT_ID")
 
-print(CLIENT_ID, CLIENT_SECRET, TENANT_ID, WORKSPACE_ID, REPORT_ID)
-
 AUTH_URL = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
 POWER_BI_API = "https://api.powerbi.com/v1.0/myorg"
 

@@ -1,9 +1,8 @@
 @import './base.css';
 
-#app {
-}
+/* #app {
+} */
 
-a,
 .nav-header {
   text-decoration: none !important;
   color: white !important;
@@ -11,10 +10,10 @@ a,
 }
 
 @media (min-width: 1024px) {
-  #app {
-    /* display: grid;
-    grid-template-columns: 1fr 1fr; */
-  }
+  /* #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  } */
 }
 
 :root {

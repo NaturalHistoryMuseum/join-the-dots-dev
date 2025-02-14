@@ -5,6 +5,7 @@
       <p>Unit ID: {{ unitId }}</p>
       <p>Collection: {{ collection }}</p>
       <p>unit: {{ unit }}</p>
+      <TopTabs :unit="unit[0]" />
       <!-- <p>Section: {{ section }}</p> -->
     </div>
   </div>
@@ -24,10 +25,15 @@
 <script>
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+// import axios from 'axios'
+import TopTabs from '@/components/TopTabs.vue'
+import { getGeneric } from '@/services/dataService'
 
 export default {
   name: 'ViewUnit',
+  components: {
+    TopTabs,
+  },
   setup() {
     const route = useRoute()
 
@@ -57,10 +63,8 @@ export default {
     this.fetchData()
   },
   methods: {
-    fetchData() {
-      axios.get(`http://localhost:5000/api/data/unit/${this.unitId}`).then((response) => {
-        this.unit = response.data
-      })
+    async fetchData() {
+      this.unit = await getGeneric(`full-unit/${this.unitId}`)
     },
   },
 }

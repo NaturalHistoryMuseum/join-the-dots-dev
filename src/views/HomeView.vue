@@ -23,20 +23,27 @@
     <div class="boader-header">
       <h2>Actions</h2>
     </div>
-    <b-row>
-      <b-col class="home-card">
+    <b-row class="home-cards">
+      <div class="home-card col-md-4">
         <i class="bi bi-clipboard-check card-icon"></i>
         <h2>Rescore</h2>
         <p>Perform a re-scoring on your assigned sections.</p>
         <zoa-button label="Rescore" @click="navRescore" class="card-btn" />
-      </b-col>
-      <b-col class="home-card">
+      </div>
+      <!-- <div class="padd-card col-md-1"></div> -->
+      <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
         <h2>View Units</h2>
         <p>Explore all units in your section and make changes to them.</p>
-        <zoa-button label="View units" class="card-btn" />
-      </b-col>
-      <b-col class="home-card">3 of 3</b-col>
+        <zoa-button label="View units" @click="navViewUnits" class="card-btn" />
+      </div>
+      <!-- <div class="padd-card col-md-1"></div> -->
+      <div class="home-card col-md-4">
+        <i class="bi bi-graph-up card-icon"></i>
+        <h2>Reports</h2>
+        <p>Generate reports on your section's performance.</p>
+        <zoa-button label="Reports" @click="navReports" class="card-btn" />
+      </div>
     </b-row>
   </div>
 </template>
@@ -66,8 +73,18 @@ export default {
       this.$router.push({
         path: '/rescore',
         query: {
-          sectionId: '2',
+          sectionId: '1',
         },
+      })
+    },
+    navViewUnits() {
+      this.$router.push({
+        path: '/test-page',
+      })
+    },
+    navReports() {
+      this.$router.push({
+        path: '/reports',
       })
     },
   },
@@ -84,6 +101,7 @@ export default {
 .main-header {
   margin: 2rem 6rem;
   text-align: left;
+  width: 90%;
 }
 
 .main-content {
@@ -95,16 +113,27 @@ export default {
   margin: 1rem;
   width: 40%;
 }
-
+.home-cards {
+  width: 100%;
+  display: flex;
+  justify-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: stretch;
+  /* align-items: center; */
+  flex: 1 1 0;
+}
 .home-card {
   background-color: var(--secondary-col);
-  margin: 0 1rem;
+  /* margin: 0 5px 10px; */
   display: flex;
   flex-direction: column;
   align-items: start;
   text-align: start;
   padding: 0.5rem;
   color: white;
+  border: 5px solid white;
 }
 
 .card-icon {
@@ -116,6 +145,9 @@ export default {
 .card-btn {
   margin-top: 1rem;
   align-self: end;
+  justify-self: end;
+  bottom: 0;
+  top: auto;
 }
 .boader-header {
   display: flex;
@@ -148,6 +180,9 @@ export default {
   .main-header {
     margin: 2rem 2rem;
   }
+  /* .home-cards > * {
+    flex: 1 1 0;
+  } */
 }
 
 @media (max-width: 480px) {

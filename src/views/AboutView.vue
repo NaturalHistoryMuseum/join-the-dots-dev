@@ -1,6 +1,5 @@
 <!-- <script s>
-  import { RouterLink, RouterView } from 'vue-router'
-
+// import { RouterLink, RouterView } from 'vue-router'
 </script> -->
 
 <script>
@@ -54,6 +53,23 @@ export default {
         The design of Join the Dots reflects the often holistic nature of curation and collections
         planning, particularly at large museums, whilst setting standards and measuring improvements
         where possible.
+      </p>
+      <h2>Join the Dots - User Mannual</h2>
+      <!-- Embed in future -->
+      <p>
+        <a
+          href="https://naturalhistorymuseum.sharepoint.com/sites/Intranet/Projects/digital/join-the-dots/Shared%20Documents/Join%20the%20Dots%20User%20Manual.pdf"
+          target="_blank"
+          >User Manual</a
+        >
+      </p>
+      <h2>Cabinet Scoring Document</h2>
+      <p>
+        <a
+          href="https://naturalhistorymuseum.sharepoint.com/sites/Intranet/Projects/digital/join-the-dots/Shared%20Documents/Cabinetry%20Scoring%20Document.pdf"
+          target="_blank"
+          >Scoring Doc</a
+        >
       </p>
     </div>
   </div>

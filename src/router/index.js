@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import TestView from '../views/TestView.vue'
+import TestView from '../views/UnitsView.vue'
 import ViewUnit from '../views/ViewUnit.vue'
 import ReportsView from '../views/ReportsView.vue'
 import AccountView from '../views/AccountView.vue'
-import { currentUser } from '../services/authService'
+import AboutView from '../views/AboutView.vue'
+import RescoreView from '../views/RescoreView.vue'
+import { currentUser, loadUser } from '../services/authService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,10 +19,7 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue'),
+      component: AboutView,
     },
     {
       path: '/reports',
@@ -45,16 +44,34 @@ const router = createRouter({
     {
       path: '/rescore',
       name: 'rescore',
-      component: () => import('../views/RescoreView.vue'),
+      component: RescoreView,
       beforeEnter: (to, from, next) => {
-        if (!currentUser.value || currentUser.value.role !== 'admin') {
-          next('/')
-        } else {
-          next()
-        }
+        console.log(currentUser.value)
+        checkAuth('admin', from, next)
       },
     },
   ],
 })
+
+async function checkAuth(role, from, next) {
+  // Ensure user data is loaded
+  if (currentUser.value === null) {
+    await loadUser()
+    console.log('User loaded:', currentUser.value)
+  }
+  // Check access
+  if (!currentUser.value || currentUser.value.role !== role) {
+    // Prevent infinite loop by doing nothing if already on "/"
+    if (from.path === '/') {
+      return
+    } else {
+      // Navigate home if unauthorised
+      next('/')
+    }
+  } else {
+    // Proceed if authorised
+    next()
+  }
+}
 
 export default router

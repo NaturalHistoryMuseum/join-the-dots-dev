@@ -3,9 +3,80 @@
     <div class="main-header">
       <h1>Reports</h1>
       <p>Coming soon...</p>
+      <h5>For now, use the following link</h5>
+      <a
+        href="https://app.powerbi.com/groups/00c58706-93bc-4ec1-84d9-0b51d7d6561e/reports/e617e09b-0285-442d-b16c-cbfff8c5db22/ReportSection?experience=power-bi"
+        target="_blank"
+        >Power Bi Reports</a
+      >
+      <h1>Exports</h1>
+      <div class="row">
+        <div class="col-md-4">
+          <SelectComp
+            :options="[
+              { value: 'vw_unit_rescore_form', label: 'Rescore View' },
+              { value: 'vw_collections_hierarchy', label: 'Collections Hierarchy' },
+            ]"
+            label="View"
+            :onChangeFunc="handleViewSelect"
+            :multi="false"
+          />
+        </div>
+        <!-- <div class="col-md-4">
+          <SelectComp
+            :options="[
+              { value: 'vw_unit_rescore_form', label: 'Rescore View' },
+              { value: 'vw_collections_hierarchy', label: 'Collections Hierarchy' },
+            ]"
+            label="Section"
+            :onChangeFunc="handleViewSelect"
+            :multi="false"
+          />
+        </div> -->
+        <div class="col-md-4">
+          <zoa-button
+            label="Download export to csv (only press once)"
+            @click="downloadScoreView"
+            :disabled="!viewVal"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
+
+<script>
+import SelectComp from '@/components/SelectComp.vue'
+import { downloadCSV } from '@/services/dataService'
+
+export default {
+  components: {
+    SelectComp,
+  },
+  data() {
+    return {
+      viewVal: '',
+      sectionVal: '',
+    }
+  },
+  methods: {
+    downloadScoreView() {
+      downloadCSV(this.viewVal)
+      console.log('button pressed')
+    },
+    handleViewSelect(value) {
+      console.log(value)
+      this.viewVal = value
+    },
+    handleSectionSelect(value) {
+      console.log(value)
+      this.sectionVal = value
+    },
+  },
+}
+</script>
+
+<style scoped></style>
 
 <!-- <template>
   <div>

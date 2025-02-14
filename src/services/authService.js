@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import axios from 'axios'
 
 export const currentUser = ref(null)
+let userLoaded = false
 
 const API_URL = 'http://localhost:5000/api/auth'
 
@@ -73,25 +74,54 @@ export async function logout() {
     localStorage.removeItem('jwt')
     currentUser.value = null
     await axios.get(`${API_URL}/logout`, { withCredentials: true })
-    window.location.href = '/'
+    // window.location.href = '/'
   } catch (error) {
     console.error('Logout failed:', error)
   }
 }
 
+// export function loadUser() {
+//   const storedToken = localStorage.getItem('jwt')
+//   if (storedToken) {
+//     axios
+//       .get(`${API_URL}/auth/status`, {
+//         headers: { Authorization: `Bearer ${storedToken}` },
+//         withCredentials: true,
+//       })
+//       .then((response) => {
+//         currentUser.value = response.data.user
+//       })
+//       .catch(() => {
+//         logout()
+//       })
+//   }
+// }
 export function loadUser() {
-  const storedToken = localStorage.getItem('jwt')
-  if (storedToken) {
-    axios
-      .get(`${API_URL}/auth/status`, {
-        headers: { Authorization: `Bearer ${storedToken}` },
-        withCredentials: true,
-      })
-      .then((response) => {
-        currentUser.value = response.data.user
-      })
-      .catch(() => {
-        logout()
-      })
-  }
+  return new Promise((resolve) => {
+    if (userLoaded) {
+      resolve(currentUser.value)
+      return
+    }
+
+    const storedToken = localStorage.getItem('jwt')
+    if (storedToken) {
+      axios
+        .get(`${API_URL}/auth/status`, {
+          headers: { Authorization: `Bearer ${storedToken}` },
+          withCredentials: true,
+        })
+        .then((response) => {
+          currentUser.value = response.data.user
+          userLoaded = true
+          resolve(currentUser.value)
+        })
+        .catch(() => {
+          logout()
+          resolve(null)
+        })
+    } else {
+      logout()
+      resolve(null)
+    }
+  })
 }
