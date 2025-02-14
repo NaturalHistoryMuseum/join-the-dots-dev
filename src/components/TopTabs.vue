@@ -59,14 +59,8 @@ export default {
       // Find the tab mapping for the active tab
       const mapping = this.unitTabMapping.find((item) => item.tab_id === this.activeTab)
       console.log('mapping - ', mapping.fields)
-      console.log(this.unit)
-      // If mapping is found, filter fields, otherwise return an empty object
-      console.log(
-        // Object.fromEntries(
-        Object.entries(this.unit).filter(([key]) => mapping.fields.includes(key)),
-        // ),
-      )
-      return mapping
+
+      return mapping && this.unit
         ? Object.fromEntries(
             Object.entries(this.unit).filter(([key]) => mapping.fields.includes(key)),
           )
