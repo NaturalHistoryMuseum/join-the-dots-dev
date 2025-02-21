@@ -1,18 +1,31 @@
 <template>
   <div class="rescore">
     <div class="main-header">
-      <h1>Rescore</h1>
-      <div v-if="units.length > 0">
-        <h5>Section: {{ units[0].section_name }}</h5>
-        <h5>Units assigned: {{ units.length }}</h5>
-        <h5>Units completed: {{ 'xyz' }}</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <h1>Rescore</h1>
+          <div v-if="units.length > 0">
+            <h5>Section: {{ units[0].section_name }}</h5>
+            <h5>Units assigned: {{ units.length }}</h5>
+            <h5>Units completed: {{ 'xyz' }}</h5>
+          </div>
+          <div v-else>
+            <h5>Section: {{ 'aahhh temp - not loaded' }}</h5>
+            <h5>Units assigned: {{ 'aahhh temp - not loaded' }}</h5>
+            <h5>Units completed: {{ 'xyz' }}</h5>
+          </div>
+          <b-progress :value="20" :max="100" class="prog-bar" show-progress></b-progress>
+        </div>
+        <div class="col-md-6 flash-box">
+          <div class="flash-header"><h2>Action Station</h2></div>
+          <div class="flash-content">
+            <zoa-button label="Bulk Update Scores" />
+            <zoa-button label="See History" kind="primary" />
+            <zoa-button label="Go to unit" kind="alt" />
+          </div>
+          <!-- <zoa-flash kind="info" :message="" header="Action Station" /> -->
+        </div>
       </div>
-      <div v-else>
-        <h5>Section: {{ 'aahhh temp - not loaded' }}</h5>
-        <h5>Units assigned: {{ 'aahhh temp - not loaded' }}</h5>
-        <h5>Units completed: {{ 'xyz' }}</h5>
-      </div>
-      <b-progress :value="20" :max="100" class="prog-bar" show-progress></b-progress>
     </div>
 
     <!-- <div v-if="units.length < 0">
@@ -135,5 +148,25 @@ export default {
 }
 .tab-scroll::-webkit-scrollbar-thumb:hover {
   background-color: #a0a0a0; /* Change color on hover */
+}
+
+.flash-box {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 10px;
+  border-color: #0dedf7;
+  padding: 0px !important;
+}
+.flash-header {
+  background-color: #e6fdfd;
+  border-radius: 10px 10px 0 0;
+  width: 100%;
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.flash-content {
+  padding: 1rem;
 }
 </style>

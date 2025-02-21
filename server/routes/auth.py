@@ -125,9 +125,28 @@ def auth_redirect():
 @auth_bp.route("/auth/status")
 def auth_status():
     """Check if the user has logged in and return their JWT token"""
-    if "jwt_token" in session:
-        return jsonify({"token": session["jwt_token"], "user": session["user"]}), 200
-    return jsonify({"error": "Not authenticated"}), 401
+    # Get JWT token from session or request headers
+    token = session.get("jwt_token") or request.headers.get("Authorization")
+    # If no token is found, return an error
+    if not token:
+        return jsonify({"error": "Not authenticated"}), 401
+    # If token is in header remove 'Bearer' prefix
+    if token.startswith("Bearer "):
+        token = token.split(" ")[1]
+    
+    decode_token = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+
+    user_id = decode_token.get("user_id")
+    # Get current user details
+    user_details = fetch_data("SELECT * FROM jtd_test.users WHERE user_id = %s", (user_id,))
+    # If no user is found, return an error
+    if not user_details:
+        return jsonify({"error": "User not found"}), 404
+    # Return token and user details
+    return jsonify({"token": token, "user": user_details[0]}), 200
+
+    # if "jwt_token" in session:
+    #     return jsonify({"token": session["jwt_token"], "user": session["user"]}), 200
 
 
 @auth_bp.route("/logout")

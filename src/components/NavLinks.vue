@@ -26,7 +26,7 @@ export default {
       { name: 'Home', path: '/' },
       { name: 'About', path: '/about' },
       { name: 'Reports', path: '/reports' },
-      { name: 'Tester Page', path: '/test-page' },
+      { name: 'Tester Page', path: '/view-units' },
     ]
 
     const isActiveRoute = (path) => route.path === path
@@ -68,7 +68,8 @@ nav a {
   opacity: 1;
 }
 
-.active-bar, .hover-bar {
+.active-bar,
+.hover-bar {
   position: absolute;
   /* bottom: -12px; */
   bottom: -1.1rem;
@@ -108,7 +109,8 @@ nav a {
   .nav-item {
     font-size: 12px;
   }
-  .active-bar, .hover-bar {
+  .active-bar,
+  .hover-bar {
     bottom: -0.8rem;
   }
 }

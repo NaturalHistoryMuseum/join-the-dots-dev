@@ -62,3 +62,72 @@ def add_user():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@user_bp.route('/edit-role', methods=['PUT'])
+def edit_role():
+    data = request.get_json()
+    role = data.get('role')
+    user_id = data.get('user_id')
+
+    if not role:
+        return jsonify({'error': 'Role is required'}), 400
+
+    # Update role and commit changes
+    try:
+        execute_query("""
+            UPDATE jtd_test.users u
+            SET u.role = %s
+            WHERE u.user_id = %s
+        """, (role, user_id,))
+
+        return jsonify({"message": "Role successfully changed"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@user_bp.route('/add-sections', methods=['POST'])
+def add_user_sections():
+    data = request.get_json()
+    sections = data.get('sections')
+    user_id = data.get('user_id')
+
+    if not sections:
+        return jsonify({'error': 'Sections are required'}), 400
+
+    # Delete current user sections
+    try:
+        execute_query("""
+            DELETE FROM jtd_test.user_sections
+            WHERE user_id = %s
+        """, (user_id,))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    # Create insert query
+    values = ''
+    for section in sections:
+        values += '(' + str(user_id) + ',' + str(section) + '),'
+    values = values[:-1]
+    # Insert new sections
+    try:
+        execute_query("""
+            INSERT INTO jtd_test.user_sections (user_id, section_id)
+            VALUES %s
+        """ % values)
+        return jsonify({"message": "Sections successfully added"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@user_bp.route('/get-sections/<user_id>', methods=['GET'])
+def get_user_sections(user_id):
+    # data = request.get_json()
+    # user_id = data.get('user_id')
+
+    data = fetch_data("""SELECT us.section_id
+                      FROM jtd_test.user_sections us
+                      WHERE us.user_id = %s
+                   """ % str(user_id))
+    return jsonify(data)

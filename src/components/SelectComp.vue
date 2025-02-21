@@ -4,7 +4,7 @@
     :label="label"
     label-position="above"
     :help="help"
-    @change="(value) => onChangeFunc(value)"
+    @change="(value) => onChangeFunc && onChangeFunc(value)"
     :options="{ options, itemName: 'value', itemNamePlural: 'data', enableSearch: true }"
   />
 </template>

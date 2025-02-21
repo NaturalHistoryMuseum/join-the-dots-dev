@@ -3,6 +3,7 @@
     <!-- Display the list of selected collection_unit_id -->
     <div>
       <h3>Selected Collection Unit IDs:</h3>
+      <p>{{ currentPage }} / {{ units.length }}</p>
       <ul>
         <li v-for="id in selectedUnitIds" :key="id">{{ id }}</li>
       </ul>
@@ -103,7 +104,6 @@ export default {
         path: '/view-unit',
         query: {
           unit_id: unit.collection_unit_id,
-          collection: unit.unit_name,
         },
       })
     },

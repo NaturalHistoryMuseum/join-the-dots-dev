@@ -12,7 +12,7 @@
           @click="activeTab = index"
           :class="['tab', activeTab === index ? 'active' : '', isCollapsed ? 'icon-only' : '']"
           :style="{
-            backgroundColor: activeTab === index ? '#f2bab0' : '#87999e',
+            backgroundColor: activeTab === index ? '#f2bab0' : '#e0e0e0',
             width: isCollapsed ? '50px' : '220px',
           }"
         >
@@ -25,6 +25,7 @@
     <div class="content">
       <div v-if="units.length">
         {{ units[activeTab].collection_unit_id }}
+        <zoa-button @click="navUnit(units[activeTab].collection_unit_id)">Go to unit</zoa-button>
         <RescoreComp :unit="units[activeTab]" />
       </div>
     </div>
@@ -51,6 +52,14 @@ export default {
     toggleSidebar() {
       this.isCollapsed = !this.isCollapsed
     },
+    navUnit(unitId) {
+      this.$router.push({
+        path: '/view-unit',
+        query: {
+          unit_id: unitId,
+        },
+      })
+    },
   },
 }
 </script>
@@ -68,8 +77,9 @@ export default {
   color: white;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  margin: 10px;
   width: 50px;
+  /* border-left: 5px solid #f2bab0; */
 }
 
 /* .collapsed {
@@ -81,7 +91,7 @@ export default {
 } */
 
 .toggle-btn {
-  background-color: #87999e;
+  background-color: #e0e0e0;
   padding: 10px;
   border: none;
   cursor: pointer;
@@ -94,6 +104,7 @@ export default {
   flex-direction: column;
   width: 15rem;
   z-index: 1;
+  border-left: 5px solid #f2bab0;
 }
 
 .tab-title {

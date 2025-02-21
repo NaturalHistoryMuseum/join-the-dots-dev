@@ -96,9 +96,10 @@ export async function logout() {
 //       })
 //   }
 // }
-export function loadUser() {
+export function loadUser(reloadUser = false) {
   return new Promise((resolve) => {
-    if (userLoaded) {
+    // Check if user is already loaded and it is not a manual reload
+    if (userLoaded && !reloadUser) {
       resolve(currentUser.value)
       return
     }

@@ -1,8 +1,18 @@
+<script setup>
+import { addSections } from '@/services/userService'
+</script>
+
 <template>
   <div>
     {{ selected_depts }}
     {{ selected_divis }}
     {{ selected_sects }}
+    {{ currentSections }}
+    <zoa-button
+      label="Save Sections"
+      kind="alt"
+      @click="selected_sects.length > 0 ? addSections(selected_sects) : null"
+    />
   </div>
   <div class="row">
     <div class="col-md-4">
@@ -67,6 +77,7 @@
 
 <script>
 import { getGeneric } from '@/services/dataService'
+import { getSections } from '@/services/userService'
 
 export default {
   data() {
@@ -77,6 +88,7 @@ export default {
       selected_depts: [],
       selected_divis: [],
       selected_sects: [],
+      currentSections: [],
     }
   },
   mounted() {
@@ -87,6 +99,7 @@ export default {
       this.departments = await getGeneric('all-departments')
       this.divisions = await getGeneric('all-divisions')
       this.sections = await getGeneric('all-sections')
+      this.currentSections = await getSections()
     },
     selectDept(event, id) {
       if (event) {

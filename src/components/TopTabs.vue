@@ -1,3 +1,7 @@
+<script setup>
+import fieldNameCalc from '@/utils/utils'
+</script>
+
 <template>
   <div class="tab-container">
     <button
@@ -13,8 +17,13 @@
     </button>
   </div>
 
-  <div class="content">
-    <div v-for="(field, key) in filteredFields" :key="key">{{ key }} : {{ field }}</div>
+  <div class="content row">
+    <div v-for="(field, key) in filteredFields" :key="key" class="col-md-4 field">
+      <!-- {{ key }} : {{ field }} -->
+      <div>
+        <zoa-input zoa-type="textbox" :label="fieldNameCalc(key)" v-model="filteredFields[key]" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -75,6 +84,7 @@ export default {
   flex-direction: row;
   width: 100%;
   border-bottom: 3px solid #f2bab0;
+  overflow: auto;
 }
 /* .tab-container ::after {
   position: absolute;
@@ -96,5 +106,13 @@ export default {
   border-radius: 20px 20px 0px 0px;
   margin-right: 5px;
   transition: all 0.3s;
+}
+
+.content {
+  margin: 1rem;
+}
+
+.field {
+  padding: 5px;
 }
 </style>

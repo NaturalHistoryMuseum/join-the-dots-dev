@@ -13,7 +13,13 @@
       <SelectComp :options="select_divis" label="Division" :multi="true" />
     </div>
     <div class="col-md-4">
-      <SelectComp :options="select_sects" label="Section" help="this is help" :multi="true" />
+      <SelectComp
+        :options="select_sects"
+        label="Section"
+        help="this is help"
+        :multi="true"
+        :onChangeFunc="handleSectionChange"
+      />
     </div>
   </div>
 </template>
@@ -51,6 +57,10 @@ export default {
       this.select_sects = this.sections.map((sect) => ({ value: sect.section_name }))
 
       console.log(this.select_depts)
+    },
+    handleSectionChange(value) {
+      console.log('section change')
+      console.log(value)
     },
   },
 }

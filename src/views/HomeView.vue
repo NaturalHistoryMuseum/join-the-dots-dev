@@ -79,7 +79,7 @@ export default {
     },
     navViewUnits() {
       this.$router.push({
-        path: '/test-page',
+        path: '/view-units',
       })
     },
     navReports() {
