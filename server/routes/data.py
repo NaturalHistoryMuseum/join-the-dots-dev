@@ -1,7 +1,10 @@
-from flask import Blueprint, jsonify, Response
+from flask import Blueprint, jsonify, Response, stream_with_context
 from server.database import get_db_connection
+import json
 
 import csv
+
+from server.routes.queries.data_queries import LTC_EXPORT, SECTION_UNITS
 
 data_bp = Blueprint('data', __name__)
 
@@ -65,7 +68,7 @@ def get_full_unit(unit_id):
                     LEFT JOIN jtd_live.building b ON b.building_id = f.building_id 
                     LEFT JOIN jtd_live.site s2 ON s2.site_id = b.site_id 
                     LEFT JOIN jtd_live.library_and_archives_function laaf ON laaf.library_and_archives_function_id = cu.library_and_archives_function_id 
-                    LEFT JOIN jtd_live.unit_comment uc ON uc.collection_unit_id = cu.collection_unit_id 
+                    LEFT JOIN jtd_live.unit_comment uc ON uc.collection_unit_id = cu.collection_unit_id
                     WHERE cu.collection_unit_id = %u
                    """ % int(unit_id))
     return jsonify(data)
@@ -146,6 +149,28 @@ def get_view(view):
         cursor.close()
         connection.close()
 
+def generate_json():
+    data = fetch_data(LTC_EXPORT)
+    if data:
+        try:
+            # Extract JSON 
+            json_data = json.loads(data[0]['ltc_export']) 
+        except json.JSONDecodeError as e:
+            yield '{"error": "Invalid JSON format"}'
+            return
+        # Stream the JSON array directly
+        yield '[\n'
+        for i, item in enumerate(json_data):
+            comma = ',' if i < len(json_data) - 1 else ''
+            yield f'  {json.dumps(item)}{comma}\n'
+        yield ']\n'
+
+@data_bp.route('/export-ltc-json', methods=['GET'])
+def get_ltc_json():
+    return Response(stream_with_context(generate_json()), 
+                content_type="application/json",
+                headers={'Content-Disposition': 'attachment; filename=data.json'})
+
 # Old section get with no ranking data
 # @data_bp.route('/section-units/<sectionId>', methods=['GET'])
 # def get_section_units(sectionId):
@@ -161,87 +186,5 @@ def get_view(view):
 
 @data_bp.route('/section-units/<sectionId>', methods=['GET'])
 def get_section_units(sectionId):
-    data = fetch_data("""select
-                            `cu`.`collection_unit_id` AS `collection_unit_id`,
-                            `di`.`division_name` AS `division_name`,
-                            `se`.`section_name` AS `section_name`,
-                            concat(`pe`.`first_name`, ' ', `pe`.`last_name`) AS `responsible_curator`,
-                            `cud`.`description` AS `curatorial_unit_type`,
-                            `cu`.`unit_name` AS `unit_name`,
-                            `cu`.`sort_order` AS `sort_order`,
-                            (
-                            select
-                                concat(`jtd_live`.`person`.`first_name`, ' ', `jtd_live`.`person`.`last_name`)
-                            from
-                                `jtd_live`.`person`
-                            where
-                                (`jtd_live`.`person`.`person_id` in (
-                                select
-                                    distinct `jtd_live`.`unit_assessment_criterion`.`assessor_id`
-                                from
-                                    `jtd_live`.`unit_assessment_criterion`
-                                where
-                                    ((`jtd_live`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
-                                        and (`jtd_live`.`unit_assessment_criterion`.`current` = 'yes')))
-                                    and (`jtd_live`.`person`.`person_id` <> 113))
-                            limit 1) AS `assessor`,
-                            `jtd_live`.`vmc`.`curatorial_unit_count` AS `curatorial_unit_count`,
-                            `jtd_live`.`vmc`.`curatorial_unit_count_confidence` AS `curatorial_unit_count_confidence`,
-                            `jtd_live`.`vmc`.`item_count` AS `item_count`,
-                            `jtd_live`.`vmc`.`item_count_confidence` AS `item_count_confidence`,
-                            `jtd_live`.`vmc`.`barcoded_percentage` AS `barcoded_percentage`,
-                            `jtd_live`.`vmc`.`barcoded_percentage_confidence` AS `barcoded_percentage_confidence`,
-                            (
-                            select
-                                `uc`.`unit_comment`
-                            from
-                                `jtd_live`.`unit_comment` `uc`
-                            where
-                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
-                            order by
-                                `uc`.`date_added` desc
-                            limit 1) AS `unit_comment`,
-                            (
-                                SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT(
-                                        'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
-                                        'rank_id', uar.rank_id,
-                                        'rank_value', r.rank_value,
-                                        'definition', r.definition,
-                                        'criterion_id', r.criterion_id
-                                    )
-                                ) AS percentages_json
-                                FROM jtd_live.unit_assessment_criterion uac
-                                JOIN jtd_live.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                                JOIN jtd_live.rank r ON r.rank_id = uar.rank_id
-                                WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
-                                AND uar.unit_assessment_criterion_id IN (
-                                    SELECT uac.unit_assessment_criterion_id
-                                    FROM jtd_live.unit_assessment_criterion uac
-                                    JOIN jtd_live.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
-                                    WHERE uac.current = 'yes'
-                                )
-                                AND uar.rank_id IN (
-                                    SELECT r.rank_id FROM jtd_live.rank r
-                                ))
-                            ) AS ranks_json
-                        from
-                            (((((`jtd_live`.`collection_unit` `cu`
-                        left join `jtd_live`.`section` `se` on
-                            ((`se`.`section_id` = `cu`.`section_id`)))
-                        left join `jtd_live`.`division` `di` on
-                            ((`di`.`division_id` = `se`.`division_id`)))
-                        left join `jtd_live`.`person` `pe` on
-                            ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
-                        left join `jtd_live`.`curatorial_unit_definition` `cud` on
-                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
-                        left join `jtd_live`.`vw_metrics_current` `vmc` on
-                            ((`jtd_live`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
-                        where
-                            (`cu`.`unit_active` = 'yes') AND se.section_id = %i
-                        order by
-                            `se`.`section_name`,
-                            `cu`.`sort_order`,
-                            `cu`.`collection_unit_id`;
-                   """ % int(sectionId))
+    data = fetch_data(SECTION_UNITS % int(sectionId))
     return jsonify(data)

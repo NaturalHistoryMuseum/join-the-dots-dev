@@ -26,7 +26,6 @@ export default {
       { name: 'Home', path: '/' },
       { name: 'About', path: '/about' },
       { name: 'Reports', path: '/reports' },
-      { name: 'Tester Page', path: '/view-units' },
     ]
 
     const isActiveRoute = (path) => route.path === path

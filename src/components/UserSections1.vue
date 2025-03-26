@@ -62,13 +62,16 @@ import { addSections } from '@/services/userService'
           :key="sect.section_id"
           class="scrollbox"
         >
+          {{ selected_sects.includes(sect.section_id) }}
           <zoa-input
-            class="check"
+            :id="sect.section_id"
             zoa-type="checkbox"
             :label="sect.section_name"
             label-position="right"
             @change="(event) => selectSects(event, sect.section_id)"
+            :checked="selected_sects.includes(sect.section_id)"
           />
+          <input type="checkbox" :checked="selected_sects.includes(sect.section_id)" />
         </div>
       </div>
     </div>
@@ -100,6 +103,8 @@ export default {
       this.divisions = await getGeneric('all-divisions')
       this.sections = await getGeneric('all-sections')
       this.currentSections = await getSections()
+      this.selected_sects = this.currentSections.map((section) => Number(section.section_id))
+      console.log(this.selected_sects)
     },
     selectDept(event, id) {
       if (event) {

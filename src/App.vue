@@ -1,9 +1,11 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import HeaderView from './views/HeaderView.vue'
+import LoadingOverlay from './components/LoadingOverlay.vue'
 </script>
 
 <template>
+  <LoadingOverlay />
   <HeaderView />
 
   <div class="content">

@@ -149,11 +149,11 @@ export default {
   width: 20rem;
 }
 
-.main-page {
+/* .main-page {
   display: flex;
   flex-direction: column;
   padding: 0.5rem 2rem;
-}
+} */
 
 .category-cont {
   display: flex;

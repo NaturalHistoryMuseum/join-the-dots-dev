@@ -3,7 +3,7 @@
     <div class="main-header">
       <h1>View Unit</h1>
       <p>Unit ID: {{ unitId }}</p>
-      <p>Collection: {{ collection }}</p>
+      <!-- <p>Collection: {{ collection }}</p> -->
       <!-- <p>unit: {{ unit }}</p> -->
       <TopTabs :unit="unit[0]" />
       <!-- <p>Section: {{ section }}</p> -->

@@ -21,7 +21,7 @@
       </div>
     </div> -->
     <div class="boader-header">
-      <h2>Actions</h2>
+      <h2 class="boader-header-title">Actions</h2>
     </div>
     <b-row class="home-cards">
       <div class="home-card col-md-4">
@@ -96,7 +96,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem 2rem;
+  padding: 0;
 }
 .main-header {
   margin: 2rem 6rem;
@@ -154,19 +154,18 @@ export default {
   align-items: center;
   justify-content: center;
   text-align: center;
+  width: 100%;
+  margin: 1rem 0;
 }
-.boader-header::after .boader-header::before {
-  /* content: '';
-  flex: 1;
-  display: block;
-  border-bottom: 2px solid black;
-  position: absolute;
-  /* z-index: -1; */
-  /* top: 50%; */
+.boader-header::after,
+.boader-header::before {
   content: '';
   flex: 1;
-  border-top: 1px solid black; /* You can change the color or thickness */
+  border-top: 1px solid black;
   margin: 0 10px;
+}
+.boader-header-title {
+  margin: 0 4rem;
 }
 .h2 {
   display: inline-block;
@@ -180,9 +179,15 @@ export default {
   .main-header {
     margin: 2rem 2rem;
   }
-  /* .home-cards > * {
+  * .home-cards > * {
     flex: 1 1 0;
-  } */
+  }
+  */ .boader-header-title {
+    margin: 0 2rem;
+  }
+  .main-page {
+    padding: 0;
+  }
 }
 
 @media (max-width: 480px) {
@@ -190,7 +195,11 @@ export default {
     padding: 0.5rem 0.5rem;
   }
   .main-header {
-    margin: 2rem 1rem;
+    margin: 2rem 0.5rem;
+    width: 95%;
+  }
+  .boader-header-title {
+    margin: 0 1rem;
   }
 }
 </style>

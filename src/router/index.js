@@ -57,10 +57,10 @@ async function checkAuth(role, from, next) {
   // Ensure user data is loaded
   if (currentUser.value === null) {
     await loadUser()
-    console.log('User loaded:', currentUser.value)
   }
+  console.log(currentUser.value.role.toLowerCase())
   // Check access
-  if (!currentUser.value || currentUser.value.role !== role) {
+  if (!currentUser.value || currentUser.value.role.toLowerCase() !== role) {
     // Prevent infinite loop by doing nothing if already on "/"
     if (from.path === '/') {
       return

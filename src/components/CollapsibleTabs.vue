@@ -1,11 +1,28 @@
 <template>
   <div class="tab-section">
     <!-- Sidebar -->
-    <div class="sidebar">
-      <button @click="toggleSidebar" class="toggle-btn">
-        {{ isCollapsed ? '>' : '<' }}
-      </button>
-      <div class="tab-container">
+    <div
+      class="sidebar"
+      :style="{
+        width: isCollapsed ? collapsedWidth : expandedWidth,
+      }"
+    >
+      <div class="sidebar-header">
+        <zoa-button @click="toggleSidebar" class="toggle-btn">
+          <!-- {{ isCollapsed ? <i class="bi bi-list"></i> : '<' }} -->
+          <div v-if="isCollapsed"><i class="bi bi-list btn-icon"></i></div>
+          <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
+        </zoa-button>
+        <div v-if="!isCollapsed">
+          <zoa-button>Hide Completed</zoa-button>
+        </div>
+      </div>
+      <div
+        class="tab-container"
+        :style="{
+          width: isCollapsed ? collapsedWidth : expandedWidth,
+        }"
+      >
         <button
           v-for="(unit, index) in units"
           :key="index"
@@ -13,7 +30,7 @@
           :class="['tab', activeTab === index ? 'active' : '', isCollapsed ? 'icon-only' : '']"
           :style="{
             backgroundColor: activeTab === index ? '#f2bab0' : '#e0e0e0',
-            width: isCollapsed ? '50px' : '220px',
+            width: isCollapsed ? collapsedWidth : expandedWidth,
           }"
         >
           <span class="tab-title" v-if="!isCollapsed">{{ unit.unit_name }}</span>
@@ -24,9 +41,10 @@
     <!-- Content Area -->
     <div class="content">
       <div v-if="units.length">
-        {{ units[activeTab].collection_unit_id }}
-        <zoa-button @click="navUnit(units[activeTab].collection_unit_id)">Go to unit</zoa-button>
-        <RescoreComp :unit="units[activeTab]" />
+        <!-- {{ units[activeTab].collection_unit_id }}
+        <zoa-button @click="navUnit(units[activeTab].collection_unit_id)">Go to unit</zoa-button> -->
+        <!-- <RescoreComp :unit="units[activeTab]" /> -->
+        <RescoreCompV2 :unit="units[activeTab]" />
       </div>
     </div>
   </div>
@@ -34,6 +52,7 @@
 
 <script>
 import RescoreComp from './RescoreComp.vue'
+import RescoreCompV2 from './RescoreCompV2.vue'
 
 export default {
   props: {
@@ -41,11 +60,14 @@ export default {
   },
   components: {
     RescoreComp,
+    RescoreCompV2,
   },
   data() {
     return {
       isCollapsed: false,
       activeTab: 0,
+      expandedWidth: '300px',
+      collapsedWidth: '50px',
     }
   },
   methods: {
@@ -67,36 +89,26 @@ export default {
 <style scoped>
 .tab-section {
   display: flex;
-  /* height: 100vh; */
-  z-index: 0;
+  height: 100vh;
 }
 
 .sidebar {
   transition: width 0.3s;
-  /* background-color: #1f2937; */
   color: white;
   display: flex;
   flex-direction: column;
   margin: 10px;
   width: 50px;
-  /* border-left: 5px solid #f2bab0; */
 }
-
-/* .collapsed {
-  width: 60px;
+.sidebar-header {
+  margin-bottom: 1rem;
 }
-
-.expanded {
-  width: 180px;
-} */
 
 .toggle-btn {
-  background-color: #e0e0e0;
   padding: 10px;
   border: none;
   cursor: pointer;
-  margin-bottom: 10px;
-  color: black;
+  width: 3rem;
 }
 
 .tab-container {
@@ -128,17 +140,19 @@ export default {
   text-align: center;
 }
 
-/* .tab.active {
-  opacity: 0.75;
-  background-color: #f2bab0;
-} */
-/* .active {
-  background-color: #f2bab0;
-} */
-
 .content {
   flex: 1;
-  padding: 20px;
-  /* background-color: #f3f4f6; */
+  padding: 10px 20px;
+}
+
+.btn-icon {
+  font-size: 1.3rem;
+  color: black;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

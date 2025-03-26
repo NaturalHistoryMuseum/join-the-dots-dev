@@ -19,10 +19,7 @@ import fieldNameCalc from '@/utils/utils'
 
   <div class="content row">
     <div v-for="(field, key) in filteredFields" :key="key" class="col-md-4 field">
-      <!-- {{ key }} : {{ field }} -->
-      <div>
-        <zoa-input zoa-type="textbox" :label="fieldNameCalc(key)" v-model="filteredFields[key]" />
-      </div>
+      <zoa-input zoa-type="textbox" :label="fieldNameCalc(key)" v-model="filteredFields[key]" />
     </div>
   </div>
 </template>
@@ -37,16 +34,60 @@ export default {
       tabs: [
         { id: 1, label: 'Unit Details' },
         { id: 2, label: 'Section' },
-        { id: 3, label: 'Storage' },
+        { id: 3, label: 'Properties' },
+        { id: 4, label: 'Storage' },
+        { id: 5, label: 'Scores' },
+        { id: 6, label: 'Comments' },
       ],
       unitTabMapping: [
         {
           tab_id: 0,
-          fields: ['unit_name', 'public_unit_name', 'unit_active', 'responsible_curator'],
+          fields: [
+            'collection_unit_id',
+            'unit_name',
+            'public_unit_name',
+            'item_type',
+            'description',
+            //only if lib and arch
+            'function_name',
+            'unit_active',
+            'responsible_curator',
+            'archives_fond_ref',
+            'bibliographic_level',
+            'count_curatorial_units_flag',
+            'es_recent_specimen_flag',
+            'items_unestimatable_flag',
+            'named_collection',
+            'preservation_method',
+            'publish_flag',
+            'sort_order',
+            'type_collection_flag',
+            'typical_item_count',
+            'typical_item_count_range',
+          ],
         },
         { tab_id: 1, fields: ['section_id', 'section_name', 'division_name', 'department_name'] },
         {
           tab_id: 2,
+          fields: [
+            'informal_taxon',
+            'geographic_origin_id',
+            'geographic_origin_name',
+            'region_type',
+            'geological_time_period_from_id',
+            'from_period',
+            'geological_time_period_to_id',
+            'to_period',
+            'ls_external_ref_name',
+            'ls_taxon_name',
+            'ls_taxon_rank',
+            'pal_external_ref_name',
+            'pal_taxon_name',
+            'pal_taxon_rank',
+          ],
+        },
+        {
+          tab_id: 3,
           fields: [
             'container_name',
             'temperature',
@@ -57,6 +98,14 @@ export default {
             'building_name',
             'site_name',
           ],
+        },
+        {
+          tab_id: 4,
+          fields: [],
+        },
+        {
+          tab_id: 5,
+          fields: ['unit_comment', 'date_comment_added'],
         },
       ],
       activeTab: 0,
@@ -81,20 +130,19 @@ export default {
 
 <style scoped>
 .tab-container {
+  display: flex;
   flex-direction: row;
   width: 100%;
   border-bottom: 3px solid #f2bab0;
-  overflow: auto;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  scrollbar-width: none; /* Hide scrollbar on Firefox */
 }
-/* .tab-container ::after {
-  position: absolute;
-  bottom: -1rem;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background-color: red;
-  opacity: 0;
-} */
+
+.tab-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar on Chrome, Safari */
+}
 
 .tab {
   padding: 0.5rem 2rem;
@@ -106,6 +154,7 @@ export default {
   border-radius: 20px 20px 0px 0px;
   margin-right: 5px;
   transition: all 0.3s;
+  flex-shrink: 0; /* Prevent tabs from shrinking */
 }
 
 .content {
@@ -114,5 +163,14 @@ export default {
 
 .field {
   padding: 5px;
+}
+
+@media (max-width: 768px) {
+  .tab {
+    padding: 0.4rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
 }
 </style>

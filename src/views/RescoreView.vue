@@ -9,22 +9,31 @@
             <h5>Units assigned: {{ units.length }}</h5>
             <h5>Units completed: {{ 'xyz' }}</h5>
           </div>
-          <div v-else>
-            <h5>Section: {{ 'aahhh temp - not loaded' }}</h5>
-            <h5>Units assigned: {{ 'aahhh temp - not loaded' }}</h5>
-            <h5>Units completed: {{ 'xyz' }}</h5>
-          </div>
-          <b-progress :value="20" :max="100" class="prog-bar" show-progress></b-progress>
+          <!-- <b-progress :value="20" :max="100" class="prog-bar" show-progress></b-progress> -->
         </div>
-        <div class="col-md-6 flash-box">
+        <div class="col-md-6 actions">
+          <div class="actions-group">
+            <zoa-button @click="toggleActions()" class="const-btn"
+              >Actions <i class="bi bi-three-dots-vertical"></i
+            ></zoa-button>
+            <transition name="fade">
+              <div v-show="showActions" class="action-btns">
+                <zoa-button kind="primary">Bulk update</zoa-button>
+                <zoa-button kind="alt">See History</zoa-button>
+                <zoa-button kind="alt">See History</zoa-button>
+                <zoa-button kind="alt">See History</zoa-button>
+              </div>
+            </transition>
+          </div>
+        </div>
+        <!-- <div class="col-md-6 flash-box">
           <div class="flash-header"><h2>Action Station</h2></div>
           <div class="flash-content">
             <zoa-button label="Bulk Update Scores" />
             <zoa-button label="See History" kind="primary" />
             <zoa-button label="Go to unit" kind="alt" />
           </div>
-          <!-- <zoa-flash kind="info" :message="" header="Action Station" /> -->
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -60,8 +69,8 @@
 <script>
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
 import CollapsibleTabs from '@/components/CollapsibleTabs.vue'
+import { getGeneric } from '@/services/dataService'
 // import RescoreComp from '@/components/RescoreComp.vue'
 
 export default {
@@ -87,6 +96,7 @@ export default {
     return {
       expandedCritDetails: 0,
       units: [],
+      showActions: false,
     }
   },
   mounted() {
@@ -94,61 +104,30 @@ export default {
   },
   methods: {
     fetchUnitsData() {
-      axios
-        .get(`http://localhost:5000/api/data/section-units/${this.sectionId}`)
-        .then((response) => {
-          this.units = response.data
-          this.unitNames = this.units.map((unit) => unit.unit_name)
-          console.log(response.data)
-        })
+      getGeneric(`section-units/${this.sectionId}`).then((response) => {
+        this.units = response
+        this.unitNames = this.units.map((unit) => unit.unit_name)
+        console.log(response)
+      })
+    },
+    toggleActions() {
+      this.showActions = !this.showActions
     },
   },
 }
 </script>
 
 <style>
-/* .home {
-  align-items: center;
-  padding: 0.5rem 2rem;
-}
-.main-header {
-  margin: 2rem 10rem;
-  text-align: left;
-} */
-
 .prog-bar {
   margin-top: 1rem;
   width: 20rem;
 }
 
-.main-page {
+/* .main-page {
   display: flex;
   flex-direction: column;
   padding: 0.5rem 2rem;
-}
-
-/* Ensure tabs scroll horizontally if they exceed container width */
-.tab-scroll {
-  display: flex;
-  overflow-x: auto; /* Enable horizontal scrolling */
-  white-space: nowrap; /* Prevent wrapping to multiple lines */
-  flex-direction: row;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-  width: 100%;
-}
-
-/* Optional: Customize scrollbar appearance */
-.tab-scroll::-webkit-scrollbar {
-  height: 8px; /* Adjust scrollbar height */
-}
-.tab-scroll::-webkit-scrollbar-thumb {
-  background-color: #c0c0c0; /* Customize scrollbar color */
-  border-radius: 4px; /* Rounded corners */
-}
-.tab-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: #a0a0a0; /* Change color on hover */
-}
+} */
 
 .flash-box {
   border-width: 1px;
@@ -168,5 +147,28 @@ export default {
 
 .flash-content {
   padding: 1rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: start;
+  gap: 1rem;
+}
+
+.action-btns {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+}
+
+.const-btn {
+  margin-left: auto;
+  /* margin-bottom: 0.5rem; */
+}
+.actions-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 </style>

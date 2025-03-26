@@ -41,13 +41,21 @@
           />
         </div>
       </div>
+
+      <h1>LtC Export</h1>
+      <div class="row">
+        <div class="col-md-4">
+          <zoa-button label="JSON LtC Export" @click="downloadLtcExport" />
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import SelectComp from '@/components/SelectComp.vue'
-import { downloadCSV } from '@/services/dataService'
+import { downloadCSV, downloadLtCjson } from '@/services/dataService'
+import { useLoadingStore } from '@/stores/loadingStore'
 
 export default {
   components: {
@@ -60,9 +68,16 @@ export default {
     }
   },
   methods: {
-    downloadScoreView() {
-      downloadCSV(this.viewVal)
-      console.log('button pressed')
+    async downloadScoreView() {
+      const loadingStore = useLoadingStore()
+      try {
+        loadingStore.startLoading()
+        await downloadCSV(this.viewVal)
+      } catch (error) {
+        console.error('Error downloading CSV:', error)
+      } finally {
+        loadingStore.stopLoading()
+      }
     },
     handleViewSelect(value) {
       console.log(value)
@@ -71,6 +86,17 @@ export default {
     handleSectionSelect(value) {
       console.log(value)
       this.sectionVal = value
+    },
+    async downloadLtcExport() {
+      const loadingStore = useLoadingStore()
+      try {
+        loadingStore.startLoading()
+        await downloadLtCjson()
+      } catch (error) {
+        console.error('Error downloading LtC export:', error)
+      } finally {
+        loadingStore.stopLoading()
+      }
     },
   },
 }
