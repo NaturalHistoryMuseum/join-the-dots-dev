@@ -1,0 +1,10 @@
+flask
+flask_cors
+mysql
+requests
+msal
+flask_dance
+dotenv
+os
+jwt
+json

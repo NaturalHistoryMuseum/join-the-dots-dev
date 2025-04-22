@@ -7,6 +7,7 @@ import AboutView from '../views/AboutView.vue'
 import RescoreView from '../views/RescoreView.vue'
 import { currentUser, loadUser } from '../services/authService'
 import ViewUnits from '../views/ViewUnits.vue'
+import ManageRescoreView from '@/views/ManageRescoreView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -49,6 +50,11 @@ const router = createRouter({
         console.log(currentUser.value)
         checkAuth('admin', from, next)
       },
+    },
+    {
+      path: '/manage-rescore',
+      name: 'manage rescore',
+      component: ManageRescoreView,
     },
   ],
 })

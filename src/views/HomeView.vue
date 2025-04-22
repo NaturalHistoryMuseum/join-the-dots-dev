@@ -71,10 +71,7 @@ export default {
   methods: {
     navRescore() {
       this.$router.push({
-        path: '/rescore',
-        query: {
-          sectionId: '1',
-        },
+        path: '/manage-rescore',
       })
     },
     navViewUnits() {

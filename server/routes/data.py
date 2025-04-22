@@ -4,7 +4,7 @@ import json
 
 import csv
 
-from server.routes.queries.data_queries import LTC_EXPORT, SECTION_UNITS
+from server.routes.queries.data_queries import *
 
 data_bp = Blueprint('data', __name__)
 
@@ -21,7 +21,7 @@ def fetch_data(query, params=None):
 @data_bp.route('/unit-department', methods=['GET'])
 def get_units_and_departments():
     print("get_units_and_departments")
-    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name
+    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active
                    FROM jtd_live.collection_unit AS unit 
                     LEFT JOIN jtd_live.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN jtd_live.division AS division ON section.division_id = division.division_id
@@ -47,7 +47,7 @@ def get_full_unit(unit_id):
                     bl.bibliographic_level, it.item_type, pm.preservation_method, go2.geographic_origin_name, go2.region_type, gtpf.period_name AS from_period, gtpt.period_name to_period,
                     tp.taxon_name AS pal_taxon_name, tp.taxon_rank AS pal_taxon_rank, tp.external_ref_name AS pal_external_ref_name, tls.taxon_name AS ls_taxon_name, tls.taxon_rank AS ls_taxon_rank, tls.external_ref_name AS ls_external_ref_name,
                     sc.container_name, sc.temperature, sc.relative_humidity, sr.room_name, sr.room_code, f.floor_name, b.building_name, s2.site_name,
-                    laaf.function_name, uc.unit_comment, uc.date_added AS date_comment_added
+                    laaf.function_name, uc.unit_comment, DATE(uc.date_added) AS date_comment_added
                     FROM jtd_live.collection_unit cu 
                     LEFT JOIN jtd_live.`section` s ON s.section_id = cu.section_id 
                     LEFT JOIN jtd_live.division d ON d.division_id = s.division_id 
@@ -90,9 +90,10 @@ def get_category():
 
 @data_bp.route('/all-sections', methods=['GET'])
 def get_all_sections():
-    data = fetch_data("""SELECT sect.*, divis.department_id
+    data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name
                    FROM jtd_live.section sect 
                     LEFT JOIN jtd_live.division divis ON divis.division_id = sect.division_id
+                    LEFT JOIN jtd_live.department dept ON dept.department_id = divis.department_id
                    """)
     return jsonify(data)
 
@@ -108,6 +109,23 @@ def get_all_divisions():
 def get_all_departments():
     data = fetch_data("""SELECT *
                    FROM jtd_live.department 
+                   """)
+    return jsonify(data)
+
+@data_bp.route('/container-data', methods=['GET'])
+def get_all_containers():
+    data = fetch_data("""SELECT *
+                   FROM jtd_live.storage_container 
+                   """)
+    return jsonify(data)
+
+@data_bp.route('/room-data', methods=['GET'])
+def get_all_rooms():
+    data = fetch_data("""SELECT sr.*, f.*, b.*, s.*
+                        FROM jtd_live.storage_room sr
+                        JOIN jtd_live.floor f ON f.floor_id = sr.floor_id 
+                        JOIN jtd_live.building b ON b.building_id = f.building_id 
+                        JOIN jtd_live.site s ON s.site_id = b.site_id 
                    """)
     return jsonify(data)
 
@@ -187,4 +205,10 @@ def get_ltc_json():
 @data_bp.route('/section-units/<sectionId>', methods=['GET'])
 def get_section_units(sectionId):
     data = fetch_data(SECTION_UNITS % int(sectionId))
+    return jsonify(data)
+
+
+@data_bp.route('/unit-scores/<unitId>', methods=['GET'])
+def get_unit_scores(unitId):
+    data = fetch_data(UNIT_SCORES % int(unitId))
     return jsonify(data)

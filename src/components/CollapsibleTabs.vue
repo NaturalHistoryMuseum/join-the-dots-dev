@@ -44,7 +44,7 @@
         <!-- {{ units[activeTab].collection_unit_id }}
         <zoa-button @click="navUnit(units[activeTab].collection_unit_id)">Go to unit</zoa-button> -->
         <!-- <RescoreComp :unit="units[activeTab]" /> -->
-        <RescoreCompV2 :unit="units[activeTab]" />
+        <RescoreCompV2 :unit="units[activeTab]" :rescore="true" />
       </div>
     </div>
   </div>

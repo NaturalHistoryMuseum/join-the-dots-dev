@@ -268,12 +268,23 @@ SECTION_UNITS = """
                                         and (`jtd_live`.`unit_assessment_criterion`.`current` = 'yes')))
                                     and (`jtd_live`.`person`.`person_id` <> 113))
                             limit 1) AS `assessor`,
-                            `jtd_live`.`vmc`.`curatorial_unit_count` AS `curatorial_unit_count`,
-                            `jtd_live`.`vmc`.`curatorial_unit_count_confidence` AS `curatorial_unit_count_confidence`,
-                            `jtd_live`.`vmc`.`item_count` AS `item_count`,
-                            `jtd_live`.`vmc`.`item_count_confidence` AS `item_count_confidence`,
-                            `jtd_live`.`vmc`.`barcoded_percentage` AS `barcoded_percentage`,
-                            `jtd_live`.`vmc`.`barcoded_percentage_confidence` AS `barcoded_percentage_confidence`,
+                            (
+                            	SELECT JSON_ARRAYAGG(
+                            		JSON_OBJECT(
+                            			'collection_unit_metric_id', cum.collection_unit_metric_id,
+                            			'metric_value', cum.metric_value,
+                            			'confidence_level', cum.confidence_level,
+                            			'date_from', DATE(cum.date_from),
+                            			'metric_name', cumd.metric_name,
+                            			'metric_definition', cumd.metric_definition,
+                            			'metric_units', cumd.metric_units,
+                            			'metric_datatype', cumd.metric_datatype
+                        			)
+                            	) AS metric_json 
+                            	FROM jtd_live.collection_unit_metric cum 
+                            	JOIN jtd_live.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
+                            	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
+                            ) AS metric_json,
                             (
                             select
                                 `uc`.`unit_comment`
@@ -285,13 +296,24 @@ SECTION_UNITS = """
                                 `uc`.`date_added` desc
                             limit 1) AS `unit_comment`,
                             (
+                            select
+                                `uc`.`date_added`
+                            from
+                                `jtd_live`.`unit_comment` `uc`
+                            where
+                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                            order by
+                                `uc`.`date_added` desc
+                            limit 1) AS `unit_comment_date_added`,
+                            (
                                 SELECT JSON_ARRAYAGG(
                                     JSON_OBJECT(
                                         'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
                                         'rank_id', uar.rank_id,
                                         'rank_value', r.rank_value,
                                         'definition', r.definition,
-                                        'criterion_id', r.criterion_id
+                                        'criterion_id', r.criterion_id,
+                                        'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
                                     )
                                 ) AS percentages_json
                                 FROM jtd_live.unit_assessment_criterion uac
@@ -322,6 +344,114 @@ SECTION_UNITS = """
                             ((`jtd_live`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
                         where
                             (`cu`.`unit_active` = 'yes') AND se.section_id = %i
+                        order by
+                            `se`.`section_name`,
+                            `cu`.`sort_order`,
+                            `cu`.`collection_unit_id`;
+                   """
+
+
+UNIT_SCORES = """
+					SELECT
+                            `cu`.`collection_unit_id` AS `collection_unit_id`,
+                            `di`.`division_name` AS `division_name`,
+                            `se`.`section_name` AS `section_name`,
+                            concat(`pe`.`first_name`, ' ', `pe`.`last_name`) AS `responsible_curator`,
+                            `cud`.`description` AS `curatorial_unit_type`,
+                            `cu`.`unit_name` AS `unit_name`,
+                            `cu`.`sort_order` AS `sort_order`,
+                            (
+                            select
+                                concat(`jtd_live`.`person`.`first_name`, ' ', `jtd_live`.`person`.`last_name`)
+                            from
+                                `jtd_live`.`person`
+                            where
+                                (`jtd_live`.`person`.`person_id` in (
+                                select
+                                    distinct `jtd_live`.`unit_assessment_criterion`.`assessor_id`
+                                from
+                                    `jtd_live`.`unit_assessment_criterion`
+                                where
+                                    ((`jtd_live`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                                        and (`jtd_live`.`unit_assessment_criterion`.`current` = 'yes')))
+                                    and (`jtd_live`.`person`.`person_id` <> 113))
+                            limit 1) AS `assessor`,
+                            (
+                            	SELECT JSON_ARRAYAGG(
+                            		JSON_OBJECT(
+                            			'collection_unit_metric_id', cum.collection_unit_metric_id,
+                            			'metric_value', cum.metric_value,
+                            			'confidence_level', cum.confidence_level,
+                            			'date_from', DATE(cum.date_from),
+                            			'metric_name', cumd.metric_name,
+                            			'metric_definition', cumd.metric_definition,
+                            			'metric_units', cumd.metric_units,
+                            			'metric_datatype', cumd.metric_datatype
+                        			)
+                            	) AS metric_json 
+                            	FROM jtd_live.collection_unit_metric cum 
+                            	JOIN jtd_live.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
+                            	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
+                            ) AS metric_json,
+                            (
+                            select
+                                `uc`.`unit_comment`
+                            from
+                                `jtd_live`.`unit_comment` `uc`
+                            where
+                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                            order by
+                                `uc`.`date_added` desc
+                            limit 1) AS `unit_comment`,
+                            (
+                            select
+                                `uc`.`date_added`
+                            from
+                                `jtd_live`.`unit_comment` `uc`
+                            where
+                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                            order by
+                                `uc`.`date_added` desc
+                            limit 1) AS `unit_comment_date_added`,
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
+                                        'rank_id', uar.rank_id,
+                                        'rank_value', r.rank_value,
+                                        'definition', r.definition,
+                                        'criterion_id', r.criterion_id,
+                                        'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
+                                    )
+                                ) AS percentages_json
+                                FROM jtd_live.unit_assessment_criterion uac
+                                JOIN jtd_live.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+                                JOIN jtd_live.rank r ON r.rank_id = uar.rank_id
+                                WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
+                                AND uar.unit_assessment_criterion_id IN (
+                                    SELECT uac.unit_assessment_criterion_id
+                                    FROM jtd_live.unit_assessment_criterion uac
+                                    JOIN jtd_live.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+                                    WHERE uac.current = 'yes'
+                                )
+                                AND uar.rank_id IN (
+                                    SELECT r.rank_id FROM jtd_live.rank r
+                                ))
+                            ) AS ranks_json
+                        from
+                            (((((`jtd_live`.`collection_unit` `cu`
+                        left join `jtd_live`.`section` `se` on
+                            ((`se`.`section_id` = `cu`.`section_id`)))
+                        left join `jtd_live`.`division` `di` on
+                            ((`di`.`division_id` = `se`.`division_id`)))
+                        left join `jtd_live`.`person` `pe` on
+                            ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
+                        left join `jtd_live`.`curatorial_unit_definition` `cud` on
+                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
+                        left join `jtd_live`.`vw_metrics_current` `vmc` on
+                            ((`jtd_live`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+                        where
+                            (`cu`.`unit_active` = 'yes') AND cu.collection_unit_id = %i
                         order by
                             `se`.`section_name`,
                             `cu`.`sort_order`,

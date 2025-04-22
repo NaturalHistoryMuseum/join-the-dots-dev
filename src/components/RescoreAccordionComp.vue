@@ -13,14 +13,14 @@
       @click="toggleAccordion(accordionId)"
     >
       <h6 class="accordion-header">{{ header }}</h6>
-      <h6 class="accordion-complete">Incomplete</h6>
-      <zoa-button size="sm" class="accordion-btn" @click.stop="markComplete"
+      <h6 class="accordion-complete" v-if="rescore">Incomplete</h6>
+      <zoa-button v-if="rescore" size="sm" class="accordion-btn" @click.stop="markComplete"
         >Mark Complete</zoa-button
       >
-      <div v-if="expandedAccordion == accordionId">
+      <div v-if="expandedAccordion == accordionId" class="accordion-arrow">
         <i class="bi bi-chevron-up accordion-icon"></i>
       </div>
-      <div v-else>
+      <div v-else class="accordion-arrow">
         <i class="bi bi-chevron-down accordion-icon"></i>
       </div>
     </button>
@@ -42,6 +42,7 @@ export default {
     expandedAccordion: Number,
     header: String,
     category_cols: Array,
+    rescore: Boolean,
   },
   methods: {
     markComplete() {
@@ -83,7 +84,7 @@ export default {
 .accordion-header {
   padding: 0;
   margin: 0;
-  width: 20%;
+  width: 30%;
   text-align: left;
   font-weight: bold;
 }
@@ -100,5 +101,10 @@ export default {
 
 .accordion-container {
   margin-bottom: 1rem;
+}
+
+.accordion-arrow {
+  margin-left: auto;
+  margin-right: 0;
 }
 </style>

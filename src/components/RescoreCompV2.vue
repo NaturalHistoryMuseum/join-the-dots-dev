@@ -1,18 +1,22 @@
 <template>
-  <div class="unit-header">
+  <div v-if="rescore" class="unit-header">
     <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">{{ unit.unit_name }}</h4>
     <zoa-button class="complete-btn">Mark Unit Complete</zoa-button>
   </div>
+  <div class="date-title">Last Edited: {{ overallDate() }}</div>
   <RescoreAccordionComp
     :accordionId="0"
     :toggleAccordion="toggleAccordion"
     :expandedAccordion="expandedAccordion"
     header="Unit Measures / Comments"
     :category_cols="category_cols"
+    :rescore="rescore"
   >
+    <div class="date-title">Last Edited: {{ metricDate() }}</div>
+
     <div class="row">
       <div class="col-md-6">
-        <div class="row">
+        <!-- <div class="row">
           <div class="col-md-6">
             <zoa-input
               zoa-type="number"
@@ -28,11 +32,6 @@
               :multi="false"
               :value="localUnit.curatorial_unit_count_confidence"
             />
-            <!-- <zoa-input
-              zoa-type="dropdown"
-              label="Confidence"
-              v-model="localUnit.curatorial_unit_count_confidence"
-            /> -->
           </div>
         </div>
         <div class="row">
@@ -40,11 +39,6 @@
             <zoa-input zoa-type="number" label="No. of Items" v-model="localUnit.item_count" />
           </div>
           <div class="col-md-6">
-            <!-- <zoa-input
-              zoa-type="dropdown"
-              label="Confidence"
-              v-model="localUnit.item_count_confidence"
-            /> -->
             <SelectComp
               :options="confidence_options"
               label="Confidence"
@@ -63,11 +57,6 @@
             />
           </div>
           <div class="col-md-6">
-            <!-- <zoa-input
-              zoa-type="dropdown"
-              label="Confidence"
-              v-model="localUnit.barcoded_percentage_confidence"
-            /> -->
             <SelectComp
               :options="confidence_options"
               label="Confidence"
@@ -75,6 +64,26 @@
               :multi="false"
               :value="localUnit.barcoded_percentage_confidence"
             />
+          </div>
+        </div> -->
+        <div v-for="metric in JSON.parse(unit.metric_json)" :key="metric.collection_unit_metric_id">
+          <div class="row">
+            <div class="col-md-6">
+              <zoa-input
+                zoa-type="number"
+                :label="fieldNameCalc(metric.metric_name)"
+                v-model="metric.metric_value"
+              />
+            </div>
+            <div class="col-md-6">
+              <SelectComp
+                :options="confidence_options"
+                label="Confidence"
+                help=""
+                :multi="false"
+                :value="metric.confidence_level"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -93,8 +102,11 @@
           :expandedAccordion="expandedAccordion"
           :header="cat.description"
           :category_cols="category_cols"
+          :rescore="rescore"
         >
           <div class="">
+            <div class="date-title">Last Edited: {{ groupCategoryDate(cat) }}</div>
+
             <div
               v-for="crit in criterion.filter(
                 (criteria) => criteria.category_id == cat.category_id,
@@ -133,11 +145,13 @@ import RescoreAccordionComp from './RescoreAccordionComp.vue'
 import CriterionDefModal from './CriterionDefModal.vue'
 import SelectComp from './SelectComp.vue'
 import { getGeneric } from '@/services/dataService'
+import fieldNameCalc from '@/utils/utils'
 
 export default {
   name: 'DeptUnit',
   props: {
     unit: Object,
+    rescore: Boolean,
   },
   components: {
     RescoreAccordionComp,
@@ -179,6 +193,7 @@ export default {
     this.fetchCategoryData()
   },
   methods: {
+    fieldNameCalc,
     fetchCriterionData() {
       getGeneric('criterion').then((response) => {
         this.criterion = response
@@ -198,6 +213,59 @@ export default {
     },
     navigateUnit(unit_id) {
       this.$router.push({ path: '/view-unit', query: { unit_id: unit_id } })
+    },
+    groupCategoryDate(category) {
+      if (!this.unit) return null
+      const ranks_json = JSON.parse(this.unit.ranks_json)
+
+      const filteredCriterion = this.criterion.filter(
+        (criterion) => criterion.category_id == category.category_id,
+      )
+      const criterionArr = filteredCriterion.map((criterion) => criterion.criterion_id)
+
+      const ranks = ranks_json.filter((rank) => criterionArr.includes(rank.criterion_id))
+      let latestDate = null
+      ranks.forEach((rank) => {
+        const date = new Date(rank.date_assessed)
+        if (!latestDate || date > latestDate) {
+          latestDate = date
+        }
+      })
+      if (!latestDate) return null
+      let finalDate = latestDate.toISOString().split('T')[0]
+      return finalDate
+    },
+    metricDate() {
+      if (!this.unit) return null
+      const comment_date = this.unit.unit_comment_date_added
+      const metric_json = JSON.parse(this.unit.metric_json)
+      let latestDate = null
+      metric_json.forEach((metric) => {
+        const date = new Date(metric.date_from)
+        if (!latestDate || date > latestDate) {
+          latestDate = date
+        }
+      })
+      if (!latestDate || comment_date > latestDate) {
+        latestDate = comment_date
+      }
+      const finalDate = latestDate.toISOString().split('T')[0]
+      return finalDate
+    },
+    overallDate() {
+      if (!this.categories.length > 0) return
+      const metricDate = this.metricDate()
+      let latestDate = null
+      this.categories.forEach((cat) => {
+        const catDate = this.groupCategoryDate(cat)
+        if (catDate && (!latestDate || catDate > latestDate)) {
+          latestDate = catDate
+        }
+      })
+      if (!latestDate || metricDate > latestDate) {
+        latestDate = metricDate
+      }
+      return latestDate
     },
   },
   computed: {
@@ -287,5 +355,10 @@ export default {
 .complete-btn {
   /* align-self: right; */
   margin-left: auto;
+}
+
+.date-title {
+  text-align: right;
+  margin-top: 1rem;
 }
 </style>

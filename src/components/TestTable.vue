@@ -79,6 +79,7 @@
             <h4>Filters</h4>
             <zoa-input
               zoa-type="textbox"
+              class="filter"
               label="Search: Unit ID"
               label-position="above"
               v-model="searchIdQuery"
@@ -87,6 +88,7 @@
             />
             <zoa-input
               zoa-type="textbox"
+              class="filter"
               label="Search: Unit Name"
               label-position="above"
               v-model="searchNameQuery"
@@ -97,6 +99,7 @@
             <!-- <SelectComp :options="sections" label="Search: Section" help="" :multi="true" /> -->
             <zoa-input
               :zoa-type="'multiselect'"
+              class="filter"
               label="Search: Section"
               label-position="above"
               @change="(value) => resetPage()"
@@ -108,6 +111,13 @@
                 itemHeight: 50,
               }"
               v-model="searchSection"
+            />
+            <zoa-input
+              zoa-type="checkbox"
+              class="filter"
+              label="Show Inactive"
+              label-position="right"
+              v-model="filterInActive"
             />
           </div>
         </div>
@@ -202,6 +212,7 @@ export default {
       searchIdQuery: '',
       searchSection: [],
       selectedUnitIds: [], // List of selected collection_unit_id
+      filterInActive: false,
       filterTabs: [
         { id: 0, label: 'All' },
         { id: 1, label: 'Earth Sciences' },
@@ -252,7 +263,8 @@ export default {
             : true) &&
           (this.activeTab == 0
             ? true
-            : unit.department_name.includes(this.filterTabs[this.activeTab].label)),
+            : unit.department_name.includes(this.filterTabs[this.activeTab].label)) &&
+          (this.filterInActive ? true : unit.unit_active == 'yes'),
       )
     },
     paginatedUnits() {
@@ -421,6 +433,10 @@ export default {
   margin-top: 1rem;
   text-align: left;
   color: black;
+}
+
+.filter {
+  margin-top: 0.5rem;
 }
 
 .table-options {

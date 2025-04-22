@@ -1,0 +1,250 @@
+[
+  {
+    "tab_id": 0,
+    "label": "Unit Details",
+    "fields": [
+      {
+        "db_name": "collection_unit_id",
+        "label": "Collection Unit Id",
+        "type": "textbox",
+        "disabled": true,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "unit_name",
+        "label": "Unit Name",
+        "type": "textbox",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "public_unit_name",
+        "label": "Public Unit Name",
+        "type": "textbox",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "item_type",
+        "label": "Item Type",
+        "type": "textbox",
+        "disabled": true,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "description",
+        "label": "Description",
+        "type": "multiline",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "function_name",
+        "label": "Function Name",
+        "type": "textbox",
+        "disabled": false,
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "unit_active",
+        "label": "Unit Active",
+        "type": "checkbox",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "responsible_curator",
+        "label": "Responsible Curator",
+        "type": "person",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "archives_fond_ref",
+        "label": "Archives Fond Ref",
+        "type": "textbox",
+        "disabled": false,
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "bibliographic_level",
+        "label": "Bibliographic Level",
+        "type": "textbox",
+        "disabled": false,
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "count_curatorial_units_flag",
+        "label": "Count Curatorial Units Flag",
+        "type": "checkbox",
+        "disabled": false,
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "es_recent_specimen_flag",
+        "label": "Es Recent Specimen Flag",
+        "type": "checkbox",
+        "disabled": false,
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "items_unestimatable_flag",
+        "label": "Items Unestimatable Flag",
+        "type": "checkbox",
+        "disabled": false,
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "named_collection",
+        "label": "Named Collection",
+        "type": "textbox",
+        "disabled": true,
+        "logic": {},
+        "required": false
+      },
+      {
+        "db_name": "preservation_method",
+        "label": "Preservation Method",
+        "type": "textbox",
+        "disabled": "false",
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "publish_flag",
+        "label": "Publish Flag",
+        "type": "checkbox",
+        "disabled": "false",
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "sort_order",
+        "label": "Sort Order",
+        "type": "textbox",
+        "disabled": "false",
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "type_collection_flag",
+        "label": "Type Collection Flag",
+        "type": "checkbox",
+        "disabled": "false",
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "typical_item_count",
+        "label": "Typical Item Count",
+        "type": "textbox",
+        "disabled": "false",
+        "required": false,
+        "logic": {}
+      },
+      {
+        "db_name": "typical_item_count_range",
+        "label": "Typical Item Count Range",
+        "type": "textbox",
+        "disabled": "false",
+        "required": false,
+        "logic": {}
+      }
+    ]
+  },
+  {
+    "tab_id": 1,
+    "label": "Section",
+    "fields": [
+      {
+        "db_name": "section_id",
+        "label": "Section Id",
+        "type": "textbox",
+        "disabled": true,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "section_name",
+        "label": "Section Name",
+        "type": "textbox",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "division_name",
+        "label": "Division Name",
+        "type": "textbox",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      },
+      {
+        "db_name": "department_name",
+        "label": "Department Name",
+        "type": "textbox",
+        "disabled": false,
+        "required": true,
+        "logic": {}
+      }
+    ]
+  },
+  {
+    "tab_id": 2,
+    "label": "Properties",
+    "fields": [
+      "informal_taxon",
+      "geographic_origin_id",
+      "geographic_origin_name",
+      "region_type",
+      "geological_time_period_from_id",
+      "from_period",
+      "geological_time_period_to_id",
+      "to_period",
+      "ls_external_ref_name",
+      "ls_taxon_name",
+      "ls_taxon_rank",
+      "pal_external_ref_name",
+      "pal_taxon_name",
+      "pal_taxon_rank"
+    ]
+  },
+  {
+    "tab_id": 3,
+    "label": "Storage",
+    "fields": [
+      "container_name",
+      "temperature",
+      "relative_humidity",
+      "room_name",
+      "room_code",
+      "floor_name",
+      "building_name",
+      "site_name"
+    ]
+  },
+  {
+    "tab_id": 4,
+    "label": "Scores",
+    "fields": []
+  },
+  {
+    "tab_id": 5,
+    "label": "Comments",
+    "fields": ["unit_comment", "date_comment_added"]
+  }
+]
