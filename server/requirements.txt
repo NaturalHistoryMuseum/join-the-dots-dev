@@ -1,6 +1,6 @@
 flask
 flask_cors
-mysql
+mysql-connector-python
 requests
 msal
 flask_dance
