@@ -5,6 +5,4 @@ requests
 msal
 flask_dance
 dotenv
-os
 jwt
-json
