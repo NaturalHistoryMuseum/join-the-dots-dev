@@ -1,27 +1,27 @@
 LTC_EXPORT = """
                         WITH item_count_data AS (
 	SELECT cu.collection_unit_id as collection_unit_id, (
-			SELECT cum.metric_value FROM jtd_live.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
+			SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
 				and (cum.current = 'yes')
 				and (cum.collection_unit_metric_definition_id = 1))
 		) AS item_count, (
-			SELECT cum.confidence_level FROM jtd_live.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
+			SELECT cum.confidence_level FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
 				and (cum.current = 'yes')
 				and (cum.collection_unit_metric_definition_id = 1))
 		) AS item_count_confidence_level
-	FROM jtd_live.collection_unit cu
+	FROM {database_name}.collection_unit cu
 ),
 unit_count_data AS (
 	SELECT cu.collection_unit_id as collection_unit_id, (
-			SELECT cum.metric_value FROM jtd_live.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
+			SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
 				and (cum.current = 'yes')
 				and (cum.collection_unit_metric_definition_id = 2))
 		) AS curatorial_unit_count, (
-			SELECT cum.confidence_level FROM jtd_live.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
+			SELECT cum.confidence_level FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id) 
 				and (cum.current = 'yes')
 				and (cum.collection_unit_metric_definition_id = 2))
 		) AS curatorial_unit_count_confidence_level
-	FROM jtd_live.collection_unit cu
+	FROM {database_name}.collection_unit cu
 )
 SELECT
 	JSON_ARRAY(
@@ -174,7 +174,7 @@ SELECT
 	--     									IF(
 	--     										(SELECT 
 	-- 												MAX(vwar.weighted_average) 
-	-- 												FROM jtd_live.vw_weighted_average_review vwar 
+	-- 												FROM {database_name}.vw_weighted_average_review vwar 
 	-- 												WHERE vwar.collection_unit_id = cu.collection_unit_id AND vwar.criterion_code = "C1"
 	-- 											) IS NOT NULL,
 	-- 											JSON_OBJECT(
@@ -184,7 +184,7 @@ SELECT
 	-- 	    										'dwc:measurementValue', 
 	-- 	    											(SELECT 
 	-- 	    												MAX(vwar.weighted_average) 
-	-- 	    												FROM jtd_live.vw_weighted_average_review vwar 
+	-- 	    												FROM {database_name}.vw_weighted_average_review vwar 
 	-- 	    												WHERE vwar.collection_unit_id = cu.collection_unit_id AND vwar.criterion_code = "C1"
 	-- 	    											)
 	-- 	    									)
@@ -200,19 +200,19 @@ SELECT
 			    										'dwc:measurementValue', uar.percentage
 				                                    )
 				                                ) AS percentages_json
-				                                FROM jtd_live.unit_assessment_criterion uac
-				                                JOIN jtd_live.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-				                                JOIN jtd_live.rank r ON r.rank_id = uar.rank_id
-				                                RIGHT JOIN jtd_live.criterion c ON r.criterion_id = c.criterion_id
+				                                FROM {database_name}.unit_assessment_criterion uac
+				                                JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+				                                JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
+				                                RIGHT JOIN {database_name}.criterion c ON r.criterion_id = c.criterion_id
 				                                WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
 				                                AND uar.unit_assessment_criterion_id IN (
 				                                    SELECT uac.unit_assessment_criterion_id
-				                                    FROM jtd_live.unit_assessment_criterion uac
-				                                    JOIN jtd_live.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+				                                    FROM {database_name}.unit_assessment_criterion uac
+				                                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
 				                                    WHERE uac.current = 'yes'
 				                                )
 				                                AND uar.rank_id IN (
-				                                    SELECT r.rank_id FROM jtd_live.rank r
+				                                    SELECT r.rank_id FROM {database_name}.rank r
 				                                ))
 				                                ORDER BY r.rank_id
 				                            )
@@ -222,16 +222,16 @@ SELECT
     					, JSON_OBJECT())
 	    			) 
 	    		) 
-	    		FROM jtd_live.collection_unit cu
-	    		LEFT JOIN jtd_live.section s ON s.section_id = cu.section_id 
-                LEFT JOIN jtd_live.division d ON d.division_id = s.division_id 
-                LEFT JOIN jtd_live.department d2 ON d2.department_id = d.department_id 
-	    		LEFT JOIN jtd_live.curatorial_unit_definition cud ON cud.curatorial_unit_definition_id = cu.curatorial_unit_definition_id 
-                LEFT JOIN jtd_live.item_type it ON it.item_type_id = cud.item_type_id
-                LEFT JOIN jtd_live.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id 
-                LEFT JOIN jtd_live.geographic_origin go2 ON go2.geographic_origin_id = cu.geographic_origin_id
-                LEFT JOIN jtd_live.taxon_palaeontology tp ON tp.taxon_palaeontology_id = cu.taxon_palaeontology_id 
-               	LEFT JOIN jtd_live.taxon_life_science tls ON tls.taxon_life_science_id = cu.taxon_life_science_id 
+	    		FROM {database_name}.collection_unit cu
+	    		LEFT JOIN {database_name}.section s ON s.section_id = cu.section_id 
+                LEFT JOIN {database_name}.division d ON d.division_id = s.division_id 
+                LEFT JOIN {database_name}.department d2 ON d2.department_id = d.department_id 
+	    		LEFT JOIN {database_name}.curatorial_unit_definition cud ON cud.curatorial_unit_definition_id = cu.curatorial_unit_definition_id 
+                LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id
+                LEFT JOIN {database_name}.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id 
+                LEFT JOIN {database_name}.geographic_origin go2 ON go2.geographic_origin_id = cu.geographic_origin_id
+                LEFT JOIN {database_name}.taxon_palaeontology tp ON tp.taxon_palaeontology_id = cu.taxon_palaeontology_id 
+               	LEFT JOIN {database_name}.taxon_life_science tls ON tls.taxon_life_science_id = cu.taxon_life_science_id 
                	JOIN item_count_data on item_count_data.collection_unit_id = cu.collection_unit_id
                	JOIN unit_count_data on unit_count_data.collection_unit_id = cu.collection_unit_id
                 --	WHERE cu.collection_unit_id = 1
@@ -254,19 +254,19 @@ SECTION_UNITS = """
                             `cu`.`sort_order` AS `sort_order`,
                             (
                             select
-                                concat(`jtd_live`.`person`.`first_name`, ' ', `jtd_live`.`person`.`last_name`)
+                                concat(`{database_name}`.`person`.`first_name`, ' ', `{database_name}`.`person`.`last_name`)
                             from
-                                `jtd_live`.`person`
+                                `{database_name}`.`person`
                             where
-                                (`jtd_live`.`person`.`person_id` in (
+                                (`{database_name}`.`person`.`person_id` in (
                                 select
-                                    distinct `jtd_live`.`unit_assessment_criterion`.`assessor_id`
+                                    distinct `{database_name}`.`unit_assessment_criterion`.`assessor_id`
                                 from
-                                    `jtd_live`.`unit_assessment_criterion`
+                                    `{database_name}`.`unit_assessment_criterion`
                                 where
-                                    ((`jtd_live`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
-                                        and (`jtd_live`.`unit_assessment_criterion`.`current` = 'yes')))
-                                    and (`jtd_live`.`person`.`person_id` <> 113))
+                                    ((`{database_name}`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                                        and (`{database_name}`.`unit_assessment_criterion`.`current` = 'yes')))
+                                    and (`{database_name}`.`person`.`person_id` <> 113))
                             limit 1) AS `assessor`,
                             (
                             	SELECT JSON_ARRAYAGG(
@@ -281,15 +281,15 @@ SECTION_UNITS = """
                             			'metric_datatype', cumd.metric_datatype
                         			)
                             	) AS metric_json 
-                            	FROM jtd_live.collection_unit_metric cum 
-                            	JOIN jtd_live.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
+                            	FROM {database_name}.collection_unit_metric cum 
+                            	JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
                             	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
                             ) AS metric_json,
                             (
                             select
                                 `uc`.`unit_comment`
                             from
-                                `jtd_live`.`unit_comment` `uc`
+                                `{database_name}`.`unit_comment` `uc`
                             where
                                 (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
                             order by
@@ -299,7 +299,7 @@ SECTION_UNITS = """
                             select
                                 `uc`.`date_added`
                             from
-                                `jtd_live`.`unit_comment` `uc`
+                                `{database_name}`.`unit_comment` `uc`
                             where
                                 (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
                             order by
@@ -311,37 +311,38 @@ SECTION_UNITS = """
                                         'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
                                         'rank_id', uar.rank_id,
                                         'rank_value', r.rank_value,
+                                        'comment', uar.comment,
                                         'definition', r.definition,
                                         'criterion_id', r.criterion_id,
                                         'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
                                     )
                                 ) AS percentages_json
-                                FROM jtd_live.unit_assessment_criterion uac
-                                JOIN jtd_live.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                                JOIN jtd_live.rank r ON r.rank_id = uar.rank_id
+                                FROM {database_name}.unit_assessment_criterion uac
+                                JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+                                JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
                                 WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
                                 AND uar.unit_assessment_criterion_id IN (
                                     SELECT uac.unit_assessment_criterion_id
-                                    FROM jtd_live.unit_assessment_criterion uac
-                                    JOIN jtd_live.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+                                    FROM {database_name}.unit_assessment_criterion uac
+                                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
                                     WHERE uac.current = 'yes'
                                 )
                                 AND uar.rank_id IN (
-                                    SELECT r.rank_id FROM jtd_live.rank r
+                                    SELECT r.rank_id FROM {database_name}.rank r
                                 ))
                             ) AS ranks_json
                         from
-                            (((((`jtd_live`.`collection_unit` `cu`
-                        left join `jtd_live`.`section` `se` on
+                            (((((`{database_name}`.`collection_unit` `cu`
+                        left join `{database_name}`.`section` `se` on
                             ((`se`.`section_id` = `cu`.`section_id`)))
-                        left join `jtd_live`.`division` `di` on
+                        left join `{database_name}`.`division` `di` on
                             ((`di`.`division_id` = `se`.`division_id`)))
-                        left join `jtd_live`.`person` `pe` on
+                        left join `{database_name}`.`person` `pe` on
                             ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
-                        left join `jtd_live`.`curatorial_unit_definition` `cud` on
+                        left join `{database_name}`.`curatorial_unit_definition` `cud` on
                             ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
-                        left join `jtd_live`.`vw_metrics_current` `vmc` on
-                            ((`jtd_live`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+                        left join `{database_name}`.`vw_metrics_current` `vmc` on
+                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
                         where
                             (`cu`.`unit_active` = 'yes') AND se.section_id = %i
                         order by
@@ -362,19 +363,19 @@ UNIT_SCORES = """
                             `cu`.`sort_order` AS `sort_order`,
                             (
                             select
-                                concat(`jtd_live`.`person`.`first_name`, ' ', `jtd_live`.`person`.`last_name`)
+                                concat(`{database_name}`.`person`.`first_name`, ' ', `{database_name}`.`person`.`last_name`)
                             from
-                                `jtd_live`.`person`
+                                `{database_name}`.`person`
                             where
-                                (`jtd_live`.`person`.`person_id` in (
+                                (`{database_name}`.`person`.`person_id` in (
                                 select
-                                    distinct `jtd_live`.`unit_assessment_criterion`.`assessor_id`
+                                    distinct `{database_name}`.`unit_assessment_criterion`.`assessor_id`
                                 from
-                                    `jtd_live`.`unit_assessment_criterion`
+                                    `{database_name}`.`unit_assessment_criterion`
                                 where
-                                    ((`jtd_live`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
-                                        and (`jtd_live`.`unit_assessment_criterion`.`current` = 'yes')))
-                                    and (`jtd_live`.`person`.`person_id` <> 113))
+                                    ((`{database_name}`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                                        and (`{database_name}`.`unit_assessment_criterion`.`current` = 'yes')))
+                                    and (`{database_name}`.`person`.`person_id` <> 113))
                             limit 1) AS `assessor`,
                             (
                             	SELECT JSON_ARRAYAGG(
@@ -389,15 +390,15 @@ UNIT_SCORES = """
                             			'metric_datatype', cumd.metric_datatype
                         			)
                             	) AS metric_json 
-                            	FROM jtd_live.collection_unit_metric cum 
-                            	JOIN jtd_live.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
+                            	FROM {database_name}.collection_unit_metric cum 
+                            	JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
                             	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
                             ) AS metric_json,
                             (
                             select
                                 `uc`.`unit_comment`
                             from
-                                `jtd_live`.`unit_comment` `uc`
+                                `{database_name}`.`unit_comment` `uc`
                             where
                                 (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
                             order by
@@ -407,7 +408,7 @@ UNIT_SCORES = """
                             select
                                 `uc`.`date_added`
                             from
-                                `jtd_live`.`unit_comment` `uc`
+                                `{database_name}`.`unit_comment` `uc`
                             where
                                 (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
                             order by
@@ -419,37 +420,38 @@ UNIT_SCORES = """
                                         'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
                                         'rank_id', uar.rank_id,
                                         'rank_value', r.rank_value,
+                                        'comment', uar.comment,
                                         'definition', r.definition,
                                         'criterion_id', r.criterion_id,
                                         'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
                                     )
                                 ) AS percentages_json
-                                FROM jtd_live.unit_assessment_criterion uac
-                                JOIN jtd_live.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                                JOIN jtd_live.rank r ON r.rank_id = uar.rank_id
+                                FROM {database_name}.unit_assessment_criterion uac
+                                JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+                                JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
                                 WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
                                 AND uar.unit_assessment_criterion_id IN (
                                     SELECT uac.unit_assessment_criterion_id
-                                    FROM jtd_live.unit_assessment_criterion uac
-                                    JOIN jtd_live.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+                                    FROM {database_name}.unit_assessment_criterion uac
+                                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
                                     WHERE uac.current = 'yes'
                                 )
                                 AND uar.rank_id IN (
-                                    SELECT r.rank_id FROM jtd_live.rank r
+                                    SELECT r.rank_id FROM {database_name}.rank r
                                 ))
                             ) AS ranks_json
                         from
-                            (((((`jtd_live`.`collection_unit` `cu`
-                        left join `jtd_live`.`section` `se` on
+                            (((((`{database_name}`.`collection_unit` `cu`
+                        left join `{database_name}`.`section` `se` on
                             ((`se`.`section_id` = `cu`.`section_id`)))
-                        left join `jtd_live`.`division` `di` on
+                        left join `{database_name}`.`division` `di` on
                             ((`di`.`division_id` = `se`.`division_id`)))
-                        left join `jtd_live`.`person` `pe` on
+                        left join `{database_name}`.`person` `pe` on
                             ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
-                        left join `jtd_live`.`curatorial_unit_definition` `cud` on
+                        left join `{database_name}`.`curatorial_unit_definition` `cud` on
                             ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
-                        left join `jtd_live`.`vw_metrics_current` `vmc` on
-                            ((`jtd_live`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+                        left join `{database_name}`.`vw_metrics_current` `vmc` on
+                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
                         where
                             (`cu`.`unit_active` = 'yes') AND cu.collection_unit_id = %i
                         order by

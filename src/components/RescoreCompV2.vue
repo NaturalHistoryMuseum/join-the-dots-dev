@@ -130,7 +130,93 @@
                     :label="'Rank ' + ranks.rank_value"
                     v-model="ranks.percentage"
                   />
+                  <!-- {{ ranks.comment }} -->
                 </div>
+              </div>
+              <!-- <div class="">
+                <div
+                  v-for="ranks in JSON.parse(unit.ranks_json).filter(
+                    (rank) => rank.criterion_id == crit.criterion_id,
+                  )"
+                  :key="ranks.rank_id"
+                >
+                  Rank {{ ranks.rank_value }} - {{ ranks.comment }}
+                </div>
+              </div> -->
+              <!-- <div
+                v-for="rank in JSON.parse(unit.ranks_json).filter(
+                  (rank) => rank.criterion_id == crit.criterion_id && rank.comment !== null,
+                )"
+                :key="rank.rank_id"
+                class="row"
+              > -->
+              <!-- <div class="col-md-2">
+                  <zoa-input
+                    zoa-type="dropdown"
+                    label="Rank"
+                    :options="{
+                      options: [
+                        { value: 1, label: 'Rank 1' },
+                        { value: 2, label: 'Rank 2' },
+                        { value: 3, label: 'Rank 3' },
+                        { value: 4, label: 'Rank 4' },
+                        { value: 5, label: 'Rank 5' },
+                      ],
+                    }"
+                    v-model="rank.rank_value"
+                  />
+                </div> -->
+
+              <!-- <div class="col-md-10">
+                  <zoa-input
+                    zoa-type="empty"
+                    :label="`Rank ${rank.rank_value} Comment`"
+                    class="comments-title"
+                  />
+                  <textarea class="text-area" rows="2" v-model="rank.comment"></textarea>
+                </div>
+                <div class="col-md-2">
+                  <zoa-button :color="red">
+                    <i class="bi bi-trash"></i>
+                  </zoa-button>
+                </div>
+              </div>
+              <zoa-button label="Add Comment" /> -->
+
+              <div class="row">
+                <!-- <zoa-button
+                  class=""
+                  label="Show comments"
+                  @click="showCriterionComments(crit.criterion_id)"
+                /> -->
+                <div class="show-comments" @click="showCriterionComments(crit.criterion_id)">
+                  <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
+                    <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
+                  </div>
+                  <div v-else class="show-comments">
+                    <i class="bi bi-chevron-down"></i> {{ commentsTitle(crit.criterion_id) }}
+                  </div>
+                </div>
+                <transition name="fade">
+                  <div v-if="expanded_criterion_comment == crit.criterion_id" class="row">
+                    <div class="col-md-10">
+                      <div
+                        v-for="rank in JSON.parse(unit.ranks_json).filter(
+                          (rank) => rank.criterion_id == crit.criterion_id && rank.comment !== null,
+                        )"
+                        :key="rank.rank_id"
+                      >
+                        <div class="">
+                          <p class="view-field">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-2 edit-comments">
+                      <EditCommentsModal :crit="crit" :unit="unit" />
+                    </div>
+                    <!-- <zoa-button label="Add Comment" /> -->
+                  </div>
+                </transition>
               </div>
             </div>
           </div>
@@ -146,6 +232,7 @@ import CriterionDefModal from './CriterionDefModal.vue'
 import SelectComp from './SelectComp.vue'
 import { getGeneric } from '@/services/dataService'
 import fieldNameCalc from '@/utils/utils'
+import EditCommentsModal from './EditCommentsModal.vue'
 
 export default {
   name: 'DeptUnit',
@@ -157,6 +244,7 @@ export default {
     RescoreAccordionComp,
     CriterionDefModal,
     SelectComp,
+    EditCommentsModal,
   },
   setup() {},
   data() {
@@ -178,6 +266,7 @@ export default {
         { value: 'Low', order: 3 },
       ],
       localUnit: { ...this.unit },
+      expanded_criterion_comment: null,
     }
   },
   watch: {
@@ -266,6 +355,23 @@ export default {
         latestDate = metricDate
       }
       return latestDate
+    },
+    showCriterionComments(criterion_id) {
+      if (this.expanded_criterion_comment === criterion_id) {
+        this.expanded_criterion_comment = null
+      } else {
+        this.expanded_criterion_comment = criterion_id
+      }
+    },
+    commentsTitle(criterion_id) {
+      const ranks_comments = JSON.parse(this.unit.ranks_json).filter(
+        (rank) =>
+          rank.criterion_id == criterion_id && rank.comment !== null && rank.comment.length > 0,
+      )
+      if (ranks_comments.length == 0) {
+        return 'Add comments'
+      }
+      return `Show comments (${ranks_comments.length})`
     },
   },
   computed: {
@@ -360,5 +466,21 @@ export default {
 .date-title {
   text-align: right;
   margin-top: 1rem;
+}
+
+.view-field {
+  margin: 0 1.5rem;
+  /* height: 1rem; */
+}
+
+.show-comments {
+  cursor: pointer;
+  margin: 0.25rem 0;
+}
+
+.edit-comments {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
