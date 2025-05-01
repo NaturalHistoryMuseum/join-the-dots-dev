@@ -13,18 +13,18 @@ class Config:
     # FOR LOCAL DEVELOPMENT ONLY
     # MYSQL_HOST = os.getenv("MYSQL_HOST")
     # MYSQL_USER = os.getenv("MYSQL_USER")
-    # MYSQL_NEW_PASSWORD = os.getenv("MYSQL_NEW_PASSWORD")
+    # MYSQL_PASSWORD = os.getenv("MYSQL_NEW_PASSWORD")
     # MYSQL_DB = os.getenv("MYSQL_DB")
 
     # FOR PRODUCTION
     MYSQL_HOST = os.environ.get("MYSQL_HOST")
     MYSQL_USER = os.environ.get("MYSQL_USER")
-    MYSQL_NEW_PASSWORD = os.environ.get("MYSQL_NEW_PASSWORD")
-    MYSQL_DB = os.environ.get("MYSQL_DB")
+    MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
+    MYSQL_DB = os.environ.get("MYSQL_DATABASE")
 
     print("MYSQL_HOST:", MYSQL_HOST)
     print("MYSQL_USER:", MYSQL_USER)
-    print("MYSQL_NEW_PASSWORD:", MYSQL_NEW_PASSWORD)
+    print("MYSQL_PASSWORD:", MYSQL_PASSWORD)
     print("MYSQL_DB:", MYSQL_DB)
 
     # Secondary Database Configuration
