@@ -83,6 +83,7 @@
 </template>
 
 <script>
+import { getGeneric } from '@/services/dataService'
 import axios from 'axios'
 
 export default {
@@ -111,18 +112,12 @@ export default {
   },
   methods: {
     fetchCriterionData() {
-      axios.get(`http://localhost:5000/api/data/criterion`).then((response) => {
-        this.criterion = response.data
+      this.criterion = getGeneric(`criterion`)
+    },
+    async fetchCategoryData() {
+      this.categories = await getGeneric(`category`)
+    },
 
-        console.log('criterion data : ', response.data)
-      })
-    },
-    fetchCategoryData() {
-      axios.get(`http://localhost:5000/api/data/category`).then((response) => {
-        this.categories = response.data
-        console.log('category data : ', response.data)
-      })
-    },
     toggleCritDetails(crit_id) {
       if (this.expandedCritDetails === crit_id) {
         this.expandedCritDetails = 0

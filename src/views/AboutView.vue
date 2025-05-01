@@ -3,26 +3,26 @@
 </script> -->
 
 <script>
-import axios from 'axios'
+// import axios from 'axios'
 
-export default {
-  data() {
-    return {
-      data: [],
-    }
-  },
-  mounted() {
-    axios
-      .get('http://localhost:5000/api/data/category')
-      .then((response) => {
-        this.data = response.data
-        console.log(this.data)
-      })
-      .catch((error) => {
-        console.error('There was an error fetching the data!', error)
-      })
-  },
-}
+// export default {
+//   data() {
+//     return {
+//       data: [],
+//     }
+//   },
+//   mounted() {
+//     axios
+//       .get('http://localhost:5000/api/data/category')
+//       .then((response) => {
+//         this.data = response.data
+//         console.log(this.data)
+//       })
+//       .catch((error) => {
+//         console.error('There was an error fetching the data!', error)
+//       })
+//   },
+// }
 </script>
 
 <template>

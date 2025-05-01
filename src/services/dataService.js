@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_URL = 'http://localhost:5000/api/data'
+// const API_URL = 'http://localhost:5000/api/data'
+const API_URL = 'https://jtd-api-test.nhm.ac.uk/api/data'
 
 export async function getGeneric(route) {
   const resp = await axios.get(`${API_URL}/${route}`).then((response) => {
