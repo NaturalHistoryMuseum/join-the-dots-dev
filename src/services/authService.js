@@ -5,7 +5,7 @@ export const currentUser = ref(null)
 let userLoaded = false
 
 // const API_URL = 'http://localhost:5000/api/auth'
-const API_URL = 'https://jtd-api-test.nhm.ac.uk/api/auth'
+const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth'
 
 // Auth where it navigates to the auth URL
 // export async function login() {
