@@ -20,11 +20,12 @@ def fetch_data(query, params=None):
     return result
 
 # Azure AD Config
-CLIENT_ID = app.config("AZURE_CLIENT_ID")
-CLIENT_SECRET = app.config("AZURE_CLIENT_SECRET")
-TENANT_ID = app.config("AZURE_TENANT_ID")
+CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
+TENANT_ID = os.environ.get("AZURE_TENANT_ID")
+
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
-REDIRECT_URI = app.config("AZURE_REDIRECT_URI")
+REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
 SCOPES = []
 
 # JWT Secret Key
