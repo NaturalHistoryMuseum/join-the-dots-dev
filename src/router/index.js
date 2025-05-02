@@ -46,10 +46,10 @@ const router = createRouter({
       path: '/rescore',
       name: 'rescore',
       component: RescoreView,
-      beforeEnter: (to, from, next) => {
-        console.log(currentUser.value)
-        checkAuth('admin', from, next)
-      },
+      // beforeEnter: (to, from, next) => {
+      //   console.log(currentUser.value)
+      //   checkAuth('admin', from, next)
+      // },
     },
     {
       path: '/manage-rescore',

@@ -5,4 +5,4 @@ requests
 msal
 flask_dance
 dotenv
-jwt
+PyJWT

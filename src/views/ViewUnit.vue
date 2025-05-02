@@ -24,7 +24,7 @@
             </div>
           </div>
           <!-- Unit Details -->
-          <div v-if="activeTab == 0" class="content row">
+          <!-- <div v-if="activeTab == 0" class="content row">
             <div class="row">
               <h4 class="subheading">Unit Details</h4>
               <div class="col-md-4 field">
@@ -57,7 +57,7 @@
                 />
               </div>
             </div>
-          </div>
+          </div> -->
           <!-- Section -->
           <div v-if="activeTab == 1" class="content row">
             <div class="col-md-4 field">
