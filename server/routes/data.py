@@ -46,32 +46,10 @@ def get_unit(unit_id):
 
 @data_bp.route('/full-unit/<unit_id>', methods=['GET'])
 def get_full_unit(unit_id):
-    data = fetch_data("""SELECT  cu.*, s.section_name, d.division_name, d2.department_name , concat(p.first_name, ' ', p.last_name) AS responsible_curator, 
-                    cud.description, cud.typical_item_count , cud.typical_item_count_range , cud.items_unestimatable_flag,
-                    bl.bibliographic_level, it.item_type, pm.preservation_method, go2.geographic_origin_name, go2.region_type, gtpf.period_name AS from_period, gtpt.period_name to_period,
-                    tp.taxon_name AS pal_taxon_name, tp.taxon_rank AS pal_taxon_rank, tp.external_ref_name AS pal_external_ref_name, tls.taxon_name AS ls_taxon_name, tls.taxon_rank AS ls_taxon_rank, tls.external_ref_name AS ls_external_ref_name,
-                    sc.container_name, sc.temperature, sc.relative_humidity, sr.room_name, sr.room_code, f.floor_name, b.building_name, s2.site_name,
-                    laaf.function_name, uc.unit_comment, DATE(uc.date_added) AS date_comment_added
+    data = fetch_data("""SELECT  cu.*, concat(p.first_name, ' ', p.last_name) AS responsible_curator,
+                    uc.unit_comment, DATE(uc.date_added) AS date_comment_added
                     FROM {database_name}.collection_unit cu 
-                    LEFT JOIN {database_name}.`section` s ON s.section_id = cu.section_id 
-                    LEFT JOIN {database_name}.division d ON d.division_id = s.division_id 
-                    LEFT JOIN {database_name}.department d2 ON d2.department_id = d.department_id 
                     LEFT JOIN {database_name}.person p ON p.person_id = cu.responsible_curator_id 
-                    LEFT JOIN {database_name}.curatorial_unit_definition cud ON cud.curatorial_unit_definition_id = cu.curatorial_unit_definition_id 
-                    LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id 
-                    LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id 
-                    LEFT JOIN {database_name}.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id 
-                    LEFT JOIN {database_name}.geographic_origin go2 ON go2.geographic_origin_id = cu.geographic_origin_id 
-                    LEFT JOIN {database_name}.geological_time_period gtpf ON gtpf.geological_time_period_id = cu.geological_time_period_from_id 
-                    LEFT JOIN {database_name}.geological_time_period gtpt ON gtpt.geological_time_period_id = cu.geological_time_period_to_id 
-                    LEFT JOIN {database_name}.taxon_palaeontology tp ON tp.taxon_palaeontology_id = cu.taxon_palaeontology_id 
-                    LEFT JOIN {database_name}.taxon_life_science tls ON tls.taxon_life_science_id = cu.taxon_life_science_id 
-                    LEFT JOIN {database_name}.storage_container sc ON sc.storage_container_id = cu.storage_container_id 
-                    LEFT JOIN {database_name}.storage_room sr ON sr.storage_room_id = cu.storage_room_id 
-                    LEFT JOIN {database_name}.floor f ON f.floor_id = sr.floor_id 
-                    LEFT JOIN {database_name}.building b ON b.building_id = f.building_id 
-                    LEFT JOIN {database_name}.site s2 ON s2.site_id = b.site_id 
-                    LEFT JOIN {database_name}.library_and_archives_function laaf ON laaf.library_and_archives_function_id = cu.library_and_archives_function_id 
                     LEFT JOIN {database_name}.unit_comment uc ON uc.collection_unit_id = cu.collection_unit_id
                     WHERE cu.collection_unit_id = %u
                    """ % int(unit_id))
@@ -162,6 +140,13 @@ def get_all_rooms():
                         JOIN {database_name}.floor f ON f.floor_id = sr.floor_id 
                         JOIN {database_name}.building b ON b.building_id = f.building_id 
                         JOIN {database_name}.site s ON s.site_id = b.site_id 
+                   """)
+    return jsonify(data)
+
+@data_bp.route('/all-lib-function', methods=['GET'])
+def get_all_lib_function():
+    data = fetch_data("""SELECT *
+                        FROM {database_name}.library_and_archives_function
                    """)
     return jsonify(data)
 

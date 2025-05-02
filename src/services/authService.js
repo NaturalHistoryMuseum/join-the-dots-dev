@@ -4,8 +4,10 @@ import axios from 'axios'
 export const currentUser = ref(null)
 let userLoaded = false
 
-// const API_URL = 'http://localhost:5000/api/auth'
-const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth'
+// FOR LOCAL TESTING
+const API_URL = 'http://localhost:5000/api/auth'
+// FOR K8S
+// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth'
 
 // Auth where it navigates to the auth URL
 // export async function login() {

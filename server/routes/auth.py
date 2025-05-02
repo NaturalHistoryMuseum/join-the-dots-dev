@@ -20,12 +20,19 @@ def fetch_data(query, params=None):
     return result
 
 # Azure AD Config
-CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
-TENANT_ID = os.environ.get("AZURE_TENANT_ID")
+# FOR K8S
+# CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
+# CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
+# TENANT_ID = os.environ.get("AZURE_TENANT_ID")
+# REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
+# FOR LOCAL TESTING
+CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
+TENANT_ID = os.getenv("AZURE_TENANT_ID")
+REDIRECT_URI = os.getenv("AZURE_REDIRECT_URI")
 
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
-REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
+
 SCOPES = []
 
 # JWT Secret Key
@@ -96,7 +103,7 @@ def auth_redirect():
         if not user:
             print('inserting')
             # Add user if not present
-            cursor.execute("INSERT INTO jtd_test.users (azure_id, name, email, role) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 'user'))
+            cursor.execute("INSERT INTO jtd_test.users (azure_id, name, email, role) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 'viewer'))
             connection.commit()
             # fetch user again
             cursor.execute("""SELECT *

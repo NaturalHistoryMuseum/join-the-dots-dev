@@ -5,7 +5,7 @@
       <p>Unit ID: {{ unitId }}</p>
       <TopTabs :tabs="tabs" :activeTab="activeTab" :changeTabFunc="changeTab">
         <div v-if="unit">
-          <div
+          <!-- <div
             v-if="
               activeTab !== 4 &&
               activeTab !== 5 &&
@@ -22,9 +22,9 @@
                 v-model="filteredFields[key]"
               />
             </div>
-          </div>
+          </div> -->
           <!-- Unit Details -->
-          <!-- <div v-if="activeTab == 0" class="content row">
+          <div v-if="activeTab == 0" class="content row">
             <div class="row">
               <h4 class="subheading">Unit Details</h4>
               <div class="col-md-4 field">
@@ -44,6 +44,96 @@
                   v-model="unit.named_collection"
                 />
               </div>
+              <div class="col-md-4 field">
+                <zoa-input
+                  zoa-type="textbox"
+                  label="Archives Fond Ref"
+                  v-model="unit.archives_fond_ref"
+                />
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="number" label="Sort Order" v-model="unit.sort_order" />
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Unit Active?" class="comments-title" />
+                <zoa-input
+                  zoa-type="checkbox"
+                  :label="
+                    unit.unit_active != null
+                      ? unit.unit_active.charAt(0).toUpperCase() + unit.unit_active.slice(1)
+                      : 'No'
+                  "
+                  label-position="right"
+                  v-model="unitIsActive"
+                />
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Publish Unit?" class="comments-title" />
+                <zoa-input
+                  zoa-type="checkbox"
+                  :label="
+                    unit.publish_flag != null
+                      ? unit.publish_flag.charAt(0).toUpperCase() + unit.publish_flag.slice(1)
+                      : 'No'
+                  "
+                  label-position="right"
+                  v-model="publishFlag"
+                />
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Type Collection?" class="comments-title" />
+                <zoa-input
+                  zoa-type="checkbox"
+                  :label="
+                    unit.type_collection_flag != null
+                      ? unit.type_collection_flag.charAt(0).toUpperCase() +
+                        unit.type_collection_flag.slice(1)
+                      : 'No'
+                  "
+                  label-position="right"
+                  v-model="typeCollectionFlag"
+                />
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="ES Recent Specimen?" class="comments-title" />
+                <zoa-input
+                  zoa-type="checkbox"
+                  :label="
+                    unit.es_recent_specimen_flag != null
+                      ? unit.es_recent_specimen_flag.charAt(0).toUpperCase() +
+                        unit.es_recent_specimen_flag.slice(1)
+                      : 'No'
+                  "
+                  label-position="right"
+                  v-model="recentSpecimenFlag"
+                />
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input
+                  zoa-type="empty"
+                  label="Count Curatorial Units?"
+                  class="comments-title"
+                />
+                <zoa-input
+                  zoa-type="checkbox"
+                  :label="
+                    unit.count_curatorial_units_flag != null
+                      ? unit.count_curatorial_units_flag.charAt(0).toUpperCase() +
+                        unit.count_curatorial_units_flag.slice(1)
+                      : 'No'
+                  "
+                  label-position="right"
+                  v-model="countCuratorialUnitsFlag"
+                />
+              </div>
+            </div>
+
+            <div class="row">
+              <h4 class="subheading">Responsible Curator</h4>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Curator Name" class="comments-title" />
+                <p class="view-field">{{ unit.responsible_curator }}</p>
+              </div>
             </div>
             <div class="row">
               <h4 class="subheading">Curtorial Unit Definition</h4>
@@ -56,8 +146,40 @@
                   @change="setCurrentCuratorialDef"
                 />
               </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Item Type" class="comments-title" />
+                <p class="view-field">{{ current_curatorial_def.item_type }}</p>
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Bibliographic Level" class="comments-title" />
+                <p class="view-field">{{ current_curatorial_def.bibliographic_level }}</p>
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input zoa-type="empty" label="Preservation Method" class="comments-title" />
+                <p class="view-field">{{ current_curatorial_def.preservation_method }}</p>
+              </div>
+              <div class="col-md-4 field">
+                <zoa-input
+                  zoa-type="empty"
+                  label="Items Unestimatable Flag"
+                  class="comments-title"
+                />
+                <p class="view-field">{{ current_curatorial_def.items_unestimatable_flag }}</p>
+              </div>
             </div>
-          </div> -->
+            <div v-if="current_section.department_id == 2" class="row">
+              <h4 class="subheading">Library and Archives Function</h4>
+              <div class="col-md-4 field">
+                <zoa-input
+                  zoa-type="dropdown"
+                  label="Library and Archives Function"
+                  :options="{ options: lib_function_options }"
+                  v-model="unit.library_and_archives_function_id"
+                  @change="setCurrentLibFunction"
+                />
+              </div>
+            </div>
+          </div>
           <!-- Section -->
           <div v-if="activeTab == 1" class="content row">
             <div class="col-md-4 field">
@@ -424,6 +546,8 @@ export default {
       },
       curatorial_def_options: [],
       current_curatorial_def: {},
+      lib_function_options: [],
+      current_lib_function: {},
     }
   },
   mounted() {
@@ -495,6 +619,14 @@ export default {
           label: curatorial_def.description,
         }))
         this.setCurrentCuratorialDef()
+      })
+      getGeneric(`all-lib-function`).then((response) => {
+        this.lib_function_options = response.map((lib_function) => ({
+          ...lib_function,
+          value: lib_function.library_and_archives_function_id,
+          label: lib_function.function_name,
+        }))
+        this.setCurrentLibFunction()
       })
     },
     fieldNameCalc,
@@ -618,6 +750,20 @@ export default {
         )[0]
       }
     },
+    setCurrentLibFunction() {
+      if (this.unit.library_and_archives_function_id == null) {
+        this.current_lib_function = {
+          value: null,
+          lib_function_name: null,
+        }
+      } else {
+        this.current_lib_function = this.lib_function_options.filter(
+          (lib_function) =>
+            lib_function.library_and_archives_function_id ==
+            this.unit.library_and_archives_function_id,
+        )[0]
+      }
+    },
   },
   computed: {
     filteredFields() {
@@ -640,6 +786,66 @@ export default {
         return sortedFields
       }
       return {}
+    },
+    unitIsActive: {
+      get() {
+        // Map 'yes' to true, anything else (including 'no') to false
+        return this.unit?.unit_active === 'yes'
+      },
+      set(val) {
+        // Map true/false back to 'yes'/'no'
+        if (this.unit) {
+          this.unit.unit_active = val ? 'yes' : 'no'
+        }
+      },
+    },
+    publishFlag: {
+      get() {
+        // Map 'yes' to true, anything else (including 'no') to false
+        return this.unit?.publish_flag === 'yes'
+      },
+      set(val) {
+        // Map true/false back to 'yes'/'no'
+        if (this.unit) {
+          this.unit.publish_flag = val ? 'yes' : 'no'
+        }
+      },
+    },
+    typeCollectionFlag: {
+      get() {
+        // Map 'yes' to true, anything else (including 'no') to false
+        return this.unit?.type_collection_flag === 'yes'
+      },
+      set(val) {
+        // Map true/false back to 'yes'/'no'
+        if (this.unit) {
+          this.unit.type_collection_flag = val ? 'yes' : 'no'
+        }
+      },
+    },
+    recentSpecimenFlag: {
+      get() {
+        // Map 'yes' to true, anything else (including 'no') to false
+        return this.unit?.es_recent_specimen_flag === 'yes'
+      },
+      set(val) {
+        // Map true/false back to 'yes'/'no'
+        if (this.unit) {
+          this.unit.es_recent_specimen_flag = val ? 'yes' : 'no'
+        }
+      },
+    },
+    countCuratorialUnitsFlag: {
+      get() {
+        // Map 'yes' to true, anything else (including 'no') to false
+        return this.unit?.count_curatorial_units_flag === 'yes'
+      },
+      set(val) {
+        // Map true/false back to 'yes'/'no'
+        if (this.unit) {
+          this.unit.count_curatorial_units_flag = val ? 'yes' : 'no'
+        }
+      },
     },
   },
 }
