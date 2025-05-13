@@ -6,7 +6,13 @@ load_dotenv()
 class Config:
     # Force load .env file
     load_dotenv(override=True)
-    SECRET_KEY = os.getenv("SECRET_KEY")
+
+    # FOR LOCAL TESTING
+    # SECRET_KEY = os.getenv("SECRET_KEY")
+
+    # FOR K8S
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+
     # Database Configuration
 
     # FOR LOCAL TESTING
