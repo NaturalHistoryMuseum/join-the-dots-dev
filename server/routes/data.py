@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, Response, stream_with_context
+from flask import Blueprint, jsonify, Response, stream_with_context, session, request
 from server.database import get_db_connection
 import json
+from datetime import datetime
 
 import csv
 
@@ -22,14 +23,24 @@ def fetch_data(query, params=None):
     connection.close()
     return result
 
+def execute_query(query, params=None):
+    """Helper function to execute a database query with commit."""
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+        # Format the query with the database name
+    formatted_query = query.format(database_name=database_name)
+    cursor.execute(formatted_query, params or ())
+    connection.commit()
+    cursor.close()
+    connection.close()
+
 @data_bp.route('/unit-department', methods=['GET'])
 def get_units_and_departments():
-    print("get_units_and_departments")
     data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active
                    FROM {database_name}.collection_unit AS unit 
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
-                    LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id
+                    LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id;
                    """)
     return jsonify(data)
 
@@ -40,7 +51,7 @@ def get_unit(unit_id):
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
                     LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id
-                    WHERE  unit.collection_unit_id = %u
+                    WHERE  unit.collection_unit_id = %u;
                    """ % int(unit_id))
     return jsonify(data)
 
@@ -51,7 +62,7 @@ def get_full_unit(unit_id):
                     FROM {database_name}.collection_unit cu 
                     LEFT JOIN {database_name}.person p ON p.person_id = cu.responsible_curator_id 
                     LEFT JOIN {database_name}.unit_comment uc ON uc.collection_unit_id = cu.collection_unit_id
-                    WHERE cu.collection_unit_id = %u
+                    WHERE cu.collection_unit_id = %u;
                    """ % int(unit_id))
     return jsonify(data)
 
@@ -59,14 +70,14 @@ def get_full_unit(unit_id):
 def get_criterion():
     data = fetch_data("""SELECT cat.*, crit.criterion_id, crit.criterion_name, crit.criterion_code, crit.definition
                    FROM {database_name}.criterion crit
-                    LEFT JOIN {database_name}.category cat ON crit.category_id = cat.category_id
+                    LEFT JOIN {database_name}.category cat ON crit.category_id = cat.category_id;
                    """)
     return jsonify(data)
 
 @data_bp.route('/category', methods=['GET'])
 def get_category():
     data = fetch_data("""SELECT cat.*
-                   FROM {database_name}.category cat
+                   FROM {database_name}.category cat;
                    """)
     return jsonify(data)
 
@@ -75,21 +86,21 @@ def get_all_sections():
     data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name
                    FROM {database_name}.section sect 
                     LEFT JOIN {database_name}.division divis ON divis.division_id = sect.division_id
-                    LEFT JOIN {database_name}.department dept ON dept.department_id = divis.department_id
+                    LEFT JOIN {database_name}.department dept ON dept.department_id = divis.department_id;
                    """)
     return jsonify(data)
 
 @data_bp.route('/all-geographic-origin', methods=['GET'])
 def get_all_geographic_origin():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.geographic_origin
+                   FROM {database_name}.geographic_origin;
                    """)
     return jsonify(data)
 
 @data_bp.route('/all-geological-time-period', methods=['GET'])
 def get_all_geological_time_period():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.geological_time_period
+                   FROM {database_name}.geological_time_period;
                    """)
     return jsonify(data)
 
@@ -97,7 +108,7 @@ def get_all_geological_time_period():
 @data_bp.route('/all-divisions', methods=['GET'])
 def get_all_divisions():
     data = fetch_data("""SELECT divis.*
-                   FROM {database_name}.division divis
+                   FROM {database_name}.division divis;
                    
                    """)
     return jsonify(data)
@@ -105,21 +116,21 @@ def get_all_divisions():
 @data_bp.route('/all-departments', methods=['GET'])
 def get_all_departments():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.department 
+                   FROM {database_name}.department ;
                    """)
     return jsonify(data)
 
 @data_bp.route('/container-data', methods=['GET'])
 def get_all_containers():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.storage_container 
+                   FROM {database_name}.storage_container ;
                    """)
     return jsonify(data)
 
 @data_bp.route('/all-taxon', methods=['GET'])
 def get_all_taxon():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.taxon 
+                   FROM {database_name}.taxon ;
                    """)
     return jsonify(data)
 
@@ -129,7 +140,7 @@ def get_all_curtorial_definition():
                     FROM {database_name}.curatorial_unit_definition cud 
                     LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id 
                     LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id 
-                    LEFT JOIN {database_name}.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id  
+                    LEFT JOIN {database_name}.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id  ;
                    """)
     return jsonify(data)
 
@@ -139,15 +150,29 @@ def get_all_rooms():
                         FROM {database_name}.storage_room sr
                         JOIN {database_name}.floor f ON f.floor_id = sr.floor_id 
                         JOIN {database_name}.building b ON b.building_id = f.building_id 
-                        JOIN {database_name}.site s ON s.site_id = b.site_id 
+                        JOIN {database_name}.site s ON s.site_id = b.site_id ;
                    """)
     return jsonify(data)
 
 @data_bp.route('/all-lib-function', methods=['GET'])
 def get_all_lib_function():
     data = fetch_data("""SELECT *
-                        FROM {database_name}.library_and_archives_function
+                        FROM {database_name}.library_and_archives_function;
                    """)
+    return jsonify(data)
+
+@data_bp.route('/units-by-user', methods=['GET'])
+def get_units_by_user():
+    data = fetch_data("""SELECT cu.*, (
+                            SELECT MAX(DATE(rs.completed_at))
+                            FROM jtd_test.rescore_session_units rsu 
+                            JOIN jtd_test.rescore_session rs on rs.rescore_session_id = rsu.rescore_session_id 
+                            WHERE rsu.collection_unit_id = cu.collection_unit_id 
+                        ) AS last_rescored
+                        FROM {database_name}.collection_unit cu
+                        JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
+                        WHERE au.user_id = %s AND cu.unit_active = 'yes';
+                        """, (session["user"]["user_id"],))
     return jsonify(data)
 
 
@@ -158,7 +183,7 @@ def get_view(view):
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         query = """SELECT * 
-                        FROM {database_name}.%s
+                        FROM {database_name}.%s;
                         """ % str(view,)
         # Format the query with the database name
         formatted_query = query.format(database_name=database_name)
@@ -235,4 +260,116 @@ def get_section_units(sectionId):
 @data_bp.route('/unit-scores/<unitId>', methods=['GET'])
 def get_unit_scores(unitId):
     data = fetch_data(UNIT_SCORES % int(unitId))
+    return jsonify(data)
+
+
+@data_bp.route('/mark-rescore-open', methods=['POST'])
+def get_mark_rescore_open():
+    data = request.get_json()
+    units = data.get('units')
+    user_id = session["user"]["user_id"]
+
+    if not units:
+        return jsonify({'error': 'Units are required'}), 400
+    
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    try:
+        # Insert session
+        query = f"""
+            INSERT INTO {database_name}.rescore_session (user_id, status)
+            VALUES (%s, 'in_progress');
+        """
+        # formatted_query = query.format(database_name=database_name)
+        cursor.execute(query, (user_id,))
+
+        
+        # Get ID of last inserted row
+        rescore_session_id = cursor.lastrowid
+
+        category_ids = [0,1,2,3,4]
+
+        # Insert units into session
+        for unit in units:
+            query = f"""
+                INSERT INTO {database_name}.rescore_session_units (rescore_session_id, collection_unit_id)
+                VALUES (%s, %s);
+            """
+            cursor.execute(query, (rescore_session_id, unit))
+            # Get ID of last inserted row
+            rescore_session_units_id = cursor.lastrowid
+            for category_id in category_ids:
+                query = f"""
+                    INSERT INTO {database_name}.unit_category_draft (rescore_session_units_id, category_id, complete)
+                    VALUES (%s, %s, 0);
+                """
+                cursor.execute(query, (rescore_session_units_id, category_id))        
+
+        connection.commit()
+        return jsonify({'rescore_session_id': rescore_session_id}), 201
+
+    except Exception as e:
+        connection.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        connection.close()
+
+@data_bp.route('/open-rescore', methods=['GET'])
+def get_open_rescore():
+    user_id = session["user"]["user_id"]
+    data = fetch_data("""SELECT *
+                        FROM {database_name}.rescore_session
+                      WHERE status = 'in_progress' AND user_id = %s;
+                   """, (user_id,))
+    return jsonify(data)
+
+
+@data_bp.route('/rescore-units/<rescore_session_id>', methods=['GET'])
+def get_rescore_units(rescore_session_id):
+    data = fetch_data(RESCORE_UNITS % int(rescore_session_id))
+    return jsonify(data)
+
+@data_bp.route('/end-rescore/<rescore_session_id>', methods=['POST'])
+def update_end_rescore(rescore_session_id):
+    date = datetime.now()
+    data = execute_query("""UPDATE {database_name}.rescore_session
+                        SET status = 'complete', completed_at = %s
+                        WHERE rescore_session_id =%s;
+                   """, (date, rescore_session_id,))
+    return jsonify(data)
+
+
+@data_bp.route('/complete-category', methods=['POST'])
+def update_complete_category():
+    data = request.get_json()
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    category_ids_arr = data.get('category_ids_arr')
+    new_val = data.get('new_val')
+    user_id = session["user"]["user_id"]
+
+    if not rescore_session_units_id:
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
+    if not category_ids_arr:
+        return jsonify({'error': 'category_ids_arr is required'}), 400
+    if not user_id:
+        return jsonify({'error': 'user_id is required'}), 400
+    
+    if not isinstance(category_ids_arr, list):
+        return jsonify({'error': 'category_ids_arr should be a list'}), 400
+    
+    # Dynamically build placeholders for each category_id
+    placeholders = ', '.join(['%s'] * len(category_ids_arr))
+
+    try:
+        data = execute_query(f"""UPDATE {database_name}.unit_category_draft ucd
+                             JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                             JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                            SET complete = %s
+                            WHERE ucd.rescore_session_units_id =%s and ucd.category_id IN ({placeholders}) && rs.user_id = %s;
+                    """, (new_val, rescore_session_units_id, *category_ids_arr, user_id))
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
     return jsonify(data)

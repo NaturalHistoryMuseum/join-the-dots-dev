@@ -4,14 +4,14 @@ import msal
 import os
 import jwt
 # Test user database
-from server.database import get_test_db_connection
+from server.database import get_db_connection
 
 auth_bp = Blueprint("auth", __name__)
 
 # Database connection
 def fetch_data(query, params=None):
     """Helper function to execute a database query."""
-    connection = get_test_db_connection()
+    connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params or ())
     result = cursor.fetchall()
@@ -21,15 +21,15 @@ def fetch_data(query, params=None):
 
 # Azure AD Config
 # FOR K8S
-# CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
-# CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
-# TENANT_ID = os.environ.get("AZURE_TENANT_ID")
-# REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
+CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
+TENANT_ID = os.environ.get("AZURE_TENANT_ID")
+REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
 # FOR LOCAL TESTING
-CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
-CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
-TENANT_ID = os.getenv("AZURE_TENANT_ID")
-REDIRECT_URI = os.getenv("AZURE_REDIRECT_URI")
+# CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
+# CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
+# TENANT_ID = os.getenv("AZURE_TENANT_ID")
+# REDIRECT_URI = os.getenv("AZURE_REDIRECT_URI")
 
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 
@@ -86,40 +86,38 @@ def auth_redirect():
 
     if "access_token" in token_response:
         user_info = token_response.get("id_token_claims")
-        print('before fetch')
         # Get user from db
 
-        connection = get_test_db_connection()
+        connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("""SELECT *
-                      FROM jtd_test.users
+        cursor.execute("""SELECT u.*, r.role
+                      FROM jtd_test.users u
+                      LEFT JOIN jtd_test.roles r ON u.role_id = r.role_id
                       WHERE azure_id = %s
                    """, (str(user_info["oid"]),))
         user = cursor.fetchone()
-        print('after fetch')
-        print('first get : ',user)
 
         
         if not user:
-            print('inserting')
             # Add user if not present
-            cursor.execute("INSERT INTO jtd_test.users (azure_id, name, email, role) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 'viewer'))
+            cursor.execute("INSERT INTO jtd_test.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 1))
             connection.commit()
             # fetch user again
-            cursor.execute("""SELECT *
-                      FROM jtd_test.users
+            cursor.execute("""SELECT u.*, r.role
+                      FROM jtd_test.users u
+                      LEFT JOIN jtd_test.roles r ON u.role_id = r.role_id
                       WHERE azure_id = %s
                    """, (str(user_info["oid"]),))
             user = cursor.fetchone()
-            print('user after second get', user)
-        print(user)
         # Store user info in session
         session["user"] = user
+        session.modified = True
         # Generate JWT token
         jwt_payload = {
             "user_id": user["user_id"],
             "name": user["name"],
             "email": user["email"],
+            "role_id": user["role_id"],
             "role": user["role"]
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
@@ -146,7 +144,15 @@ def auth_status():
 
     user_id = decode_token.get("user_id")
     # Get current user details
-    user_details = fetch_data("SELECT * FROM jtd_test.users WHERE user_id = %s", (user_id,))
+    user_details = fetch_data("""SELECT u.*, r.role,
+                        (
+                            SELECT JSON_ARRAYAGG( au.collection_unit_id )
+                            FROM jtd_test.assigned_units au 
+                            where au.user_id = u.user_id 
+                        ) AS assigned_units
+                      FROM jtd_test.users u
+                      LEFT JOIN jtd_test.roles r ON u.role_id = r.role_id
+                      WHERE user_id = %s""", (user_id,))
     # If no user is found, return an error
     if not user_details:
         return jsonify({"error": "User not found"}), 404

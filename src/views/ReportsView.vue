@@ -80,11 +80,9 @@ export default {
       }
     },
     handleViewSelect(value) {
-      console.log(value)
       this.viewVal = value
     },
     handleSectionSelect(value) {
-      console.log(value)
       this.sectionVal = value
     },
     async downloadLtcExport() {

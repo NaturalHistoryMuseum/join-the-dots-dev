@@ -104,7 +104,6 @@ export default {
       this.sections = await getGeneric('all-sections')
       this.currentSections = await getSections()
       this.selected_sects = this.currentSections.map((section) => Number(section.section_id))
-      console.log(this.selected_sects)
     },
     selectDept(event, id) {
       if (event) {

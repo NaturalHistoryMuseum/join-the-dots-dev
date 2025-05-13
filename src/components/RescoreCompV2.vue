@@ -1,7 +1,9 @@
 <template>
   <div v-if="rescore" class="unit-header">
     <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">{{ unit.unit_name }}</h4>
-    <zoa-button class="complete-btn">Mark Unit Complete</zoa-button>
+    <zoa-button class="complete-btn" @click="changeCatComplete([0, 1, 2, 3, 4], 1)"
+      >Mark Unit Complete</zoa-button
+    >
   </div>
   <div class="date-title">Last Edited: {{ overallDate() }}</div>
   <RescoreAccordionComp
@@ -11,61 +13,13 @@
     header="Unit Measures / Comments"
     :category_cols="category_cols"
     :rescore="rescore"
+    :complete="rescore ? checkCatComplete({ category_id: 0 }) : false"
+    :changeCatComplete="() => changeCatComplete([0])"
   >
     <div class="date-title">Last Edited: {{ metricDate() }}</div>
 
     <div class="row">
       <div class="col-md-6">
-        <!-- <div class="row">
-          <div class="col-md-6">
-            <zoa-input
-              zoa-type="number"
-              label="No. of Curatorial Units"
-              v-model="localUnit.curatorial_unit_count"
-            />
-          </div>
-          <div class="col-md-6">
-            <SelectComp
-              :options="confidence_options"
-              label="Confidence"
-              help=""
-              :multi="false"
-              :value="localUnit.curatorial_unit_count_confidence"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <zoa-input zoa-type="number" label="No. of Items" v-model="localUnit.item_count" />
-          </div>
-          <div class="col-md-6">
-            <SelectComp
-              :options="confidence_options"
-              label="Confidence"
-              help=""
-              :multi="false"
-              :value="localUnit.item_count_confidence"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-6">
-            <zoa-input
-              zoa-type="number"
-              label="Barcode Percentage"
-              v-model="localUnit.barcoded_percentage"
-            />
-          </div>
-          <div class="col-md-6">
-            <SelectComp
-              :options="confidence_options"
-              label="Confidence"
-              help=""
-              :multi="false"
-              :value="localUnit.barcoded_percentage_confidence"
-            />
-          </div>
-        </div> -->
         <div v-for="metric in JSON.parse(unit.metric_json)" :key="metric.collection_unit_metric_id">
           <div class="row">
             <div class="col-md-6">
@@ -103,6 +57,8 @@
           :header="cat.description"
           :category_cols="category_cols"
           :rescore="rescore"
+          :complete="rescore ? checkCatComplete(cat) : false"
+          :changeCatComplete="() => changeCatComplete([cat.category_id])"
         >
           <div class="">
             <div class="date-title">Last Edited: {{ groupCategoryDate(cat) }}</div>
@@ -125,70 +81,21 @@
                   :key="ranks.rank_id"
                   class="criterion-rank"
                 >
-                  <zoa-input
+                  <!-- <zoa-input
                     zoa-type="number"
                     :label="'Rank ' + ranks.rank_value"
                     v-model="ranks.percentage"
+                  /> -->
+                  <PercentageInput
+                    v-model="ranks.percentage"
+                    :label="`Rank ${ranks.rank_value} (%)`"
                   />
+
                   <!-- {{ ranks.comment }} -->
                 </div>
               </div>
-              <!-- <div class="">
-                <div
-                  v-for="ranks in JSON.parse(unit.ranks_json).filter(
-                    (rank) => rank.criterion_id == crit.criterion_id,
-                  )"
-                  :key="ranks.rank_id"
-                >
-                  Rank {{ ranks.rank_value }} - {{ ranks.comment }}
-                </div>
-              </div> -->
-              <!-- <div
-                v-for="rank in JSON.parse(unit.ranks_json).filter(
-                  (rank) => rank.criterion_id == crit.criterion_id && rank.comment !== null,
-                )"
-                :key="rank.rank_id"
-                class="row"
-              > -->
-              <!-- <div class="col-md-2">
-                  <zoa-input
-                    zoa-type="dropdown"
-                    label="Rank"
-                    :options="{
-                      options: [
-                        { value: 1, label: 'Rank 1' },
-                        { value: 2, label: 'Rank 2' },
-                        { value: 3, label: 'Rank 3' },
-                        { value: 4, label: 'Rank 4' },
-                        { value: 5, label: 'Rank 5' },
-                      ],
-                    }"
-                    v-model="rank.rank_value"
-                  />
-                </div> -->
-
-              <!-- <div class="col-md-10">
-                  <zoa-input
-                    zoa-type="empty"
-                    :label="`Rank ${rank.rank_value} Comment`"
-                    class="comments-title"
-                  />
-                  <textarea class="text-area" rows="2" v-model="rank.comment"></textarea>
-                </div>
-                <div class="col-md-2">
-                  <zoa-button :color="red">
-                    <i class="bi bi-trash"></i>
-                  </zoa-button>
-                </div>
-              </div>
-              <zoa-button label="Add Comment" /> -->
 
               <div class="row">
-                <!-- <zoa-button
-                  class=""
-                  label="Show comments"
-                  @click="showCriterionComments(crit.criterion_id)"
-                /> -->
                 <div class="show-comments" @click="showCriterionComments(crit.criterion_id)">
                   <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
                     <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
@@ -214,7 +121,6 @@
                     <div class="col-md-2 edit-comments">
                       <EditCommentsModal :crit="crit" :unit="unit" />
                     </div>
-                    <!-- <zoa-button label="Add Comment" /> -->
                   </div>
                 </transition>
               </div>
@@ -230,21 +136,24 @@
 import RescoreAccordionComp from './RescoreAccordionComp.vue'
 import CriterionDefModal from './CriterionDefModal.vue'
 import SelectComp from './SelectComp.vue'
-import { getGeneric } from '@/services/dataService'
+import { completeCats, getGeneric } from '@/services/dataService'
 import fieldNameCalc from '@/utils/utils'
 import EditCommentsModal from './EditCommentsModal.vue'
+import PercentageInput from './PercentageInput.vue'
 
 export default {
   name: 'DeptUnit',
   props: {
     unit: Object,
     rescore: Boolean,
+    fetchUnitsData: Function,
   },
   components: {
     RescoreAccordionComp,
     CriterionDefModal,
     SelectComp,
     EditCommentsModal,
+    PercentageInput,
   },
   setup() {},
   data() {
@@ -373,17 +282,40 @@ export default {
       }
       return `Show comments (${ranks_comments.length})`
     },
-  },
-  computed: {
-    percentageValue: {
-      get() {
-        return this.ranks.percentage * 100 // Convert decimal to percentage
-      },
-      set(value) {
-        this.ranks.percentage = value / 100 // Convert percentage back to decimal
-      },
+    checkCatComplete(cat) {
+      const category_tracking = JSON.parse(this.localUnit.category_tracking)
+      const category = category_tracking.filter((category) => {
+        return category.category_id == cat.category_id
+      })
+      if (category.length > 0) {
+        return category[0].complete == 1
+      }
+    },
+    changeCatComplete(category_ids_arr, new_val = null) {
+      let submit_change = false
+      let val = null
+      const category_tracking = JSON.parse(this.unit.category_tracking)
+      category_tracking.forEach((category) => {
+        if (category_ids_arr.includes(category.category_id)) {
+          if (new_val != null) {
+            category.complete = new_val
+            val = new_val
+          } else {
+            category.complete = category.complete == 1 ? 0 : 1
+            val = category.complete
+          }
+          submit_change = true
+        }
+      })
+      if (submit_change) {
+        completeCats(this.unit.rescore_session_units_id, category_ids_arr, val).then(() => {
+          this.fetchUnitsData()
+        })
+      }
+      this.localUnit.category_tracking = JSON.stringify(category_tracking)
     },
   },
+  computed: {},
 }
 </script>
 

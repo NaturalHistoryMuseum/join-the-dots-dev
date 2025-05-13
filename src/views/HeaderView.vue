@@ -53,6 +53,7 @@ export default {
       this.user = null
       localStorage.removeItem('user')
       logout()
+      this.$router.push('/login')
     },
     navigateAccount() {
       this.$router.push('/account')

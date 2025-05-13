@@ -9,10 +9,11 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get('http://localhost:5000/api/data/assessment-criterion').then((response) => {
-        console.log(response.data)
-        this.data = response.data
-      })
+      axios
+        .get('http://localhost:5000/api/data/assessment-criterion', { withCredentials: true })
+        .then((response) => {
+          this.data = response.data
+        })
     },
   },
 }

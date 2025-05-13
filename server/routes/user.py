@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
-from server.database import get_test_db_connection
+from server.database import get_db_connection
 
 user_bp = Blueprint('user', __name__)
 
 def execute_query(query, params=None):
     """Helper function to execute a database query with commit."""
-    connection = get_test_db_connection()
+    connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params or ())
     connection.commit()
@@ -14,7 +14,7 @@ def execute_query(query, params=None):
 
 def fetch_data(query, params=None):
     """Helper function to execute a database query."""
-    connection = get_test_db_connection()
+    connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params or ())
     result = cursor.fetchall()
@@ -64,70 +64,65 @@ def add_user():
         return jsonify({"error": str(e)}), 500
 
 
-@user_bp.route('/edit-role', methods=['PUT'])
-def edit_role():
+@user_bp.route('/edit-user-role', methods=['PUT'])
+def edit_user_role():
     data = request.get_json()
-    role = data.get('role')
+    role_id = data.get('role_id')
     user_id = data.get('user_id')
 
-    if not role:
+    if not role_id:
         return jsonify({'error': 'Role is required'}), 400
 
     # Update role and commit changes
     try:
         execute_query("""
             UPDATE jtd_test.users u
-            SET u.role = %s
+            SET u.role_id = %s
             WHERE u.user_id = %s
-        """, (role, user_id,))
+        """, (role_id, user_id,))
 
         return jsonify({"message": "Role successfully changed"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
-@user_bp.route('/add-sections', methods=['POST'])
-def add_user_sections():
+@user_bp.route('/assign-units', methods=['POST'])
+def edit_assign_units():
     data = request.get_json()
-    sections = data.get('sections')
     user_id = data.get('user_id')
+    units = data.get('units')
 
-    if not sections:
-        return jsonify({'error': 'Sections are required'}), 400
-
-    # Delete current user sections
+    if not units:
+        return jsonify({'error': 'Units are required'}), 400
+    if not user_id:
+        return jsonify({'error': 'User is required'}), 400
+    
+    # Delete current user units
     try:
         execute_query("""
-            DELETE FROM jtd_test.user_sections
+            DELETE FROM jtd_test.assigned_units
             WHERE user_id = %s
         """, (user_id,))
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
-    # Create insert query
-    values = ''
-    for section in sections:
-        values += '(' + str(user_id) + ',' + str(section) + '),'
-    values = values[:-1]
-    # Insert new sections
+
+    # Update current user units
     try:
-        execute_query("""
-            INSERT INTO jtd_test.user_sections (user_id, section_id)
-            VALUES %s
-        """ % values)
-        return jsonify({"message": "Sections successfully added"}), 201
+        for unit in units:
+            execute_query("""
+                INSERT INTO jtd_test.assigned_units (user_id, collection_unit_id)
+                VALUES (%s, %s)
+            """, (user_id, unit))
+
+        return jsonify({"message": "Units successfully assigned"}), 201
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
 
-@user_bp.route('/get-sections/<user_id>', methods=['GET'])
-def get_user_sections(user_id):
-    # data = request.get_json()
-    # user_id = data.get('user_id')
-
-    data = fetch_data("""SELECT us.section_id
-                      FROM jtd_test.user_sections us
-                      WHERE us.user_id = %s
-                   """ % str(user_id))
+@user_bp.route('/all-roles', methods=['GET'])
+def get_all_roles():
+    data = fetch_data("""SELECT r.*
+                   FROM jtd_test.roles r
+                   """)
     return jsonify(data)

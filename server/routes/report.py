@@ -26,7 +26,6 @@ def get_access_token():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     response = requests.post(AUTH_URL, data=data, headers=headers)
-    print("Token Response:", response.text)  # Debugging
 
     if response.status_code != 200:
         raise Exception(f"Failed to get access token: {response.text}")

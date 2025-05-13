@@ -124,19 +124,15 @@ app.register_blueprint(azure_blueprint, url_prefix="/api/auth/login")
 
 @app.route("/api/auth/callback")
 def auth_callback():
-    print("Auth Callback started")
     # Check if user is authorized
     if not azure.authorized:
-        print("User not authorized")
         return jsonify({"error": "User not authorized"}), 401
     # Fetch user info
     resp = azure_blueprint.session.get("/v1.0/me")
     if not resp.ok:
-        print("Failed to fetch user info:", resp.text)
         return jsonify({"error": "Failed to fetch user info"}), 500
     # Set user info from response
     user_info = resp.json()
-    print("User info fetched:", user_info)
 
     # Save user info in session
     session["user"] = {

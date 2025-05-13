@@ -724,15 +724,12 @@ export default {
           external_ref_id: null,
         }
       } else {
-        console.log(this.unit.taxon_id)
         this.current_taxon = this.taxon_all_options.filter(
           (taxon) => taxon.taxon_id == this.unit.taxon_id,
         )[0]
-        console.log(this.current_taxon)
       }
     },
     filterTaxonOptions() {
-      console.log(this.current_section.department_id)
       this.taxon_options = this.taxon_all_options.filter(
         (taxon) => taxon.department_id == this.current_section.department_id,
       )

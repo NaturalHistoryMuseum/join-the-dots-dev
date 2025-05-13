@@ -1,14 +1,16 @@
 import axios from 'axios'
 
 // FOR LOCAL TESTING
-const API_URL = 'http://localhost:5000/api/data'
+// const API_URL = 'http://localhost:5000/api/data'
 // FOR K8S
-// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/data'
+const API_URL = 'https://jtd-qa.nhm.ac.uk/api/data'
 
 export async function getGeneric(route) {
-  const resp = await axios.get(`${API_URL}/${route}`).then((response) => {
-    return response.data
-  })
+  const resp = await axios
+    .get(`${API_URL}/${route}`, { withCredentials: true })
+    .then((response) => {
+      return response.data
+    })
   return resp
 }
 
@@ -32,6 +34,7 @@ export async function downloadLtCjson() {
   try {
     const response = await axios.get(`${API_URL}/export-ltc-json`, {
       responseType: 'blob',
+      withCredentials: true,
     })
     const blob = new Blob([response.data], { type: 'application/json' })
     const url = window.URL.createObjectURL(blob)
@@ -45,5 +48,50 @@ export async function downloadLtCjson() {
     window.URL.revokeObjectURL(url)
   } catch (error) {
     console.error('Error downloading JSON:', error)
+  }
+}
+
+export async function markRescoreOpen(units) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/mark-rescore-open`,
+      { units: units },
+      { headers: { 'Content-Type': 'application/json' }, withCredentials: true },
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error marking rescore open:', error)
+    throw error
+  }
+}
+export async function markRescoreComplete(rescore_session_id) {
+  try {
+    const response = await axios.post(`${API_URL}/end-rescore/${rescore_session_id}`, {
+      withCredentials: true,
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error completing rescore:', error)
+    throw error
+  }
+}
+
+export async function completeCats(rescore_session_units_id, category_ids_arr, new_val) {
+  try {
+    const response = await axios.post(
+      `${API_URL}/complete-category`,
+      {
+        rescore_session_units_id: rescore_session_units_id,
+        category_ids_arr: category_ids_arr,
+        new_val: new_val,
+      },
+      {
+        withCredentials: true,
+      },
+    )
+    return response.data
+  } catch (error) {
+    console.error('Error completing rescore:', error)
+    throw error
   }
 }

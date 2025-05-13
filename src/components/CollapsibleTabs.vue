@@ -14,7 +14,9 @@
           <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
         </zoa-button>
         <div v-if="!isCollapsed">
-          <zoa-button>Hide Completed</zoa-button>
+          <zoa-button @click="filter_completed = !filter_completed">{{
+            filter_completed ? 'Show Completed' : 'Hide Completed'
+          }}</zoa-button>
         </div>
       </div>
       <div
@@ -24,16 +26,26 @@
         }"
       >
         <button
-          v-for="(unit, index) in units"
+          v-for="(unit, index) in !filter_completed
+            ? units
+            : units.filter((unit) => !checkUnitCompleted(unit))"
           :key="index"
-          @click="activeTab = index"
-          :class="['tab', activeTab === index ? 'active' : '', isCollapsed ? 'icon-only' : '']"
+          @click="activeTab = unit.collection_unit_id"
+          :class="[
+            'tab',
+            activeTab === unit.collection_unit_id ? 'active' : '',
+            isCollapsed ? 'icon-only' : '',
+          ]"
           :style="{
-            backgroundColor: activeTab === index ? '#f2bab0' : '#e0e0e0',
+            backgroundColor: activeTab === unit.collection_unit_id ? '#f2bab0' : '#e0e0e0',
             width: isCollapsed ? collapsedWidth : expandedWidth,
           }"
         >
-          <span class="tab-title" v-if="!isCollapsed">{{ unit.unit_name }}</span>
+          <span class="tab-title" v-if="!isCollapsed"
+            >{{ unit.unit_name }}
+            <div v-if="checkUnitCompleted(unit)"><i class="bi bi-check-lg"></i></div>
+            <div v-else><i class="bi bi-x-lg"></i></div
+          ></span>
         </button>
       </div>
     </div>
@@ -44,30 +56,37 @@
         <!-- {{ units[activeTab].collection_unit_id }}
         <zoa-button @click="navUnit(units[activeTab].collection_unit_id)">Go to unit</zoa-button> -->
         <!-- <RescoreComp :unit="units[activeTab]" /> -->
-        <RescoreCompV2 :unit="units[activeTab]" :rescore="true" />
+        <RescoreCompV2
+          :unit="units.find((unit) => unit.collection_unit_id == activeTab)"
+          :rescore="true"
+          :fetchUnitsData="fetchUnitsData"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import RescoreComp from './RescoreComp.vue'
+// import RescoreComp from './RescoreComp.vue'
 import RescoreCompV2 from './RescoreCompV2.vue'
 
 export default {
   props: {
     units: Array,
+    rescore_status: Array,
+    fetchUnitsData: Function,
   },
   components: {
-    RescoreComp,
+    // RescoreComp,
     RescoreCompV2,
   },
   data() {
     return {
       isCollapsed: false,
-      activeTab: 0,
+      activeTab: this.units.length ? this.units[0].collection_unit_id : 0,
       expandedWidth: '300px',
       collapsedWidth: '50px',
+      filter_completed: false,
     }
   },
   methods: {
@@ -81,6 +100,24 @@ export default {
           unit_id: unitId,
         },
       })
+    },
+    checkUnitCompleted(unit) {
+      const categories_json = JSON.parse(unit.category_tracking)
+      const completed = categories_json.every((category) => {
+        return category.complete == 1
+      })
+      return completed
+    },
+    syncFromProps() {
+      this.activeTab = this.units.length ? this.units[0].collection_unit_id : 0
+    },
+  },
+  watch: {
+    units: {
+      handler() {
+        this.syncFromProps()
+      },
+      deep: false,
     },
   },
 }
@@ -120,7 +157,10 @@ export default {
 }
 
 .tab-title {
-  display: inline-block;
+  /* display: inline-block; */
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
   font-weight: 600;
 }
 

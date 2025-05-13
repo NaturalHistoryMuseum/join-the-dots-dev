@@ -181,11 +181,11 @@
 
 <script>
 import { getGeneric } from '@/services/dataService'
-import SelectComp from '@/components/SelectComp.vue'
+// import SelectComp from '@/components/SelectComp.vue'
 
 export default {
   components: {
-    SelectComp,
+    // SelectComp,
   },
   data() {
     return {
@@ -336,7 +336,6 @@ export default {
       this.currentPage = 1
     },
     changePerPage(value) {
-      console.log(value)
       if (value === null) {
         this.perPage = 10
       } else {

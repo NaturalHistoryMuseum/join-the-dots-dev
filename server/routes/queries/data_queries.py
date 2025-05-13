@@ -459,3 +459,128 @@ UNIT_SCORES = """
                             `cu`.`sort_order`,
                             `cu`.`collection_unit_id`;
                    """
+
+RESCORE_UNITS = """
+					SELECT
+                            `cu`.`collection_unit_id` AS `collection_unit_id`,
+                            `di`.`division_name` AS `division_name`,
+                            `se`.`section_name` AS `section_name`,
+                            concat(`pe`.`first_name`, ' ', `pe`.`last_name`) AS `responsible_curator`,
+                            `cud`.`description` AS `curatorial_unit_type`,
+                            `cu`.`unit_name` AS `unit_name`,
+                            `cu`.`sort_order` AS `sort_order`,
+                            (
+                            select
+                                concat(`{database_name}`.`person`.`first_name`, ' ', `{database_name}`.`person`.`last_name`)
+                            from
+                                `{database_name}`.`person`
+                            where
+                                (`{database_name}`.`person`.`person_id` in (
+                                select
+                                    distinct `{database_name}`.`unit_assessment_criterion`.`assessor_id`
+                                from
+                                    `{database_name}`.`unit_assessment_criterion`
+                                where
+                                    ((`{database_name}`.`unit_assessment_criterion`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                                        and (`{database_name}`.`unit_assessment_criterion`.`current` = 'yes')))
+                                    and (`{database_name}`.`person`.`person_id` <> 113))
+                            limit 1) AS `assessor`,
+                            (
+                            	SELECT JSON_ARRAYAGG(
+                            		JSON_OBJECT(
+                            			'collection_unit_metric_id', cum.collection_unit_metric_id,
+                            			'metric_value', cum.metric_value,
+                            			'confidence_level', cum.confidence_level,
+                            			'date_from', DATE(cum.date_from),
+                            			'metric_name', cumd.metric_name,
+                            			'metric_definition', cumd.metric_definition,
+                            			'metric_units', cumd.metric_units,
+                            			'metric_datatype', cumd.metric_datatype
+                        			)
+                            	) AS metric_json 
+                            	FROM {database_name}.collection_unit_metric cum 
+                            	JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
+                            	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
+                            ) AS metric_json,
+                            (
+                            select
+                                `uc`.`unit_comment`
+                            from
+                                `{database_name}`.`unit_comment` `uc`
+                            where
+                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                            order by
+                                `uc`.`date_added` desc
+                            limit 1) AS `unit_comment`,
+                            (
+                            select
+                                `uc`.`date_added`
+                            from
+                                `{database_name}`.`unit_comment` `uc`
+                            where
+                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
+                            order by
+                                `uc`.`date_added` desc
+                            limit 1) AS `unit_comment_date_added`,
+                            (
+                                SELECT JSON_ARRAYAGG(
+                                    JSON_OBJECT(
+                                        'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
+                                        'rank_id', uar.rank_id,
+                                        'rank_value', r.rank_value,
+                                        'comment', uar.comment,
+                                        'definition', r.definition,
+                                        'criterion_id', r.criterion_id,
+                                        'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
+                                    )
+                                ) AS percentages_json
+                                FROM {database_name}.unit_assessment_criterion uac
+                                JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+                                JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
+                                WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
+                                AND uar.unit_assessment_criterion_id IN (
+                                    SELECT uac.unit_assessment_criterion_id
+                                    FROM {database_name}.unit_assessment_criterion uac
+                                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+                                    WHERE uac.current = 'yes'
+                                )
+                                AND uar.rank_id IN (
+                                    SELECT r.rank_id FROM {database_name}.rank r
+                                ))
+                            ) AS ranks_json,
+                        rs.*, rsu.*, cu.unit_name,
+                        (
+                            SELECT JSON_ARRAYAGG(
+                                JSON_OBJECT(
+                                    'category_draft_id', ucd.category_draft_id,
+                                    'rescore_session_units_id', ucd.rescore_session_units_id,
+                                    'category_id', ucd.category_id,
+                                    'complete', ucd.complete,
+                                    'updated_at', ucd.updated_at
+                                )
+                            ) AS category_tracking
+                            FROM jtd_test.unit_category_draft ucd
+                            WHERE ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                        ) AS category_tracking
+                        from
+                            ((((({database_name}.rescore_session_units rsu 
+                        JOIN `{database_name}`.`collection_unit` `cu` ON rsu.collection_unit_id = cu.collection_unit_id
+                        JOIN `{database_name}`.`rescore_session` `rs` ON rsu.rescore_session_id = rs.rescore_session_id
+                        left join `{database_name}`.`section` `se` on
+                            ((`se`.`section_id` = `cu`.`section_id`)))
+                        left join `{database_name}`.`division` `di` on
+                            ((`di`.`division_id` = `se`.`division_id`)))
+                        left join `{database_name}`.`person` `pe` on
+                            ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
+                        left join `{database_name}`.`curatorial_unit_definition` `cud` on
+                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
+                        left join `{database_name}`.`vw_metrics_current` `vmc` on
+                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+                        where
+                            (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = %i
+                        order by
+                            `se`.`section_name`,
+                            `cu`.`sort_order`,
+                            `cu`.`collection_unit_id`;
+                   """
+

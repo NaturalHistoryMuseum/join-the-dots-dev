@@ -21,7 +21,7 @@ import BootstrapVue3 from 'bootstrap-vue-3'
 // Import load user function
 import { loadUser } from './services/authService'
 
-loadUser()
+await loadUser()
 
 const app = createApp(App)
 

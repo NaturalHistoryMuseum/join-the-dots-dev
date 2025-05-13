@@ -7,7 +7,7 @@
           <div v-if="units.length > 0">
             <h5>Section: {{ units[0].section_name }}</h5>
             <h5>Units assigned: {{ units.length }}</h5>
-            <h5>Units completed: {{ 'xyz' }}</h5>
+            <h5>Units completed: {{ countUnitsCompleted(units) }}</h5>
           </div>
           <!-- <b-progress :value="20" :max="100" class="prog-bar" show-progress></b-progress> -->
         </div>
@@ -20,8 +20,8 @@
               <div v-show="showActions" class="action-btns">
                 <zoa-button kind="primary">Bulk update</zoa-button>
                 <zoa-button kind="alt">See History</zoa-button>
-                <zoa-button kind="alt">See History</zoa-button>
-                <zoa-button kind="alt">See History</zoa-button>
+                <zoa-button kind="primary">Other Action</zoa-button>
+                <zoa-button kind="alt">Third Action</zoa-button>
               </div>
             </transition>
           </div>
@@ -53,7 +53,7 @@
       />
     </div> -->
 
-    <CollapsibleTabs :units="units" />
+    <CollapsibleTabs :units="units" :fetchUnitsData="fetchUnitsData" />
     <!-- <div>
       <b-row class="wrap" ref="wrap">
         <b-tabs vertical pills card content-class="mt-3 tab-scroll">
@@ -83,13 +83,13 @@ export default {
     const route = useRoute()
 
     // Access query parameters
-    const sectionId = ref(null)
+    const rescore_session_id = ref(null)
     onMounted(() => {
-      sectionId.value = route.query.sectionId
+      rescore_session_id.value = route.query.rescore_session_id
     })
 
     return {
-      sectionId,
+      rescore_session_id,
     }
   },
   data() {
@@ -104,14 +104,25 @@ export default {
   },
   methods: {
     fetchUnitsData() {
-      getGeneric(`section-units/${this.sectionId}`).then((response) => {
+      getGeneric(`rescore-units/${this.rescore_session_id}`).then((response) => {
         this.units = response
-        this.unitNames = this.units.map((unit) => unit.unit_name)
-        console.log(response)
       })
     },
     toggleActions() {
       this.showActions = !this.showActions
+    },
+    countUnitsCompleted(units) {
+      let completed_count = 0
+      units.forEach((unit) => {
+        const categories_json = JSON.parse(unit.category_tracking)
+        const completed = categories_json.every((category) => {
+          return category.complete == 1
+        })
+        if (completed) {
+          completed_count++
+        }
+      })
+      return completed_count
     },
   },
 }
