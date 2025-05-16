@@ -20,8 +20,7 @@ CREATE TABLE jtd_test.unit_category_draft (
     category_id INT NOT NULL,
     complete tinyint not null,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (rescore_session_units_id) REFERENCES jtd_test.rescore_session_units(rescore_session_units_id),
-    FOREIGN KEY (category_id) REFERENCES jtd_test.category(category_id)
+    FOREIGN KEY (rescore_session_units_id) REFERENCES jtd_test.rescore_session_units(rescore_session_units_id)
 );
 CREATE TABLE jtd_test.unit_rank_draft (
     rank_draft_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,

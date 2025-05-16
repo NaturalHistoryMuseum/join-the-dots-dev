@@ -12,14 +12,6 @@
         inceptos himenaeos. Nunc cursus auctor dui, vel cursus nunc cursus a. Aenean eu sem et dui
       </p>
     </div>
-    <!-- <div class="main-content">
-      <div class="grid-comp">
-        <zoa-button label="Rescore" @click="navRescore" />
-      </div>
-      <div class="grid-comp">
-        <zoa-button label="View units" />
-      </div>
-    </div> -->
     <div class="boader-header">
       <h2 class="boader-header-title">Actions</h2>
     </div>
@@ -28,21 +20,21 @@
         <i class="bi bi-clipboard-check card-icon"></i>
         <h2>Rescore</h2>
         <p>Perform a re-scoring on your assigned sections.</p>
-        <zoa-button label="Rescore" @click="navRescore" class="card-btn" />
+        <zoa-button label="Rescore" @click="navigate('/manage-rescore')" class="card-btn" />
       </div>
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
         <h2>View Units</h2>
         <p>Explore all units in your section and make changes to them.</p>
-        <zoa-button label="View units" @click="navViewUnits" class="card-btn" />
+        <zoa-button label="View units" @click="navigate('/view-units')" class="card-btn" />
       </div>
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
         <h2>Reports</h2>
         <p>Generate reports on your section's performance.</p>
-        <zoa-button label="Reports" @click="navReports" class="card-btn" />
+        <zoa-button label="Reports" @click="navigate('/reports')" class="card-btn" />
       </div>
     </b-row>
   </div>
@@ -56,33 +48,13 @@ export default {
     return { currentUser }
   },
   data() {
-    return {
-      user: [],
-    }
+    return {}
   },
-  async mounted() {
-    // Check localStorage for stored user data
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      // Use stored user data if available
-      this.user = JSON.parse(storedUser)
-    }
-  },
+  async mounted() {},
   methods: {
-    navRescore() {
-      this.$router.push({
-        path: '/manage-rescore',
-      })
-    },
-    navViewUnits() {
-      this.$router.push({
-        path: '/view-units',
-      })
-    },
-    navReports() {
-      this.$router.push({
-        path: '/reports',
-      })
+    // Navigate to path
+    navigate(path) {
+      this.$router.push({ path: path })
     },
   },
 }

@@ -3,15 +3,15 @@
     <div class="main-header">
       <h1>View Unit</h1>
       <p>Unit ID: {{ unitId }}</p>
-      <TopTabs :tabs="tabs" :activeTab="activeTab" :changeTabFunc="changeTab">
+      <TopTabs :tabs="tabs" :active_tab="active_tab" :changeTabFunc="changeTab">
         <div v-if="unit">
           <!-- <div
             v-if="
-              activeTab !== 4 &&
-              activeTab !== 5 &&
-              activeTab !== 3 &&
-              activeTab !== 1 &&
-              activeTab !== 2
+              active_tab !== 4 &&
+              active_tab !== 5 &&
+              active_tab !== 3 &&
+              active_tab !== 1 &&
+              active_tab !== 2
             "
             class="content row"
           >
@@ -24,7 +24,7 @@
             </div>
           </div> -->
           <!-- Unit Details -->
-          <div v-if="activeTab == 0" class="content row">
+          <div v-if="active_tab == 0" class="content row">
             <div class="row">
               <h4 class="subheading">Unit Details</h4>
               <div class="col-md-4 field">
@@ -181,7 +181,7 @@
             </div>
           </div>
           <!-- Section -->
-          <div v-if="activeTab == 1" class="content row">
+          <div v-if="active_tab == 1" class="content row">
             <div class="col-md-4 field">
               <zoa-input
                 zoa-type="dropdown"
@@ -201,7 +201,7 @@
             </div>
           </div>
           <!-- Properties -->
-          <div v-if="activeTab == 2" class="content row">
+          <div v-if="active_tab == 2" class="content row">
             <!-- Time Period From -->
             <!-- <div class="row">
               <h4 class="subheading">Time Period From</h4>
@@ -306,7 +306,7 @@
             </div>
           </div>
           <!-- Storage -->
-          <div v-if="activeTab == 3" class="content row">
+          <div v-if="active_tab == 3" class="content row">
             <h4 class="subheading">Storage Container</h4>
             <div class="col-md-4 field">
               <zoa-input
@@ -367,14 +367,14 @@
             </div>
           </div>
           <!-- Scores -->
-          <div v-if="activeTab == 4" class="content row">
+          <div v-if="active_tab == 4" class="content row">
             <div v-if="unit_scores.length > 0" class="">
-              <RescoreCompV2 :unit="unit_scores[0]" :rescore="false" />
+              <UnitScores :unit="unit_scores[0]" :rescore="false" />
             </div>
             <div v-else class="content row centered">No scores recorded for this unit</div>
           </div>
           <!-- Comments -->
-          <div v-if="activeTab == 5" class="content row">
+          <div v-if="active_tab == 5" class="content row">
             <div class="col-md-6 field">
               <zoa-input zoa-type="empty" label="Unit Comments" class="comments-title" />
               <textarea class="text-area" rows="7" v-model="unit.unit_comment"></textarea>
@@ -395,14 +395,14 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import TopTabs from '@/components/TopTabs.vue'
 import { getGeneric } from '@/services/dataService'
-import RescoreCompV2 from '@/components/RescoreCompV2.vue'
+import UnitScores from '@/components/UnitScores.vue'
 import fieldNameCalc from '@/utils/utils'
 
 export default {
   name: 'ViewUnit',
   components: {
     TopTabs,
-    RescoreCompV2,
+    UnitScores,
   },
   setup() {
     const route = useRoute()
@@ -436,7 +436,7 @@ export default {
         { id: 4, label: 'Scores' },
         { id: 5, label: 'Comments' },
       ],
-      unitTabMapping: [
+      unit_tab_mapping: [
         {
           tab_id: 0,
           fields: [
@@ -505,7 +505,7 @@ export default {
           fields: ['unit_comment', 'date_comment_added'],
         },
       ],
-      activeTab: 0,
+      active_tab: 0,
       room_options: [],
       room_data: [],
       current_room: {},
@@ -631,7 +631,7 @@ export default {
     },
     fieldNameCalc,
     changeTab(index) {
-      this.activeTab = index
+      this.active_tab = index
     },
     formatDate(date) {
       return new Date(date).toISOString().split('T')[0]
@@ -765,14 +765,14 @@ export default {
   computed: {
     filteredFields() {
       // Find the tab mapping for the active tab
-      const mapping = this.unitTabMapping.find((item) => item.tab_id === this.activeTab)
+      const mapping = this.unit_tab_mapping.find((item) => item.tab_id === this.active_tab)
       // Check if unit and mapping are not null
       if (mapping && this.unit) {
         // Create object for the fields that are in the mapping
         const mappingObj = Object.fromEntries(
           Object.entries(this.unit).filter(([key]) => mapping.fields.includes(key)),
         )
-        //Sort by the unitTabMapping
+        //Sort by the unit_tab_mapping
         var sortedFields = {}
         mapping.fields.forEach((key) => {
           if (mappingObj) {

@@ -4,25 +4,27 @@
     <div
       class="sidebar"
       :style="{
-        width: isCollapsed ? collapsedWidth : expandedWidth,
+        width: is_collapsed ? collapsed_width : expanded_width,
       }"
     >
       <div class="sidebar-header">
+        <!-- Button to show/hide unit names -->
         <zoa-button @click="toggleSidebar" class="toggle-btn">
-          <!-- {{ isCollapsed ? <i class="bi bi-list"></i> : '<' }} -->
-          <div v-if="isCollapsed"><i class="bi bi-list btn-icon"></i></div>
+          <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
           <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
         </zoa-button>
-        <div v-if="!isCollapsed">
+        <!-- Button to show/hide completed units from list -->
+        <div v-if="!is_collapsed">
           <zoa-button @click="filter_completed = !filter_completed">{{
             filter_completed ? 'Show Completed' : 'Hide Completed'
           }}</zoa-button>
         </div>
       </div>
+      <!-- Tabs for each unit -->
       <div
         class="tab-container"
         :style="{
-          width: isCollapsed ? collapsedWidth : expandedWidth,
+          width: is_collapsed ? collapsed_width : expanded_width,
         }"
       >
         <button
@@ -30,18 +32,19 @@
             ? units
             : units.filter((unit) => !checkUnitCompleted(unit))"
           :key="index"
-          @click="activeTab = unit.collection_unit_id"
+          @click="active_tab = unit.collection_unit_id"
           :class="[
             'tab',
-            activeTab === unit.collection_unit_id ? 'active' : '',
-            isCollapsed ? 'icon-only' : '',
+            active_tab === unit.collection_unit_id ? 'active' : '',
+            is_collapsed ? 'icon-only' : '',
           ]"
           :style="{
-            backgroundColor: activeTab === unit.collection_unit_id ? '#f2bab0' : '#e0e0e0',
-            width: isCollapsed ? collapsedWidth : expandedWidth,
+            backgroundColor: active_tab === unit.collection_unit_id ? '#f2bab0' : '#e0e0e0',
+            width: is_collapsed ? collapsed_width : expanded_width,
           }"
         >
-          <span class="tab-title" v-if="!isCollapsed"
+          <!-- If tab out - display name and whether its completed -->
+          <span class="tab-title" v-if="!is_collapsed"
             >{{ unit.unit_name }}
             <div v-if="checkUnitCompleted(unit)"><i class="bi bi-check-lg"></i></div>
             <div v-else><i class="bi bi-x-lg"></i></div
@@ -53,11 +56,9 @@
     <!-- Content Area -->
     <div class="content">
       <div v-if="units.length">
-        <!-- {{ units[activeTab].collection_unit_id }}
-        <zoa-button @click="navUnit(units[activeTab].collection_unit_id)">Go to unit</zoa-button> -->
-        <!-- <RescoreComp :unit="units[activeTab]" /> -->
-        <RescoreCompV2
-          :unit="units.find((unit) => unit.collection_unit_id == activeTab)"
+        <!-- Display the scores for this unit and enable editing for rescore -->
+        <UnitScores
+          :unit="units.find((unit) => unit.collection_unit_id == active_tab)"
           :rescore="true"
           :fetchUnitsData="fetchUnitsData"
         />
@@ -67,8 +68,7 @@
 </template>
 
 <script>
-// import RescoreComp from './RescoreComp.vue'
-import RescoreCompV2 from './RescoreCompV2.vue'
+import UnitScores from './UnitScores.vue'
 
 export default {
   props: {
@@ -77,22 +77,23 @@ export default {
     fetchUnitsData: Function,
   },
   components: {
-    // RescoreComp,
-    RescoreCompV2,
+    UnitScores,
   },
   data() {
     return {
-      isCollapsed: false,
-      activeTab: this.units.length ? this.units[0].collection_unit_id : 0,
-      expandedWidth: '300px',
-      collapsedWidth: '50px',
+      is_collapsed: false,
+      active_tab: this.units.length ? this.units[0].collection_unit_id : 0,
+      expanded_width: '300px',
+      collapsed_width: '50px',
       filter_completed: false,
     }
   },
   methods: {
+    // Function to toggle the sidebar
     toggleSidebar() {
-      this.isCollapsed = !this.isCollapsed
+      this.is_collapsed = !this.is_collapsed
     },
+    // Function to navigate to the unit
     navUnit(unitId) {
       this.$router.push({
         path: '/view-unit',
@@ -101,15 +102,18 @@ export default {
         },
       })
     },
+    // Function to check if all categories in a unit are completed
     checkUnitCompleted(unit) {
+      // Get the json object from the unit
       const categories_json = JSON.parse(unit.category_tracking)
+      // Check if all categories are complete
       const completed = categories_json.every((category) => {
         return category.complete == 1
       })
       return completed
     },
     syncFromProps() {
-      this.activeTab = this.units.length ? this.units[0].collection_unit_id : 0
+      this.active_tab = this.units.length ? this.units[0].collection_unit_id : 0
     },
   },
   watch: {

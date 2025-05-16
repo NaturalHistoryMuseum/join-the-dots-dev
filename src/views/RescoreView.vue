@@ -2,6 +2,7 @@
   <div class="rescore">
     <div class="main-header">
       <div class="row">
+        <!-- Rescore Details -->
         <div class="col-md-6">
           <h1>Rescore</h1>
           <div v-if="units.length > 0">
@@ -9,15 +10,15 @@
             <h5>Units assigned: {{ units.length }}</h5>
             <h5>Units completed: {{ countUnitsCompleted(units) }}</h5>
           </div>
-          <!-- <b-progress :value="20" :max="100" class="prog-bar" show-progress></b-progress> -->
         </div>
+        <!-- Actions button group -->
         <div class="col-md-6 actions">
           <div class="actions-group">
             <zoa-button @click="toggleActions()" class="const-btn"
               >Actions <i class="bi bi-three-dots-vertical"></i
             ></zoa-button>
             <transition name="fade">
-              <div v-show="showActions" class="action-btns">
+              <div v-show="show_actions" class="action-btns">
                 <zoa-button kind="primary">Bulk update</zoa-button>
                 <zoa-button kind="alt">See History</zoa-button>
                 <zoa-button kind="primary">Other Action</zoa-button>
@@ -26,43 +27,11 @@
             </transition>
           </div>
         </div>
-        <!-- <div class="col-md-6 flash-box">
-          <div class="flash-header"><h2>Action Station</h2></div>
-          <div class="flash-content">
-            <zoa-button label="Bulk Update Scores" />
-            <zoa-button label="See History" kind="primary" />
-            <zoa-button label="Go to unit" kind="alt" />
-          </div>
-        </div> -->
       </div>
     </div>
 
-    <!-- <div v-if="units.length < 0">
-      <div v-for="unit in units" :key="unit.unit_id">
-        <h3>{{ unit.unit_name }}</h3>
-        <p>{{ unit.unit_description }}</p>
-      </div>
-    </div>
-    <div v-else>
-      <zoa-tabs
-        :class="string"
-        :active-position="right"
-        :kind="normal"
-        :options="unitNames"
-        :size="'md'"
-      />
-    </div> -->
-
+    <!-- Add Collapsible Tabs to show units -->
     <CollapsibleTabs :units="units" :fetchUnitsData="fetchUnitsData" />
-    <!-- <div>
-      <b-row class="wrap" ref="wrap">
-        <b-tabs vertical pills card content-class="mt-3 tab-scroll">
-          <b-tab v-for="unit in units" :key="unit.unit_id" :title="unit.unit_name" active>
-            <RescoreComp :unit="unit" />
-          </b-tab>
-        </b-tabs>
-      </b-row>
-    </div> -->
   </div>
 </template>
 
@@ -71,13 +40,11 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import CollapsibleTabs from '@/components/CollapsibleTabs.vue'
 import { getGeneric } from '@/services/dataService'
-// import RescoreComp from '@/components/RescoreComp.vue'
 
 export default {
   name: 'DeptUnit',
   components: {
     CollapsibleTabs,
-    // RescoreComp,
   },
   setup() {
     const route = useRoute()
@@ -94,9 +61,8 @@ export default {
   },
   data() {
     return {
-      expandedCritDetails: 0,
       units: [],
-      showActions: false,
+      show_actions: false,
     }
   },
   mounted() {
@@ -104,15 +70,19 @@ export default {
   },
   methods: {
     fetchUnitsData() {
+      // Fetch units in this rescore session
       getGeneric(`rescore-units/${this.rescore_session_id}`).then((response) => {
         this.units = response
       })
     },
+    // Function to toggle the visibility of the actions button group
     toggleActions() {
-      this.showActions = !this.showActions
+      this.show_actions = !this.show_actions
     },
+    // Function to count the number of completed units
     countUnitsCompleted(units) {
       let completed_count = 0
+      // Loop through each unit and check if all categories are complete
       units.forEach((unit) => {
         const categories_json = JSON.parse(unit.category_tracking)
         const completed = categories_json.every((category) => {

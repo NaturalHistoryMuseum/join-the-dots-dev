@@ -1,38 +1,6 @@
-<!-- <script s>
-// import { RouterLink, RouterView } from 'vue-router'
-</script> -->
-
-<script>
-// import axios from 'axios'
-
-// export default {
-//   data() {
-//     return {
-//       data: [],
-//     }
-//   },
-//   mounted() {
-//     axios
-//       .get('http://localhost:5000/api/data/category')
-//       .then((response) => {
-//         this.data = response.data
-//         console.log(this.data)
-//       })
-//       .catch((error) => {
-//         console.error('There was an error fetching the data!', error)
-//       })
-//   },
-// }
-</script>
+<script></script>
 
 <template>
-  <!-- <div class="sub-header-bar"> -->
-  <!-- <nav>
-      <RouterLink to="/about">Intro</RouterLink>
-      <RouterLink to="/about">About</RouterLink>
-      <RouterLink to="/about">User Guide</RouterLink>
-    </nav> -->
-  <!-- </div> -->
   <div class="main-page">
     <div class="main-header">
       <h2>What is Join the Dots?</h2>

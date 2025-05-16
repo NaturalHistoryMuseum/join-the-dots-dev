@@ -4,9 +4,9 @@
       v-for="(tab, index) in tabs"
       :key="index"
       @click="changeTabFunc(index)"
-      :class="['tab', activeTab === index ? 'active' : '']"
+      :class="['tab', active_tab === index ? 'active' : '']"
       :style="{
-        backgroundColor: activeTab === index ? '#f2bab0' : '#e0e0e0',
+        backgroundColor: active_tab === index ? '#f2bab0' : '#e0e0e0',
       }"
     >
       <span class="tab-title">{{ tab.label }}</span>
@@ -20,7 +20,7 @@ export default {
   components: {},
   props: {
     tabs: Array,
-    activeTab: Number,
+    active_tab: Number,
     changeTabFunc: Function,
   },
   data() {

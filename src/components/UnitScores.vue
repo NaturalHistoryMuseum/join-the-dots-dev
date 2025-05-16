@@ -7,9 +7,9 @@
   </div>
   <div class="date-title">Last Edited: {{ overallDate() }}</div>
   <RescoreAccordionComp
-    :accordionId="0"
+    :accordion_id="0"
     :toggleAccordion="toggleAccordion"
-    :expandedAccordion="expandedAccordion"
+    :expanded_accordion="expanded_accordion"
     header="Unit Measures / Comments"
     :category_cols="category_cols"
     :rescore="rescore"
@@ -43,7 +43,7 @@
       </div>
       <div class="col-md-6">
         <zoa-input zoa-type="empty" label="Comments" class="comments-title" />
-        <textarea class="text-area" rows="7" v-model="localUnit.unit_comment"></textarea>
+        <textarea class="text-area" rows="7" v-model="local_unit.unit_comment"></textarea>
       </div>
     </div>
   </RescoreAccordionComp>
@@ -51,9 +51,9 @@
     <div class="">
       <div class="">
         <RescoreAccordionComp
-          :accordionId="cat.category_id"
+          :accordion_id="cat.category_id"
           :toggleAccordion="toggleAccordion"
-          :expandedAccordion="expandedAccordion"
+          :expanded_accordion="expanded_accordion"
           :header="cat.description"
           :category_cols="category_cols"
           :rescore="rescore"
@@ -158,7 +158,7 @@ export default {
   setup() {},
   data() {
     return {
-      expandedAccordion: null,
+      expanded_accordion: null,
       criterion: [],
       categories: [],
       category_cols: [
@@ -174,14 +174,14 @@ export default {
         { value: 'Medium', order: 2 },
         { value: 'Low', order: 3 },
       ],
-      localUnit: { ...this.unit },
+      local_unit: { ...this.unit },
       expanded_criterion_comment: null,
     }
   },
   watch: {
     unit: {
       handler(newVal) {
-        this.localUnit = { ...newVal }
+        this.local_unit = { ...newVal }
       },
       deep: true,
     },
@@ -203,10 +203,10 @@ export default {
       })
     },
     toggleAccordion(accord_id) {
-      if (this.expandedAccordion === accord_id) {
-        this.expandedAccordion = null
+      if (this.expanded_accordion === accord_id) {
+        this.expanded_accordion = null
       } else {
-        this.expandedAccordion = accord_id
+        this.expanded_accordion = accord_id
       }
     },
     navigateUnit(unit_id) {
@@ -283,7 +283,7 @@ export default {
       return `Show comments (${ranks_comments.length})`
     },
     checkCatComplete(cat) {
-      const category_tracking = JSON.parse(this.localUnit.category_tracking)
+      const category_tracking = JSON.parse(this.local_unit.category_tracking)
       const category = category_tracking.filter((category) => {
         return category.category_id == cat.category_id
       })
@@ -312,7 +312,7 @@ export default {
           this.fetchUnitsData()
         })
       }
-      this.localUnit.category_tracking = JSON.stringify(category_tracking)
+      this.local_unit.category_tracking = JSON.stringify(category_tracking)
     },
   },
   computed: {},

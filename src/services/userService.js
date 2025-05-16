@@ -2,17 +2,39 @@ import axios from 'axios'
 import { currentUser, loadUser } from '../services/authService'
 
 // FOR LOCAL TESTING
-// const API_URL = 'http://localhost:5000/api/user'
+const API_URL = 'http://localhost:5000/api/user'
 // FOR K8S
-const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user'
+// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user'
 
 export async function getGenericUser(route) {
-  const resp = await axios
-    .get(`${API_URL}/${route}`, { withCredentials: true })
-    .then((response) => {
-      return response.data
-    })
-  return resp
+  try {
+    const resp = await axios
+      .get(`${API_URL}/${route}`, { withCredentials: true })
+      .then((response) => {
+        return response.data
+      })
+    return resp
+  } catch (error) {
+    console.error('Error getting user data:', error)
+    throw error
+  }
+}
+
+export async function postGenericUser(route, data, reloadUser = false) {
+  try {
+    const resp = await axios
+      .post(`${API_URL}/${route}`, data, { withCredentials: true })
+      .then((response) => {
+        return response.data
+      })
+    if (reloadUser) {
+      await loadUser(true)
+    }
+    return resp
+  } catch (error) {
+    console.error('Error posting user data:', error)
+    throw error
+  }
 }
 
 export async function getUser() {

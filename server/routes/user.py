@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from server.database import get_db_connection
 
 user_bp = Blueprint('user', __name__)
@@ -125,4 +125,20 @@ def get_all_roles():
     data = fetch_data("""SELECT r.*
                    FROM jtd_test.roles r
                    """)
+    return jsonify(data)
+
+
+@user_bp.route('/update-division', methods=['POST'])
+def edit_user_division():
+    data = request.get_json()
+    division_id = data.get('division_id')
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    user_id = user["user_id"]
+
+    data = execute_query("""UPDATE jtd_test.users u
+            SET u.division_id = %s
+            WHERE u.user_id = %s
+                   """, (division_id, user_id))
     return jsonify(data)

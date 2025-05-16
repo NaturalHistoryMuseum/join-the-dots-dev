@@ -1,32 +1,34 @@
 <template>
   <div class="accordion-container">
+    <!-- Accordion button -->
     <button
       class="accordion"
       :style="{
-        borderRadius: expandedAccordion == accordionId ? '10px 10px 0px 0px' : '10px',
-        backgroundColor: expandedAccordion == accordionId ? '#f3f3f3' : 'white',
-        // backgroundColor:
-        //   expandedAccordion == accordionId ? category_cols[accordionId].col : 'white',
-        color: expandedAccordion == accordionId ? 'black' : 'black',
-        // borderColor: category_cols[accordionId].col,
+        borderRadius: expanded_accordion == accordion_id ? '10px 10px 0px 0px' : '10px',
+        backgroundColor: expanded_accordion == accordion_id ? '#f3f3f3' : 'white',
+        color: expanded_accordion == accordion_id ? 'black' : 'black',
       }"
-      @click="toggleAccordion(accordionId)"
+      @click="toggleAccordion(accordion_id)"
     >
+      <!-- Accordion header -->
       <h6 class="accordion-header">{{ header }}</h6>
       <h6 class="accordion-complete" v-if="rescore">{{ complete ? 'Complete' : 'Incomplete' }}</h6>
       <zoa-button v-if="rescore" size="sm" class="accordion-btn" @click.stop="changeCatComplete">{{
         complete ? 'Edit' : 'Mark Complete'
       }}</zoa-button>
-      <div v-if="expandedAccordion == accordionId" class="accordion-arrow">
+      <!-- Arrow button -->
+      <div v-if="expanded_accordion == accordion_id" class="accordion-arrow">
         <i class="bi bi-chevron-up accordion-icon"></i>
       </div>
       <div v-else class="accordion-arrow">
         <i class="bi bi-chevron-down accordion-icon"></i>
       </div>
     </button>
+    <!-- Accordion content -->
     <transition name="fade">
-      <div v-show="expandedAccordion === accordionId">
+      <div v-show="expanded_accordion === accordion_id">
         <div class="accordion-content">
+          <!-- Insert content -->
           <slot></slot>
         </div>
       </div>
@@ -37,9 +39,9 @@
 <script>
 export default {
   props: {
-    accordionId: Number,
+    accordion_id: Number,
     toggleAccordion: Function,
-    expandedAccordion: Number,
+    expanded_accordion: Number,
     header: String,
     category_cols: Array,
     rescore: Boolean,

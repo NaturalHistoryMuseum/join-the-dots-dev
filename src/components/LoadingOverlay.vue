@@ -7,7 +7,7 @@
       <span class="">Loading...</span>
     </div> -->
 
-    <img :src="loadingGif" alt="Loading..." class="loading-gif" />
+    <img :src="loading_gif" alt="Loading..." class="loading-gif" />
   </div>
 </template>
 
@@ -15,8 +15,8 @@
 import { useLoadingStore } from '@/stores/loadingStore'
 
 const loadingStore = useLoadingStore()
-// const loadingGif = '/src/assets/running-dinosaur.gif'
-const loadingGif = '/src/assets/dino-running.gif'
+// const loading_gif = '/src/assets/running-dinosaur.gif'
+const loading_gif = '/src/assets/dino-running.gif'
 </script>
 
 <style scoped>

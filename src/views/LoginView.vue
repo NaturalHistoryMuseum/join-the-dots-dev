@@ -5,7 +5,7 @@
     </div>
     <div v-if="currentUser" class="content">
       <p>You are already logged in</p>
-      <zoa-button label="Log Out" @click="logoutUser" class="login-btn" />
+      <zoa-button label="Log Out" @click="logout" class="login-btn" />
     </div>
     <div v-else>
       <p>You are not currently logged in</p>
@@ -20,21 +20,16 @@ import { login, logout, currentUser } from '../services/authService'
 
 export default {
   data() {
-    return {
-      user: null,
-    }
+    return {}
   },
   setup() {
     return { currentUser }
   },
   async mounted() {},
   methods: {
+    // Add functions from authService
     login,
-    logoutUser() {
-      this.user = null
-      localStorage.removeItem('user')
-      logout()
-    },
+    logout,
   },
 }
 </script>

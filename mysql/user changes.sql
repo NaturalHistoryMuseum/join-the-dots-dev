@@ -15,11 +15,13 @@ CREATE TABLE `users` (
   `email` varchar(45) NOT NULL,
   `azure_id` varchar(45) NOT NULL,
   `role_id` int DEFAULT 1,
+  `division_id` int,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_id_UNIQUE` (`user_id`),
   UNIQUE KEY `azure_id_UNIQUE` (`azure_id`),
   UNIQUE KEY `email_UNIQUE` (`email`),
   FOREIGN KEY (`role_id`) REFERENCES `roles`(`role_id`)
+  FOREIGN KEY (`division_id`) REFERENCES `division`(`division_id`)
 ) ;
 
 CREATE TABLE `assigned_units` (

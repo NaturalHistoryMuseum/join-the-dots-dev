@@ -10,8 +10,7 @@
           )"
           :key="rank.rank_id"
         >
-          <!-- <p class="desc-title">Rank {{ ranks.rank_value }}:</p>
-          <p>{{ ranks.comment }}</p> -->
+          <!-- Show the comment for each rank -->
           <zoa-input
             zoa-type="empty"
             :label="`Rank ${rank.rank_value} Comment`"

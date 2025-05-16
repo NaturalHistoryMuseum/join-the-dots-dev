@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar">
     <RouterLink
-      v-for="(link, index) in navLinks"
+      v-for="(link, index) in nav_links"
       :key="index"
       :to="link.path"
       class="nav-item"
@@ -22,7 +22,7 @@ export default {
   setup() {
     const route = useRoute()
 
-    const navLinks = [
+    const nav_links = [
       { name: 'Home', path: '/' },
       { name: 'About', path: '/about' },
       { name: 'Reports', path: '/reports' },
@@ -31,7 +31,7 @@ export default {
     const isActiveRoute = (path) => route.path === path
 
     return {
-      navLinks,
+      nav_links,
       isActiveRoute,
     }
   },
