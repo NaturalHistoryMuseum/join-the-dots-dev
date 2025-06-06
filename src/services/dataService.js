@@ -95,3 +95,29 @@ export async function completeCats(rescore_session_units_id, category_ids_arr, n
     throw error
   }
 }
+
+export async function submitDraftRrank(rank_draft) {
+  try {
+    const response = await axios.post(`${API_URL}/submit-draft-rank`, rank_draft, {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error submitting draft rank:', error)
+    throw error
+  }
+}
+
+export async function submitDataGeneric(route, data_json) {
+  try {
+    const response = await axios.post(`${API_URL}/${route}`, data_json, {
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    })
+    return response.data
+  } catch (error) {
+    console.error('Error submitting data:', error)
+    throw error
+  }
+}

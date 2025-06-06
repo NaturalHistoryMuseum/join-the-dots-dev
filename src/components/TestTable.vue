@@ -1,11 +1,32 @@
 <template>
   <div class="content">
-    <div>
+    <div class="actions-bar">
+      <ActionsBtnGroup :force_show="selected_unit_ids.length > 0">
+        <zoa-button class="bulk-btn">Bulk Edit</zoa-button>
+        <zoa-button class="merge-btn">Combine Units</zoa-button>
+        <zoa-button class="delete-btn">Delete Unit(s)</zoa-button>
+        <zoa-button class="split-btn">Split Unit(s)</zoa-button>
+      </ActionsBtnGroup>
+    </div>
+    <!-- <div class="action-section" v-if="selected_unit_ids.length > 0">
+      <div class="action-station col-md-6">
+        <div class="action-header">
+          <h4>{{ selected_unit_ids.length }} Units Selected</h4>
+        </div>
+        <div class="action-content">
+          <zoa-button kind="primary">Bulk Edit</zoa-button>
+          <zoa-button kind="alt">Combine Units</zoa-button>
+          <zoa-button kind="primary">Delete Unit</zoa-button>
+          <zoa-button kind="alt">Third Action</zoa-button>
+        </div>
+      </div>
+    </div> -->
+    <!-- <div>
       <div v-if="selected_unit_ids.length > 0">
         <h3>Selected Collection Unit IDs:</h3>
         {{ selected_unit_ids.join(', ') }}
       </div>
-    </div>
+    </div> -->
     <div class="table-options">
       <!-- Pagination -->
       <b-pagination
@@ -18,7 +39,7 @@
       <!-- Rows per page dropdown -->
       <zoa-input
         zoa-type="dropdown"
-        :options="{ options: per_page_options, placeholder: '10' }"
+        :config="{ options: per_page_options, placeholder: '10' }"
         label="Rows per page"
         @change="
           (value) => {
@@ -219,7 +240,10 @@
 
         <!-- Actions column -->
         <template #cell(actions)="row">
-          <zoa-button @click="viewUnit(row.item)" class="view-btn"> View Unit </zoa-button>
+          <div class="row-actions">
+            <zoa-button @click="viewUnit(row.item)" class="view-btn"> View Unit </zoa-button>
+            <zoa-button class="delete-btn">Delete Unit</zoa-button>
+          </div>
         </template>
       </b-table>
     </div>
@@ -229,9 +253,10 @@
 <script>
 import { getGeneric } from '@/services/dataService'
 import { currentUser } from '../services/authService'
+import ActionsBtnGroup from './ActionsBtnGroup.vue'
 
 export default {
-  components: {},
+  components: { ActionsBtnGroup },
   setup() {
     return { currentUser }
   },
@@ -550,6 +575,64 @@ export default {
   max-width: 50rem;
 }
 
+.actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.action-header {
+  background-color: #e6fdfd;
+  width: 100%;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.action-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.action-section {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-station {
+  /* width: 100%; */
+
+  border: #0dedf7 1px solid;
+  border-radius: 10px;
+}
+
+.delete-btn {
+  background-color: #ff5957;
+  /* color: white; */
+}
+
+.merge-btn {
+  background-color: #0d17f5;
+  color: white;
+}
+
+.bulk-btn {
+  background-color: #00ad00;
+  color: white;
+}
+
+.split-btn {
+  background-color: #ffe600;
+  /* color: white; */
+}
+
+.row-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 @media (max-width: 768px) {
   .table-container {
     flex-direction: column;

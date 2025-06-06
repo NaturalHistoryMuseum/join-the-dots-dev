@@ -10,6 +10,7 @@
           <p>Name: {{ currentUser.name }}</p>
           <p>Email: {{ currentUser.email }}</p>
           <p>Role : {{ currentUser.role[0].toUpperCase() + currentUser.role.slice(1) }}</p>
+          <p>level : {{ currentUser.level }}</p>
           <p>User ID : {{ currentUser.user_id }}</p>
           <p>Assigned Units : {{ currentUser.assigned_units }}</p>
           <p>Division : {{ currentUser.division_id }}</p>
@@ -21,7 +22,7 @@
             <zoa-input
               zoa-type="dropdown"
               label="Role"
-              :options="{ options, placeholder }"
+              :config="{ options, placeholder }"
               @change="(value) => handleRoleChange(value)"
             />
           </div>
@@ -57,7 +58,7 @@
             <zoa-input
               zoa-type="dropdown"
               label="Division"
-              :options="{ options: division_options }"
+              :config="{ options: division_options }"
               v-model="division_id"
             />
           </div>

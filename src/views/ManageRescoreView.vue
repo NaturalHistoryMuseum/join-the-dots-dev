@@ -3,19 +3,6 @@
     <h1>Manage Rescore</h1>
     <p>Latest Rescore : {{ latestRescore() }}</p>
   </div>
-  <div class="stepper-container">
-    <div v-for="(step, index) in rescore_steps" :key="step.step" class="step">
-      <div class="step-line" v-if="index !== 0"></div>
-      <button
-        class="step-number"
-        :class="{ 'selected-step': current_step === step.step }"
-        @click="current_step = step.step"
-      >
-        {{ step.step }}
-      </button>
-      <div class="step-title">{{ step.title }}</div>
-    </div>
-  </div>
   <div v-if="Object.keys(open_rescore).length && !is_loading" class="rescore-open">
     <h5>Rescore Open:</h5>
     <p>Started : {{ open_rescore.created_at }}</p>
@@ -27,51 +14,20 @@
     <p>There is currently no rescore open - please select units and start rescore below</p>
     <div class="rescore-actions">
       <zoa-button label="Start Rescore with Selected Units" @click="createRescore" />
-      <zoa-button label="Create new unit" />
+      <!-- <zoa-button label="Create new unit" /> -->
     </div>
     <div class="table-container">
-      <b-table
-        id="unit-table"
-        class="unit-table"
-        striped
-        hover
-        responsive
-        :items="units"
-        :fields="fields"
-      >
-        <!-- Header checkbox for selecting all rows -->
-        <template #head(select)="">
-          <zoa-input
-            class="check"
-            zoa-type="checkbox"
-            label=""
-            label-position="right"
-            v-model="selectAll"
-            @change="(newValue) => toggleSelectAll(newValue)"
-          />
-        </template>
-
-        <!-- Row checkbox -->
-        <template #cell(select)="row">
-          <zoa-input
-            class="check"
-            zoa-type="checkbox"
-            label-position="none"
-            @change="(newValue) => handleCheckboxChange(newValue, row.item)"
-            v-model="row.item.selected"
-          />
-        </template>
-
-        <!-- Custom rendering for the name column -->
+      <TableCheckbox :units="units" :fields="fields">
+        <!-- Custom rendering for a date field -->
         <template #cell(last_rescored)="row">
           {{ formatDate(row.value) }}
         </template>
 
         <!-- Actions column -->
         <template #cell(actions)="row">
-          <zoa-button @click="viewUnit(row.item)" class="view-btn"> View Unit </zoa-button>
+          <zoa-button @click="() => viewUnit(row.item)" class="view-btn"> View Unit </zoa-button>
         </template>
-      </b-table>
+      </TableCheckbox>
     </div>
   </div>
 </template>
@@ -79,10 +35,11 @@
 <script>
 import { getGeneric, markRescoreComplete, markRescoreOpen } from '@/services/dataService'
 import { currentUser } from '../services/authService'
+import TableCheckbox from './TableCheckbox.vue'
 
 export default {
   name: 'ManageRescoreView',
-  components: {},
+  components: { TableCheckbox },
   setup() {
     return { currentUser }
   },
@@ -96,16 +53,9 @@ export default {
         { label: 'Last Rescored', key: 'last_rescored' },
         { label: 'Actions', key: 'actions' },
       ],
-      selected_unit_ids: [],
+
       open_rescore: {},
       is_loading: false,
-      rescore_steps: [
-        { step: 1, title: 'Modify Units' },
-        { step: 2, title: 'Update Units' },
-        { step: 3, title: 'Rescore Units' },
-        { step: 4, title: 'Review' },
-      ],
-      current_step: 1,
     }
   },
   mounted() {
@@ -133,31 +83,7 @@ export default {
         },
       })
     },
-    handleCheckboxChange(newValue, rowItem) {
-      // Update the selected property directly
-      rowItem.selected = newValue
 
-      if (newValue) {
-        //Add the item to the selected_unit_ids array
-        this.selected_unit_ids.push(rowItem.collection_unit_id)
-      } else {
-        //Remove the item from the selected_unit_ids array
-        const indexOfVal = this.selected_unit_ids.indexOf(rowItem.collection_unit_id)
-        this.selected_unit_ids.splice(indexOfVal, 1)
-      }
-    },
-    toggleSelectAll(newValue) {
-      // Only update currently visible (filtered + paginated) rows
-      this.units.forEach((unit) => {
-        unit.selected = newValue
-      })
-      this.updateSelectedUnits()
-    },
-    updateSelectedUnits() {
-      this.selected_unit_ids = this.units
-        .filter((unit) => unit.selected)
-        .map((unit) => unit.collection_unit_id)
-    },
     async createRescore() {
       // Create rescore session with selected units
       markRescoreOpen(this.selected_unit_ids).then((response) => {
@@ -195,18 +121,7 @@ export default {
     },
     // Format date to YYYY-MM-DD
     formatDate(date) {
-      return date ? new Date(date).toISOString().split('T')[0] : 'N/A'
-    },
-  },
-  computed: {
-    // Handle the select all checkbox
-    selectAll: {
-      get() {
-        return this.units.length > 0 && this.units.every((unit) => unit.selected)
-      },
-      set(newValue) {
-        this.toggleSelectAll(newValue)
-      },
+      return date ? new Date(date).toISOString().split('T')[0] : 'No Data'
     },
   },
 }
@@ -227,57 +142,5 @@ export default {
   justify-content: center;
   margin: 1rem;
   gap: 1rem;
-}
-
-/* Stepper */
-.stepper-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4rem;
-  position: relative;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  width: 6rem;
-}
-
-.step-number {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  border: 2px solid #3498db;
-  background-color: white;
-  color: #3498db;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-}
-.selected-step {
-  background-color: #3498db;
-  color: white;
-}
-
-.step-title {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #333;
-  text-align: center;
-}
-
-.step-line {
-  position: absolute;
-  top: 1.5rem; /* half of button height */
-  left: -100%;
-  width: 140%;
-  height: 2px;
-  background-color: #3498db;
-  z-index: 0;
 }
 </style>

@@ -1,0 +1,852 @@
+[
+  {
+    "comment": null,
+    "rank_id": 76,
+    "is_draft": 1,
+    "definition": "Item(s) are entirely unsuitable for exhibition due to salient, essential, and/or problematic factors",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 16,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 77,
+    "is_draft": 1,
+    "definition": "Item(s) are of low exhibition suitability",
+    "percentage": 0,
+    "rank_value": 2,
+    "criterion_id": 16,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 78,
+    "is_draft": 1,
+    "definition": "Item(s) are moderately suitable for exhibition",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 16,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 79,
+    "is_draft": 1,
+    "definition": "Item(s) are particularly suitable for exhibition",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 16,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 80,
+    "is_draft": 1,
+    "definition": "Item(s) are highly suitable for exhibition, and exemplify a topic or theme",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 16,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 21,
+    "is_draft": 1,
+    "definition": "Item(s) require housing materials, but these are absent",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 5,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 22,
+    "is_draft": 1,
+    "definition": "Housing materials are present but are not conservation grade, and fail to appropriately house collection items. Sub-optimal materials require replacement, possibly urgently.  ",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 5,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 23,
+    "is_draft": 1,
+    "definition": "Housing materials are present and are not conservation grade. However, this is acceptable to collection item(s) in the short-term. Replacement is intended, but not urgent.",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 5,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 24,
+    "is_draft": 1,
+    "definition": "Housing materials are appropriate for long \u2013 term use, yet other improvements could be made to design that would make the overall arrangement of collection item(s) easier to manage. Housing materials appear to be conservation grade, but are untested.",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 5,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 25,
+    "is_draft": 1,
+    "definition": "Housing materials are fully tested, conservation grade materials, appropriate for long-term use with item(s)",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 5,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 11,
+    "is_draft": 1,
+    "definition": "Either temperature or relative humidity is acceptable less than 60% of the time.",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 3,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 12,
+    "is_draft": 1,
+    "definition": "N/A",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 3,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 13,
+    "is_draft": 1,
+    "definition": "At least one of temperature or relative humidity is acceptable between 60% - 79% of the time, and neither are acceptable less than 60% of the time.",
+    "percentage": 0,
+    "rank_value": 3,
+    "criterion_id": 3,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 14,
+    "is_draft": 1,
+    "definition": "N/A",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 3,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 15,
+    "is_draft": 1,
+    "definition": "Both temperature and relative humidity are acceptable for 80% or more of the time.",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 3,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 1,
+    "is_draft": 1,
+    "definition": "Item(s) in a collection unit, for whatever reason, are inaccessible",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 1,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 2,
+    "is_draft": 1,
+    "definition": "Item(s) in a collection unit are physically accessible but are not arranged in an agreed standard arrangement",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 1,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 3,
+    "is_draft": 1,
+    "definition": "Item(s) in a collection unit are arranged to some form of an agreed standard arrangement (they are in the right place), but are still difficult to access and as such are suboptimal",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 1,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 4,
+    "is_draft": 1,
+    "definition": "Item(s) in a collection unit are logically arranged and easily accessible, but the working arrangement and adherence to standards can still be improved",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 1,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 5,
+    "is_draft": 1,
+    "definition": "Item(s) in a collection unit are fully sorted, processed and curated to the agreed standards for arrangement",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 1,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 36,
+    "is_draft": 1,
+    "definition": "Collection is limited relative to many other national or international institutions",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 8,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 37,
+    "is_draft": 1,
+    "definition": "Many equivalent collections exist in other national or international institution",
+    "percentage": 0,
+    "rank_value": 2,
+    "criterion_id": 8,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 38,
+    "is_draft": 1,
+    "definition": "Collection is considered \"major\" (by discipline standards), but other major collections exist in some other organisations",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 8,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 39,
+    "is_draft": 1,
+    "definition": "Few other comparable collections exist",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 8,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 40,
+    "is_draft": 1,
+    "definition": "Collection is essentially unique \u2013 no other institutions possess an equivalent collection",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 8,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 71,
+    "is_draft": 1,
+    "definition": "As far as can be known, item(s) have not been included in previous or existing outreach activities",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 15,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 72,
+    "is_draft": 1,
+    "definition": "Item(s) have been used once in the past, and are not part of any existing outreach programming",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 15,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 73,
+    "is_draft": 1,
+    "definition": "Item(s) have featured fairly consistently in previous or outreach programmes",
+    "percentage": 0,
+    "rank_value": 3,
+    "criterion_id": 15,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 74,
+    "is_draft": 1,
+    "definition": "Item(s) are used with great regularity in outreach programming, sometimes consistently over years; they are staples of previous and/or current outreach activities and may even have/ have had bespoke outreach campaigns tailored around them.\\nAND: Item(s) are not being used in this way currently.",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 15,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 75,
+    "is_draft": 1,
+    "definition": "Item(s) are used with great regularity in outreach programming, sometimes consistently over years; they are staples of previous and/or current outreach activities and may even have/ have had bespoke outreach campaigns tailored around them. \\nAND: Item(s) are being used in this way currently.",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 15,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 6,
+    "is_draft": 0,
+    "definition": "Item(s) have significantly deteriorated and/or are still deteriorating, and/or there is risk of specimen loss; case for conservation assessment (if one has not been made) is clear and urgent",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 2,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 7,
+    "is_draft": 0,
+    "definition": "Item(s) in collection unit are deteriorating: factors that are causing deterioration have been identified. Stabilization of these factors would place item(s) in Rank 3",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 2,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 8,
+    "is_draft": 0,
+    "definition": "Item(s) are stabilized but not in satisfactory condition. However, factors that were causing deterioration have been resolved. Item(s) may still require preventative/remedial conservation and regular monitoring to ensure improvement in quality.",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 2,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 9,
+    "is_draft": 0,
+    "definition": "Item(s) in collection unit, as judged by particular discipline, are in satisfactory condition. Conservation concerns are either minor or can be addressed through curatorial regimen.",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 2,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 10,
+    "is_draft": 0,
+    "definition": "Item(s) in collection unit, as judged by particular discipline, are in excellent condition and present no conservation concerns, although standard curatorial practice mandates periodic monitoring e.g. for pests or debilitating conditions that may potentially develop",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 2,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 16,
+    "is_draft": 0,
+    "definition": "Storage equipment  is failing or substandard in multiple ways",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 4,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 17,
+    "is_draft": 0,
+    "definition": "Storage equipment is inappropriate in one or two ways",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 4,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 18,
+    "is_draft": 0,
+    "definition": "Storage equipment is acceptable in the short-term, and replacement is intended but not urgent",
+    "percentage": 0,
+    "rank_value": 3,
+    "criterion_id": 4,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 19,
+    "is_draft": 0,
+    "definition": "Storage equipment provides protection/enclosure, is apparently acceptable in terms of materials, but may not have been tested for leakage, air exchange rates, or reactivity towards specimens/objects. Storage designed to CSIP standards.",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 4,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 20,
+    "is_draft": 0,
+    "definition": "Storage furniture ismay be designed to CSIP standards or other collection \u2013 specific standards, and furniture attributes are known and optimal",
+    "percentage": 0,
+    "rank_value": 5,
+    "criterion_id": 4,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 26,
+    "is_draft": 0,
+    "definition": "Collection falls outside current, projected near term future, or past research foci as defined by the Science Strategy and Collections Development Strategic Plan",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 6,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 27,
+    "is_draft": 0,
+    "definition": "Slightly relevant",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 6,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 28,
+    "is_draft": 0,
+    "definition": "Moderately relevant",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 6,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 29,
+    "is_draft": 0,
+    "definition": "Directly relevant",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 6,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 30,
+    "is_draft": 0,
+    "definition": "Exceptionally relevant; collection has been and continues to be directly relevant to NHM, national, or international research, grand challenges, or of institutional cultural importance",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 6,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 31,
+    "is_draft": 0,
+    "definition": "Collection is disparate",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 7,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 32,
+    "is_draft": 0,
+    "definition": "Collection has limited utility due to significant gaps in collection arrangement",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 7,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 33,
+    "is_draft": 0,
+    "definition": "There are no significant gaps in the collection, but neither is the collection comprehensive",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 7,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 34,
+    "is_draft": 0,
+    "definition": "Comprehensive: scope of items authoritatively represents the function(s) the collection exemplifies.  Some minor diversification (e.g. of one or two already known specimens), or other strategic acquisitions, would further exemplify this. Comprehensive Synoptic collections will score a Rank 4.",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 7,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 35,
+    "is_draft": 0,
+    "definition": "Comprehensive of the function(s) the collection exemplifies; the collection could be considered expansive as well as comprehensive",
+    "percentage": 0,
+    "rank_value": 5,
+    "criterion_id": 7,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 41,
+    "is_draft": 0,
+    "definition": "Collection unit receives no visitors, enquiries, loan, or destructive sampling requests",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 9,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 42,
+    "is_draft": 0,
+    "definition": "History of minor or modest amount of use, but item(s) are not being used currently",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 9,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 43,
+    "is_draft": 0,
+    "definition": "History of average usage, but item(s) are not being used currently",
+    "percentage": 0,
+    "rank_value": 3,
+    "criterion_id": 9,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 44,
+    "is_draft": 0,
+    "definition": "Major history of research loan, and /or visitor activity, which presumably is documented/referred to in many important publications. \\nAND: Item(s) are not being used currently in any projects (both NHM and/or external)",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 9,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 45,
+    "is_draft": 0,
+    "definition": "Major history of research loan, and /or visitor activity, which presumably is documented/referred to in many important publications. \\nAND/OR: Current usage.",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 9,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 46,
+    "is_draft": 0,
+    "definition": "No catalogue item (specimen) record exists in the CMS (not object entry, acquisition, Index lot, preparation)",
+    "percentage": 0,
+    "rank_value": 1,
+    "criterion_id": 10,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 47,
+    "is_draft": 0,
+    "definition": "Minimum requirement to be able to document processes and link data related to an item (e.g. conservation, condition reporting for exhibit, producing a preparation, recording the physical location of an item)",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 10,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 48,
+    "is_draft": 0,
+    "definition": "The minimum requirement to be compliant with the NHM Collections Development Policy and for effective management of the collection using the CMS. For items acquired by the Museum since 2007, digital specimen records MUST include an attachment to the Acquisition record (see JTD Documentation criteria).  This link is not a requirement for pre-2007 acquisitions.",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 10,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 49,
+    "is_draft": 0,
+    "definition": "The minimum requirement for digital discovery (internal & external), WITHOUT the need to rely on labels/slips/registers. Compliant with NHM Collections Access and Information Policy and accreditation requirements. Items acquired by the Museum since 2007 are compliant with NHM entry point digitisation standards.",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 10,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 50,
+    "is_draft": 0,
+    "definition": "Core data enhanced with digital media, analyses and other data relevant to the research discipline. No further need to refer to the paper inventories/ registers/ labels/ slip indexes.",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 10,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 51,
+    "is_draft": 0,
+    "definition": "Item(s) are unidentified for whatever reason",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 11,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 52,
+    "is_draft": 0,
+    "definition": "Item(s) are identified, but not to a working level of precision",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 11,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 53,
+    "is_draft": 0,
+    "definition": "Item(s) are identified to a working level of precision. Such levels are defined differently across departments and disciplines.  Item(s) have not been identified by a subject expert, but current identification is deemed to be at least robust enough for collections management standards.",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 11,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 54,
+    "is_draft": 0,
+    "definition": "Item(s) have been identified by a reliable subject expert to a high level of precision",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 11,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 55,
+    "is_draft": 0,
+    "definition": "Item(s) have been identified and verified to a high level of precision by a leading (possibly world) expert. This may be an external visitor, or could be the current curator of the collection.",
+    "percentage": 0,
+    "rank_value": 5,
+    "criterion_id": 11,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 56,
+    "is_draft": 0,
+    "definition": "Legal status is questionable, and or formal ownership is problematic, and or necessary data are missing or incomplete",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 12,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 57,
+    "is_draft": 0,
+    "definition": "At least minimal documentation is available and formal ownership is not problematic, although perhaps not yet formally acquired or not all the acquisition data is linked to the items/lot themselves",
+    "percentage": 0,
+    "rank_value": 2,
+    "criterion_id": 12,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 58,
+    "is_draft": 0,
+    "definition": "Collection is acquired and catalogued and documented at acquisition level, but individual items are not",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 12,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 59,
+    "is_draft": 0,
+    "definition": "Items are documented, at individually documented level but records could be improved/enhanced; dependent on discipline and collections management standards, some data are missing that would provide total and comprehensive documentation of collection item(s)",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 12,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 60,
+    "is_draft": 0,
+    "definition": "No documentation concerns are present, e.g. fully documented, through acquisition and with registration at item level with complete archival labels clearly linking back to acquisition data",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 12,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 61,
+    "is_draft": 0,
+    "definition": "Collection is of limited potential for development",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 13,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 62,
+    "is_draft": 0,
+    "definition": "Collection development opportunities are available, but these are low-impact",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 13,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 63,
+    "is_draft": 0,
+    "definition": "Collection has moderate development potential",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 13,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 64,
+    "is_draft": 0,
+    "definition": "Collection has high development potential",
+    "percentage": 0,
+    "rank_value": 4,
+    "criterion_id": 13,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 65,
+    "is_draft": 0,
+    "definition": "Collection and associated item(s) have major potential for development, and may be particularly relevant for a variety of studies for a variety of reasons",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 13,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 66,
+    "is_draft": 0,
+    "definition": "Collection item(s) are entirely unsuitable for outreach due to salient and/or problematic factors",
+    "percentage": 0.0,
+    "rank_value": 1,
+    "criterion_id": 14,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 67,
+    "is_draft": 0,
+    "definition": "Collection item(s) may be suitable for some outreach activities, but possess some limiting qualities. ",
+    "percentage": 0,
+    "rank_value": 2,
+    "criterion_id": 14,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 68,
+    "is_draft": 0,
+    "definition": "Item(s) are suitable for outreach in the sense that they do not pose any cultural sensitivity or safety concerns, and item information is comprehensive enough; but item(s) do not possess factors that make them significantly appropriate reference points for wider discussions on a given topic",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 14,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 69,
+    "is_draft": 0,
+    "definition": "Item(s) are suitable for outreach in the sense that they do not pose any cultural sensitivity, safety concerns, and item information is comprehensive enough to offer a treatment of a topic; and item(s) possess factors that make them significantly appropriate reference points for wider discussions on a given topic.",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 14,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 70,
+    "is_draft": 0,
+    "definition": "Item(s) are of high suitability to outreach due to factors that may intrigue, excite and explain (perhaps in depth), topic(s) to audiences. Note: item(s) in this category may be fragile, pose health and safety, security, or various other concerns. However, item(s) possess qualities that make them such excellent reference points for scientific, historic, or cultural commentary that it may well be worthwhile to find methods to mitigate these risks, or host specially moderated outreach events.\\nAND/OR: Collections acquired for the purpose of being used in outreach activity. ",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 14,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 81,
+    "is_draft": 0,
+    "definition": "As far as can be known, items have not been used in previous or existing exhibition or gallery presentations, including touring programmes or any other type of display",
+    "percentage": 0,
+    "rank_value": 1,
+    "criterion_id": 17,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 82,
+    "is_draft": 0,
+    "definition": "Item(s) have only been used once in exhibition or gallery presentation, and are not on display now",
+    "percentage": 0.0,
+    "rank_value": 2,
+    "criterion_id": 17,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 83,
+    "is_draft": 0,
+    "definition": "Item(s) have featured fairly consistently in previous exhibitions or other displays, and are not on display now",
+    "percentage": 0.0,
+    "rank_value": 3,
+    "criterion_id": 17,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 84,
+    "is_draft": 0,
+    "definition": "Items have had a major, high \u2013 focus role in exhibition or museum galleries, and museum tours or affiliates; they may be a focal point in brand strategy, museum identity, and visitor experience.\\nAND: Item(s) are not currently on exhibition or display in any NHM programme.",
+    "percentage": 0.0,
+    "rank_value": 4,
+    "criterion_id": 17,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  },
+  {
+    "comment": null,
+    "rank_id": 85,
+    "is_draft": 0,
+    "definition": "Items have had a major, high \u2013 focus role in exhibition or museum galleries, and museum tours or affiliates; they may be a focal point in brand strategy, museum identity, and visitor experience.\\nAND/OR: Item(s) are currently on exhibition.",
+    "percentage": 0.0,
+    "rank_value": 5,
+    "criterion_id": 17,
+    "date_assessed": "2000-01-01T00:00:00Z"
+  }
+]

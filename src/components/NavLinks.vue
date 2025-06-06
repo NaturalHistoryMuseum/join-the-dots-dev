@@ -1,31 +1,42 @@
 <template>
   <nav class="navbar">
-    <RouterLink
-      v-for="(link, index) in nav_links"
-      :key="index"
-      :to="link.path"
-      class="nav-item"
-      :class="{ active: isActiveRoute(link.path) }"
-    >
-      {{ link.name }}
-      <span class="hover-bar"></span>
-      <span class="active-bar"></span>
-    </RouterLink>
+    <div v-if="currentUser">
+      <RouterLink
+        v-for="(link, index) in nav_links.filter((link) =>
+          link.access_groups.includes(currentUser.role.toLowerCase()),
+        )"
+        :key="index"
+        :to="link.path"
+        class="nav-item"
+        :class="{ active: isActiveRoute(link.path) }"
+      >
+        {{ link.name }}
+        <span class="hover-bar"></span>
+        <span class="active-bar"></span>
+      </RouterLink>
+    </div>
   </nav>
 </template>
 
 <script>
 import { useRoute } from 'vue-router'
+import { currentUser } from '../services/authService'
 
 export default {
   name: 'NavLinks',
   setup() {
     const route = useRoute()
-
     const nav_links = [
-      { name: 'Home', path: '/' },
-      { name: 'About', path: '/about' },
-      { name: 'Reports', path: '/reports' },
+      { name: 'Home', path: '/', access_groups: ['admin', 'viewer', 'editor', 'manager'] },
+      { name: 'About', path: '/about', access_groups: ['admin', 'viewer', 'editor', 'manager'] },
+      {
+        name: 'Reports',
+        path: '/reports',
+        access_groups: ['admin', 'viewer', 'editor', 'manager'],
+      },
+      { name: 'View Units', path: '/view-units', access_groups: ['admin', 'editor', 'manager'] },
+      { name: 'Rescore', path: '/manage-rescore', access_groups: ['admin', 'editor', 'manager'] },
+      { name: 'Admin', path: '/admin', access_groups: ['admin'] },
     ]
 
     const isActiveRoute = (path) => route.path === path
@@ -33,6 +44,7 @@ export default {
     return {
       nav_links,
       isActiveRoute,
+      currentUser,
     }
   },
 }

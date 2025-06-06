@@ -7,7 +7,7 @@ from server.routes.queries.data_queries import *
 
 data_bp = Blueprint('data', __name__)
 
-database_name = 'jtd_test'
+database_name = 'jtd_live'
 
 def fetch_data(query, params=None):
     """Helper function to execute a database query."""
@@ -113,6 +113,135 @@ def get_rescore_units(rescore_session_id):
     data = fetch_data(RESCORE_UNITS % int(rescore_session_id))
     return jsonify(data)
 
+# @data_bp.route('/rescore-draft-units/<rescore_session_id>', methods=['GET'])
+# def get_rescore_draft_units(rescore_session_id):
+#     data = fetch_data("""
+#                     select rsu.rescore_session_units_id,  ucd.category_draft_id, rsu.collection_unit_id,
+#                     (
+#                         SELECT JSON_ARRAYAGG(
+#                             JSON_OBJECT(
+#                                 'category_draft_id', urd.category_draft_id,
+#                                 'rank_draft_id', urd.rank_draft_id,
+#                                 'criterion_id', urd.criterion_id,
+#                                 'rank_id', urd.rank_id,
+#                                 'percentage', urd.percentage,
+#                                 'comment', urd.comment,
+#                                 'created_at', urd.created_at,
+#                                 'updated_at', urd.updated_at
+#                             )
+#                         ) as json
+#                         from {database_name}.unit_rank_draft urd
+#                         where ucd.category_draft_id = urd.category_draft_id 
+#                     ) as rank_changes
+#                     from {database_name}.rescore_session_units rsu
+#                     join {database_name}.unit_category_draft ucd on rsu.rescore_session_units_id = ucd.rescore_session_units_id 
+#                     where rsu.rescore_session_id = %s;
+#                     """ % int(rescore_session_id))
+#     return jsonify(data)
+
+@data_bp.route('/submit-draft-rank', methods=['POST'])
+def submit_draft_rank():
+    data = request.get_json()
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    collection_unit_id = data.get('collection_unit_id')
+    criterion_id = data.get('criterion_id')
+    ranks = data.get('ranks')
+    category_draft_id = data.get('category_draft_id')
+    
+    if not category_draft_id:
+        return jsonify({'error': 'category_draft_id is required'}), 400
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    user_id = user["user_id"]
+    if not rescore_session_units_id:
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
+    if not criterion_id:
+        return jsonify({'error': 'criterion_id is required'}), 400
+    try:
+        data = fetch_data("""
+                    select urd.* 
+                    from {database_name}.unit_rank_draft urd 
+                    join {database_name}.unit_category_draft ucd on urd.category_draft_id = ucd.category_draft_id
+                    where urd.criterion_id = %s and urd.category_draft_id = %s ;
+                   """, ( criterion_id, category_draft_id))
+        print(data)
+        # Loop through the ranks and update or insert them
+        for  sumbit_rank in ranks:
+            print(sumbit_rank)
+            in_db = False
+            rank_id = sumbit_rank['rank_id']
+            percentage = sumbit_rank['percentage']
+            comment = sumbit_rank['comment']
+            # Check if the rank already exists in the database and update it if it does
+            for db_rank in data:
+                if db_rank['rank_id'] == sumbit_rank['rank_id']:
+                    print("Rank already exists in db, updating")
+                    execute_query("""UPDATE {database_name}.unit_rank_draft
+                                SET percentage = %s, comment = %s, updated_at = NOW()
+                                WHERE category_draft_id = %s AND criterion_id = %s AND rank_id = %s;
+                        """, (percentage, comment, category_draft_id, criterion_id, rank_id))
+                    in_db = True
+
+            # If the rank does not exist, insert it
+            if not in_db:
+                print("Rank does not exist in db, inserting")
+                execute_query("""INSERT INTO {database_name}.unit_rank_draft (category_draft_id, criterion_id, rank_id, percentage, comment) 
+                            VALUES (%s, %s, %s, %s, %s);
+                    """, (category_draft_id, criterion_id, rank_id, percentage, comment))
+
+        return jsonify({"message": "Draft rank submitted successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@data_bp.route('/submit-draft-metrics', methods=['POST'])
+def submit_draft_metrics():
+    data = request.get_json()
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    collection_unit_id = data.get('collection_unit_id')
+    metric_json = data.get('metric_json')
+    
+    if not rescore_session_units_id:
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
+    if not collection_unit_id:
+        return jsonify({'error': 'collection_unit_id is required'}), 400
+    if not metric_json:
+        return jsonify({'error': 'metric_json are required'}), 400
+    
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    user_id = user["user_id"]
+
+    try:
+        # Loop through the metrics and update or insert them
+        for metric in metric_json:
+            collection_unit_metric_definition_id = metric['collection_unit_metric_definition_id']
+            metric_value = metric['metric_value']
+            confidence_level = metric['confidence_level']
+            if metric_value is not None or confidence_level is not None:
+                # Check if the metric already exists in the database and update it if it does
+                existing_metric = fetch_data("""
+                            SELECT * FROM {database_name}.unit_metric_draft 
+                            WHERE rescore_session_units_id = %s AND collection_unit_metric_definition_id = %s;
+                        """, (rescore_session_units_id, collection_unit_metric_definition_id))
+                
+                if existing_metric:
+                    execute_query("""UPDATE {database_name}.unit_metric_draft
+                                SET metric_value = %s, confidence_level = %s, updated_at = NOW()
+                                WHERE rescore_session_units_id = %s AND collection_unit_metric_definition_id = %s;
+                        """, (metric_value, confidence_level, rescore_session_units_id, collection_unit_metric_definition_id))
+                else:
+                    execute_query("""INSERT INTO {database_name}.unit_metric_draft (rescore_session_units_id, collection_unit_metric_definition_id, metric_value, confidence_level) 
+                                VALUES (%s, %s, %s, %s);
+                        """, (rescore_session_units_id, collection_unit_metric_definition_id, metric_value, confidence_level))
+
+        return jsonify({"message": "Draft metrics submitted successfully"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @data_bp.route('/end-rescore/<rescore_session_id>', methods=['POST'])
 def update_end_rescore(rescore_session_id):
     date = datetime.now()
@@ -211,6 +340,13 @@ def get_category():
                    """)
     return jsonify(data)
 
+@data_bp.route('/metric-definitions', methods=['GET'])
+def get_metric_definitions():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.collection_unit_metric_definition;
+                   """)
+    return jsonify(data)
+
 @data_bp.route('/all-sections', methods=['GET'])
 def get_all_sections():
     data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name
@@ -292,16 +428,20 @@ def get_all_lib_function():
 
 @data_bp.route('/units-by-user', methods=['GET'])
 def get_units_by_user():
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    user_id = user["user_id"]
     data = fetch_data("""SELECT cu.*, (
                             SELECT MAX(DATE(rs.completed_at))
-                            FROM jtd_test.rescore_session_units rsu 
-                            JOIN jtd_test.rescore_session rs on rs.rescore_session_id = rsu.rescore_session_id 
+                            FROM {database_name}.rescore_session_units rsu 
+                            JOIN {database_name}.rescore_session rs on rs.rescore_session_id = rsu.rescore_session_id 
                             WHERE rsu.collection_unit_id = cu.collection_unit_id 
                         ) AS last_rescored
                         FROM {database_name}.collection_unit cu
                         JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
                         WHERE au.user_id = %s AND cu.unit_active = 'yes';
-                        """, (session["user"]["user_id"],))
+                        """, (user_id,))
     return jsonify(data)
 
 

@@ -9,6 +9,7 @@ import { currentUser, loadUser } from '../services/authService'
 import ViewUnits from '../views/ViewUnits.vue'
 import ManageRescoreView from '@/views/ManageRescoreView.vue'
 import LoginView from '../views/LoginView.vue'
+import AdminView from '@/views/AdminView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -67,16 +68,27 @@ const router = createRouter({
       name: 'rescore',
       component: RescoreView,
       meta: { requiresAuth: true },
-      // beforeEnter: (to, from, next) => {
-      //   console.log(currentUser.value)
-      //   checkAuth('admin', from, next)
-      // },
+      beforeEnter: (to, from, next) => {
+        checkAuth(2, from, next)
+      },
     },
     {
       path: '/manage-rescore',
       name: 'manage rescore',
       component: ManageRescoreView,
       meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        checkAuth(2, from, next)
+      },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: AdminView,
+      meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        checkAuth(4, from, next)
+      },
     },
   ],
 })
@@ -90,25 +102,25 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-// async function checkAuth(role, from, next) {
-//   // Ensure user data is loaded
-//   if (currentUser.value === null) {
-//     await loadUser()
-//   }
-//   console.log(currentUser.value.role.toLowerCase())
-//   // Check access
-//   if (!currentUser.value || currentUser.value.role.toLowerCase() !== role) {
-//     // Prevent infinite loop by doing nothing if already on "/"
-//     if (from.path === '/') {
-//       return
-//     } else {
-//       // Navigate home if unauthorised
-//       next('/')
-//     }
-//   } else {
-//     // Proceed if authorised
-//     next()
-//   }
-// }
+async function checkAuth(level, from, next) {
+  // Ensure user data is loaded
+  if (currentUser.value === null) {
+    await loadUser()
+  }
+  // Check access
+  if (!currentUser.value || currentUser.value.level < level) {
+    // Prevent infinite loop by doing nothing if already on "/"
+    // if (from.path === '/') {
+    //   return
+    // } else {
+    //   // Navigate home if unauthorised
+    //   next('/')
+    // }
+    next('/')
+  } else {
+    // Proceed if authorised
+    next()
+  }
+}
 
 export default router

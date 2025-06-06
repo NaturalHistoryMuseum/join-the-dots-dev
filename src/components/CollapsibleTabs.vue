@@ -52,12 +52,12 @@
         </button>
       </div>
     </div>
-
     <!-- Content Area -->
     <div class="content">
       <div v-if="units.length">
         <!-- Display the scores for this unit and enable editing for rescore -->
         <UnitScores
+          v-if="units.find((unit) => unit.collection_unit_id == active_tab)"
           :unit="units.find((unit) => unit.collection_unit_id == active_tab)"
           :rescore="true"
           :fetchUnitsData="fetchUnitsData"
@@ -105,32 +105,21 @@ export default {
     // Function to check if all categories in a unit are completed
     checkUnitCompleted(unit) {
       // Get the json object from the unit
-      const categories_json = JSON.parse(unit.category_tracking)
+      const categories_json = unit.category_tracking
       // Check if all categories are complete
       const completed = categories_json.every((category) => {
         return category.complete == 1
       })
       return completed
     },
-    syncFromProps() {
-      this.active_tab = this.units.length ? this.units[0].collection_unit_id : 0
-    },
   },
-  watch: {
-    units: {
-      handler() {
-        this.syncFromProps()
-      },
-      deep: false,
-    },
-  },
+  watch: {},
 }
 </script>
 
 <style scoped>
 .tab-section {
   display: flex;
-  height: 100vh;
 }
 
 .sidebar {

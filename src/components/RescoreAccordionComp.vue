@@ -68,7 +68,7 @@ export default {
 
 .accordion-btn {
   margin-left: auto;
-  z-index: 10;
+  z-index: 1;
   min-width: 8rem;
 }
 

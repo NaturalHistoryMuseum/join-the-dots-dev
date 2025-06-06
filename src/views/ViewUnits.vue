@@ -4,9 +4,9 @@ import TestTable from '../components/TestTable.vue'
 
 <template>
   <div class="main-page">
-    <div class="main-header">
+    <!-- <div class="main-header">
       <h1>View Units</h1>
-    </div>
+    </div> -->
 
     <TestTable />
   </div>

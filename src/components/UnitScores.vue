@@ -1,42 +1,60 @@
 <template>
-  <div v-if="rescore" class="unit-header">
-    <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">{{ unit.unit_name }}</h4>
+  <div v-if="rescore && !bulk_edit" class="unit-header">
+    <div class="unit-link-container">
+      <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">{{ unit.unit_name }}</h4>
+    </div>
     <zoa-button class="complete-btn" @click="changeCatComplete([0, 1, 2, 3, 4], 1)"
       >Mark Unit Complete</zoa-button
     >
   </div>
-  <div class="date-title">Last Edited: {{ overallDate() }}</div>
+  <div v-if="!bulk_edit" class="date-title">Last Edited: {{ overallDate() }}</div>
   <RescoreAccordionComp
     :accordion_id="0"
     :toggleAccordion="toggleAccordion"
     :expanded_accordion="expanded_accordion"
     header="Unit Measures / Comments"
     :category_cols="category_cols"
-    :rescore="rescore"
-    :complete="rescore ? checkCatComplete({ category_id: 0 }) : false"
+    :rescore="rescore && !bulk_edit"
+    :complete="rescore && !bulk_edit ? checkCatComplete({ category_id: 0 }) : false"
     :changeCatComplete="() => changeCatComplete([0])"
   >
     <div class="date-title">Last Edited: {{ metricDate() }}</div>
 
     <div class="row">
-      <div class="col-md-6">
-        <div v-for="metric in JSON.parse(unit.metric_json)" :key="metric.collection_unit_metric_id">
+      <div class="col-md-6" v-if="metric_definitions.length > 0">
+        <div
+          v-for="metric in metric_definitions"
+          :key="metric.collection_unit_metric_definition_id"
+        >
           <div class="row">
             <div class="col-md-6">
               <zoa-input
                 zoa-type="number"
                 :label="fieldNameCalc(metric.metric_name)"
                 v-model="metric.metric_value"
+                @change="submitMetricsChanges(metric.collection_unit_metric_definition_id)"
               />
             </div>
-            <div class="col-md-6">
-              <SelectComp
-                :options="confidence_options"
+            <div class="col-md-6 mb-2">
+              <zoa-input
+                zoa-type="dropdown"
                 label="Confidence"
-                help=""
-                :multi="false"
-                :value="metric.confidence_level"
+                label-position="above"
+                @change="submitMetricsChanges(metric.collection_unit_metric_definition_id)"
+                :config="{
+                  options: confidence_options,
+                  itemName: 'value',
+                  itemNamePlural: 'data',
+                  enableSearch: true,
+                }"
+                v-model="metric.confidence_level"
               />
+            </div>
+          </div>
+          <div class="warnings" v-if="metric.is_draft">
+            <div class="save-msg">
+              <i class="bi bi-check-circle-fill save-icon"></i>
+              Change Saved
             </div>
           </div>
         </div>
@@ -56,12 +74,14 @@
           :expanded_accordion="expanded_accordion"
           :header="cat.description"
           :category_cols="category_cols"
-          :rescore="rescore"
-          :complete="rescore ? checkCatComplete(cat) : false"
+          :rescore="rescore && !bulk_edit"
+          :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
           :changeCatComplete="() => changeCatComplete([cat.category_id])"
         >
           <div class="">
-            <div class="date-title">Last Edited: {{ groupCategoryDate(cat) }}</div>
+            <div v-if="!bulk_edit" class="date-title">
+              Last Edited: {{ groupCategoryDate(cat) }}
+            </div>
 
             <div
               v-for="crit in criterion.filter(
@@ -72,44 +92,67 @@
               <div class="criterion-row">
                 <div class="criterion-title">
                   <CriterionDefModal :crit="crit" :unit="unit" />
-                  <h6 class="criterion-name">{{ crit.criterion_name }}</h6>
+                  <h6 class="criterion-name">{{ crit.criterion_name.split('/').join(' / ') }}</h6>
                 </div>
                 <div
-                  v-for="ranks in JSON.parse(unit.ranks_json).filter(
-                    (rank) => rank.criterion_id == crit.criterion_id,
-                  )"
-                  :key="ranks.rank_id"
+                  v-for="rank in editedRanks[crit.criterion_id]"
+                  :key="rank.rank_id"
                   class="criterion-rank"
                 >
-                  <!-- <zoa-input
-                    zoa-type="number"
-                    :label="'Rank ' + ranks.rank_value"
-                    v-model="ranks.percentage"
-                  /> -->
                   <PercentageInput
-                    v-model="ranks.percentage"
-                    :label="`Rank ${ranks.rank_value} (%)`"
+                    v-if="rescore"
+                    v-model="rank.percentage"
+                    :label="`Rank ${rank.rank_value} (%)`"
+                    :error="checkErrors(crit.criterion_id)"
+                    :submit="submitRankChanges"
+                    :rank="rank"
+                    :ranks="editedRanks[crit.criterion_id]"
+                    :criterion_id="crit.criterion_id"
                   />
-
-                  <!-- {{ ranks.comment }} -->
+                  <div v-else>
+                    <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
+                    <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
+                  </div>
                 </div>
+                <!-- {{
+                  // FOR TESTING PURPOSES ONLY
+                  editedRanks[crit.criterion_id].reduce((sum, r) => sum + (r.percentage || 0), 0)
+                }} -->
               </div>
 
               <div class="row">
-                <div class="show-comments" @click="showCriterionComments(crit.criterion_id)">
+                <div class="show-comments" v-if="rescore && !bulk_edit">
                   <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
-                    <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
+                    <div @click="showCriterionComments(crit.criterion_id)">
+                      <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
+                    </div>
+                    <RanksMessages
+                      :criterion_id="crit.criterion_id"
+                      :editedRanks="editedRanks"
+                      :ranks="ranks"
+                      :checkEdited="checkEdited"
+                      :checkErrors="checkErrors"
+                    />
                   </div>
                   <div v-else class="show-comments">
-                    <i class="bi bi-chevron-down"></i> {{ commentsTitle(crit.criterion_id) }}
+                    <div @click="showCriterionComments(crit.criterion_id)">
+                      <i class="bi bi-chevron-down"></i> {{ commentsTitle(crit.criterion_id) }}
+                    </div>
+                    <RanksMessages
+                      :criterion_id="crit.criterion_id"
+                      :editedRanks="editedRanks"
+                      :ranks="ranks"
+                      :checkEdited="checkEdited"
+                      :checkErrors="checkErrors"
+                    />
                   </div>
                 </div>
                 <transition name="fade">
                   <div v-if="expanded_criterion_comment == crit.criterion_id" class="row">
                     <div class="col-md-10">
                       <div
-                        v-for="rank in JSON.parse(unit.ranks_json).filter(
-                          (rank) => rank.criterion_id == crit.criterion_id && rank.comment !== null,
+                        v-for="rank in editedRanks[crit.criterion_id].filter(
+                          (rank) => rank.comment !== null,
                         )"
                         :key="rank.rank_id"
                       >
@@ -119,7 +162,12 @@
                       </div>
                     </div>
                     <div class="col-md-2 edit-comments">
-                      <EditCommentsModal :crit="crit" :unit="unit" />
+                      <EditCommentsModal
+                        v-if="rescore && !bulk_edit"
+                        :criterion_id="crit.criterion_id"
+                        :ranks="editedRanks[crit.criterion_id]"
+                        :submit="submitRankChanges"
+                      />
                     </div>
                   </div>
                 </transition>
@@ -135,25 +183,31 @@
 <script>
 import RescoreAccordionComp from './RescoreAccordionComp.vue'
 import CriterionDefModal from './CriterionDefModal.vue'
-import SelectComp from './SelectComp.vue'
-import { completeCats, getGeneric } from '@/services/dataService'
+import {
+  completeCats,
+  getGeneric,
+  submitDataGeneric,
+  submitDraftRrank,
+} from '@/services/dataService'
 import fieldNameCalc from '@/utils/utils'
 import EditCommentsModal from './EditCommentsModal.vue'
 import PercentageInput from './PercentageInput.vue'
+import RanksMessages from './RanksMessages.vue'
 
 export default {
   name: 'DeptUnit',
   props: {
     unit: Object,
     rescore: Boolean,
+    bulk_edit: Boolean,
     fetchUnitsData: Function,
   },
   components: {
     RescoreAccordionComp,
     CriterionDefModal,
-    SelectComp,
     EditCommentsModal,
     PercentageInput,
+    RanksMessages,
   },
   setup() {},
   data() {
@@ -176,12 +230,18 @@ export default {
       ],
       local_unit: { ...this.unit },
       expanded_criterion_comment: null,
+      ranks: this.unit.ranks_json,
+      editedRanks: {},
+      metric_definitions: [],
     }
   },
   watch: {
     unit: {
+      immediate: true,
       handler(newVal) {
         this.local_unit = { ...newVal }
+        this.initializeEditedRanks(newVal)
+        this.fetchMetrics()
       },
       deep: true,
     },
@@ -189,6 +249,7 @@ export default {
   mounted() {
     this.fetchCriterionData()
     this.fetchCategoryData()
+    // this.fetchMetrics()
   },
   methods: {
     fieldNameCalc,
@@ -202,6 +263,28 @@ export default {
         this.categories = response
       })
     },
+    fetchMetrics() {
+      if (this.local_unit.metric_json) {
+        getGeneric('metric-definitions').then((response) => {
+          this.metric_definitions = response.map((metric) => {
+            console.log('metric:', metric)
+            console.log('local_unit:', this.local_unit)
+            const this_metric = this.local_unit.metric_json.find(
+              (met) =>
+                metric.collection_unit_metric_definition_id ==
+                met.collection_unit_metric_definition_id,
+            ) || { metric_value: null, confidence_level: null }
+            console.log('this_metric:', this_metric)
+            return {
+              ...metric,
+              metric_value: this_metric.metric_value,
+              confidence_level: this_metric.confidence_level,
+              is_draft: this_metric.is_draft || false,
+            }
+          })
+        })
+      }
+    },
     toggleAccordion(accord_id) {
       if (this.expanded_accordion === accord_id) {
         this.expanded_accordion = null
@@ -214,7 +297,7 @@ export default {
     },
     groupCategoryDate(category) {
       if (!this.unit) return null
-      const ranks_json = JSON.parse(this.unit.ranks_json)
+      const ranks_json = this.ranks
 
       const filteredCriterion = this.criterion.filter(
         (criterion) => criterion.category_id == category.category_id,
@@ -236,7 +319,7 @@ export default {
     metricDate() {
       if (!this.unit) return null
       const comment_date = this.unit.unit_comment_date_added
-      const metric_json = JSON.parse(this.unit.metric_json)
+      const metric_json = this.unit.metric_json
       let latestDate = null
       metric_json.forEach((metric) => {
         const date = new Date(metric.date_from)
@@ -247,6 +330,7 @@ export default {
       if (!latestDate || comment_date > latestDate) {
         latestDate = comment_date
       }
+      if (!latestDate) return null
       const finalDate = latestDate.toISOString().split('T')[0]
       return finalDate
     },
@@ -273,7 +357,7 @@ export default {
       }
     },
     commentsTitle(criterion_id) {
-      const ranks_comments = JSON.parse(this.unit.ranks_json).filter(
+      const ranks_comments = this.editedRanks[criterion_id].filter(
         (rank) =>
           rank.criterion_id == criterion_id && rank.comment !== null && rank.comment.length > 0,
       )
@@ -283,7 +367,7 @@ export default {
       return `Show comments (${ranks_comments.length})`
     },
     checkCatComplete(cat) {
-      const category_tracking = JSON.parse(this.local_unit.category_tracking)
+      const category_tracking = this.local_unit.category_tracking
       const category = category_tracking.filter((category) => {
         return category.category_id == cat.category_id
       })
@@ -294,7 +378,7 @@ export default {
     changeCatComplete(category_ids_arr, new_val = null) {
       let submit_change = false
       let val = null
-      const category_tracking = JSON.parse(this.unit.category_tracking)
+      const category_tracking = this.unit.category_tracking
       category_tracking.forEach((category) => {
         if (category_ids_arr.includes(category.category_id)) {
           if (new_val != null) {
@@ -313,6 +397,137 @@ export default {
         })
       }
       this.local_unit.category_tracking = JSON.stringify(category_tracking)
+    },
+
+    submitMetricsChanges(collection_unit_metric_definition_id) {
+      if (this.bulk_edit) {
+        // NOT WORKING FOR BULD YET
+        this.$emit('newMetrics', {
+          ...this.local_unit,
+          metric_json: this.metric_definitions,
+        })
+      } else {
+        submitDataGeneric('submit-draft-metrics', {
+          rescore_session_units_id: this.unit.rescore_session_units_id,
+          collection_unit_id: this.unit.collection_unit_id,
+          metric_json: this.metric_definitions.filter(
+            (metric) =>
+              metric.collection_unit_metric_definition_id == collection_unit_metric_definition_id,
+          ),
+        }).then(() => {
+          // Fetch the updated data after submitting the metrics changes
+          this.fetchUnitsData()
+        })
+      }
+    },
+
+    submitRankChanges(ranks, criterion_id) {
+      if (this.bulk_edit) {
+        this.$emit('newRanks', {
+          ...this.local_unit,
+          ranks_json: this.getEditedRanksPerGroups(),
+        })
+      } else {
+        // Check if there are any errors before submitting
+        const errors = this.checkErrors(criterion_id)
+        if (errors.length > 0) {
+          // If there are errors, do not submit
+          return
+        } else {
+          // If no errors, proceed to submit the rank changes
+          const category_draft_id = this.getCatDraftId(criterion_id)
+          const rank_draft = {
+            rescore_session_units_id: this.unit.rescore_session_units_id,
+            collection_unit_id: this.unit.collection_unit_id,
+            criterion_id: criterion_id,
+            category_draft_id: category_draft_id,
+            ranks: ranks.map((rank) => ({
+              rank_id: rank.rank_id,
+              percentage: rank.percentage || 0,
+              comment: rank.comment || null,
+            })),
+          }
+          submitDraftRrank(rank_draft).then(() => {
+            // Fetch the updated data after submitting the rank changes
+            this.fetchUnitsData()
+          })
+        }
+      }
+    },
+    getEditedRanksPerGroups() {
+      // Get only the ranks that have been edited
+      let new_ranks = []
+      // Object.keys(this.editedRanks).forEach((criterion) => {
+      for (const [key, value] of Object.entries(this.editedRanks)) {
+        console.log('getEditedRanksPerGroups called for criterion:', value)
+        const percentage_total = value.reduce((sum, r) => sum + (r.percentage || 0), 0)
+        console.log('Percentage total for criterion:', percentage_total)
+        if (percentage_total == 1) {
+          let temp_ranks = value.map((rank) => ({
+            ...rank,
+            criterion_name: this.criterion.find((c) => c.criterion_id === value[0].criterion_id)
+              .criterion_name,
+          }))
+          new_ranks.push(temp_ranks)
+        }
+      }
+      return new_ranks
+    },
+    getCatDraftId(criterion_id) {
+      const category_tracking = this.unit.category_tracking
+      // Find the category for the criterion
+      const category = category_tracking.find(
+        (cat) =>
+          cat.category_id ===
+          this.criterion.find((c) => c.criterion_id === criterion_id).category_id,
+      )
+      return category.category_draft_id
+    },
+    // Function to check for errors in ranks
+    checkErrors(criterion_id) {
+      const errors = []
+      // const ranks_filtered = this.getRanksByCriterion(criterion_id)
+      const ranks_filtered = this.editedRanks[criterion_id] || []
+      // Check if there are any ranks with errors
+      if (ranks_filtered.some((r) => r.percentage < 0)) {
+        errors.push({
+          message: 'Percentage must be between 0 and 100',
+          type: 'error',
+        })
+      }
+      const percentage_total = ranks_filtered.reduce((sum, r) => sum + (r.percentage || 0), 0)
+      // Check if the total percentage exceeds 100%
+      if (percentage_total > 1) {
+        errors.push({ message: 'Total percentage exceeds 100%', type: 'error' })
+      } else if (percentage_total < 1) {
+        errors.push({ message: 'Total percentage is less than 100%', type: 'warning' })
+      }
+      return errors
+    },
+    checkEdited(ranks) {
+      // Check if any rank has been edited
+      return ranks.some((rank) => rank.is_draft)
+    },
+    initializeEditedRanks(unit) {
+      const ranks = unit.ranks_json
+      console.log('initializeEditedRanks called with ranks:', ranks.length)
+      const grouped = {}
+      if (!ranks || ranks.length === 0) {
+        this.editedRanks = {}
+        return
+      }
+      if (ranks && !Array.isArray(ranks) && typeof ranks === 'object') {
+        console.warn('already grouped :', ranks)
+        this.editedRanks = ranks
+        return
+      }
+      console.log('ranks from intializeEditedRanks:', ranks)
+      ranks.forEach((rank) => {
+        if (!grouped[rank.criterion_id]) grouped[rank.criterion_id] = []
+        grouped[rank.criterion_id].push({ ...rank }) // make a copy
+      })
+
+      this.editedRanks = grouped
     },
   },
   computed: {},
@@ -353,7 +568,7 @@ export default {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0rem;
 }
 .criterion-title {
   width: 25%;
@@ -367,6 +582,7 @@ export default {
 }
 .criterion-name {
   margin: 0;
+  font-weight: bold;
 }
 
 .unit-header {
@@ -376,13 +592,18 @@ export default {
   margin-bottom: 1rem;
 }
 
+.unit-link-container {
+  display: flex;
+  justify-content: center;
+  width: 80%;
+}
+
 .unit-link {
   cursor: pointer;
   font-weight: bold;
   font-size: 1.5rem;
   text-decoration: underline 2px;
   margin: 0;
-  flex: 1;
 }
 
 .unit-link:hover {
@@ -408,6 +629,9 @@ export default {
 .show-comments {
   cursor: pointer;
   margin: 0.25rem 0;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .edit-comments {

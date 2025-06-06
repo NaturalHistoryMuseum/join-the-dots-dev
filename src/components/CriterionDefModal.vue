@@ -9,9 +9,7 @@
         <p>{{ crit.definition }}</p>
         <!-- All Ranks for this Criteria -->
         <div
-          v-for="ranks in JSON.parse(unit.ranks_json).filter(
-            (rank) => rank.criterion_id == crit.criterion_id,
-          )"
+          v-for="ranks in unit.ranks_json.filter((rank) => rank.criterion_id == crit.criterion_id)"
           :key="ranks.rank_id"
         >
           <p class="desc-title">Rank {{ ranks.rank_value }}:</p>

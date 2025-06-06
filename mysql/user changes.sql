@@ -2,12 +2,12 @@
 CREATE TABLE `roles` (
   `role_id` int NOT NULL UNIQUE AUTO_INCREMENT,
   `role` varchar(45) NOT NULL,
+  `level` int NOT NULL,
   PRIMARY KEY (`role_id`)
-  UNIQUE KEY `role_id_UNIQUE` (`role_id`),
 ) ;
 
-INSERT INTO `roles` (`role`)
-VALUES ('viewer'), ('editor'), ('manager'), ('admin');
+INSERT INTO `roles` (`role`, `level`)
+VALUES ('viewer', 1), ('editor', 2), ('manager', 3), ('admin', 4);
 
 CREATE TABLE `users` (
   `user_id` int NOT NULL AUTO_INCREMENT,
@@ -20,7 +20,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `user_id_UNIQUE` (`user_id`),
   UNIQUE KEY `azure_id_UNIQUE` (`azure_id`),
   UNIQUE KEY `email_UNIQUE` (`email`),
-  FOREIGN KEY (`role_id`) REFERENCES `roles`(`role_id`)
+  FOREIGN KEY (`role_id`) REFERENCES `roles`(`role_id`),
   FOREIGN KEY (`division_id`) REFERENCES `division`(`division_id`)
 ) ;
 

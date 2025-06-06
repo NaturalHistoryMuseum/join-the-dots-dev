@@ -25,7 +25,7 @@ def fetch_data(query, params=None):
 # @user_bp.route('/all-users', methods=['GET'])
 # def get_all_users():
 #     data = fetch_data("""SELECT *
-#                       FROM jtd_test.users
+#                       FROM jtd_live.users
 #                    """)
 #     return jsonify(data)
 
@@ -33,7 +33,7 @@ def fetch_data(query, params=None):
 @user_bp.route('/user/<azure_id>', methods=['GET'])
 def get_user(azure_id):
     data = fetch_data("""SELECT *
-                      FROM jtd_test.users
+                      FROM jtd_live.users
                       WHERE azure_id = %s
                    """ % str(azure_id))
     if data == []:
@@ -54,7 +54,7 @@ def add_user():
 
     try:
         execute_query("""
-            INSERT INTO jtd_test.users (azure_id, name, email)
+            INSERT INTO jtd_live.users (azure_id, name, email)
             VALUES (%s, %s, %s)
         """, (azure_id, name, email))
 
@@ -76,7 +76,7 @@ def edit_user_role():
     # Update role and commit changes
     try:
         execute_query("""
-            UPDATE jtd_test.users u
+            UPDATE jtd_live.users u
             SET u.role_id = %s
             WHERE u.user_id = %s
         """, (role_id, user_id,))
@@ -100,7 +100,7 @@ def edit_assign_units():
     # Delete current user units
     try:
         execute_query("""
-            DELETE FROM jtd_test.assigned_units
+            DELETE FROM jtd_live.assigned_units
             WHERE user_id = %s
         """, (user_id,))
     except Exception as e:
@@ -110,7 +110,7 @@ def edit_assign_units():
     try:
         for unit in units:
             execute_query("""
-                INSERT INTO jtd_test.assigned_units (user_id, collection_unit_id)
+                INSERT INTO jtd_live.assigned_units (user_id, collection_unit_id)
                 VALUES (%s, %s)
             """, (user_id, unit))
 
@@ -123,7 +123,7 @@ def edit_assign_units():
 @user_bp.route('/all-roles', methods=['GET'])
 def get_all_roles():
     data = fetch_data("""SELECT r.*
-                   FROM jtd_test.roles r
+                   FROM jtd_live.roles r
                    """)
     return jsonify(data)
 
@@ -137,7 +137,7 @@ def edit_user_division():
         return jsonify({"error": "Unauthorized"}), 401
     user_id = user["user_id"]
 
-    data = execute_query("""UPDATE jtd_test.users u
+    data = execute_query("""UPDATE jtd_live.users u
             SET u.division_id = %s
             WHERE u.user_id = %s
                    """, (division_id, user_id))

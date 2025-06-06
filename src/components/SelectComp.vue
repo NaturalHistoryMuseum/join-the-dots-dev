@@ -5,7 +5,7 @@
     label-position="above"
     :help="help"
     @change="(value) => onChangeFunc && onChangeFunc(value) & $emit('input', $event)"
-    :options="{ options, itemName: 'value', itemNamePlural: 'data', enableSearch: true }"
+    :config="{ options, itemName: 'value', itemNamePlural: 'data', enableSearch: true }"
     v-model="localValue"
   />
 </template>

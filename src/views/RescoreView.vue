@@ -3,29 +3,22 @@
     <div class="main-header">
       <div class="row">
         <!-- Rescore Details -->
-        <div class="col-md-6">
+        <div class="col-md-4">
           <h1>Rescore</h1>
           <div v-if="units.length > 0">
-            <h5>Section: {{ units[0].section_name }}</h5>
             <h5>Units assigned: {{ units.length }}</h5>
             <h5>Units completed: {{ countUnitsCompleted(units) }}</h5>
           </div>
         </div>
         <!-- Actions button group -->
-        <div class="col-md-6 actions">
-          <div class="actions-group">
-            <zoa-button @click="toggleActions()" class="const-btn"
-              >Actions <i class="bi bi-three-dots-vertical"></i
-            ></zoa-button>
-            <transition name="fade">
-              <div v-show="show_actions" class="action-btns">
-                <zoa-button kind="primary">Bulk update</zoa-button>
-                <zoa-button kind="alt">See History</zoa-button>
-                <zoa-button kind="primary">Other Action</zoa-button>
-                <zoa-button kind="alt">Third Action</zoa-button>
-              </div>
-            </transition>
-          </div>
+        <div class="col-md-8 actions">
+          <ActionsBtnGroup
+            ><zoa-button kind="primary">Bulk update</zoa-button>
+            <BulkEditScoreModal :units="units" />
+            <zoa-button kind="alt">See History</zoa-button>
+            <zoa-button kind="primary">Other Action</zoa-button>
+            <zoa-button kind="alt">Third Action</zoa-button></ActionsBtnGroup
+          >
         </div>
       </div>
     </div>
@@ -40,11 +33,15 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import CollapsibleTabs from '@/components/CollapsibleTabs.vue'
 import { getGeneric } from '@/services/dataService'
+import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue'
+import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue'
 
 export default {
   name: 'DeptUnit',
   components: {
     CollapsibleTabs,
+    ActionsBtnGroup,
+    BulkEditScoreModal,
   },
   setup() {
     const route = useRoute()
@@ -72,7 +69,13 @@ export default {
     fetchUnitsData() {
       // Fetch units in this rescore session
       getGeneric(`rescore-units/${this.rescore_session_id}`).then((response) => {
-        this.units = response
+        this.units = response.map((unit) => {
+          // Parse category tracking JSON
+          unit.category_tracking = JSON.parse(unit.category_tracking)
+          unit.ranks_json = JSON.parse(unit.ranks_json)
+          unit.metric_json = JSON.parse(unit.metric_json)
+          return unit
+        })
       })
     },
     // Function to toggle the visibility of the actions button group
@@ -84,7 +87,7 @@ export default {
       let completed_count = 0
       // Loop through each unit and check if all categories are complete
       units.forEach((unit) => {
-        const categories_json = JSON.parse(unit.category_tracking)
+        const categories_json = unit.category_tracking
         const completed = categories_json.every((category) => {
           return category.complete == 1
         })
@@ -128,28 +131,5 @@ export default {
 
 .flash-content {
   padding: 1rem;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: start;
-  gap: 1rem;
-}
-
-.action-btns {
-  display: flex;
-  flex-direction: row;
-  gap: 0.5rem;
-}
-
-.const-btn {
-  margin-left: auto;
-  /* margin-bottom: 0.5rem; */
-}
-.actions-group {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
 }
 </style>

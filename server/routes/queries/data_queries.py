@@ -375,23 +375,75 @@ RESCORE_UNITS = """
                                         and (`{database_name}`.`unit_assessment_criterion`.`current` = 'yes')))
                                     and (`{database_name}`.`person`.`person_id` <> 113))
                             limit 1) AS `assessor`,
+--                             (
+--                             	SELECT JSON_ARRAYAGG(
+--                             		JSON_OBJECT(
+--                             			'collection_unit_metric_id', cum.collection_unit_metric_id,
+--                             			'metric_value', cum.metric_value,
+--                             			'confidence_level', cum.confidence_level,
+--                             			'date_from', DATE(cum.date_from),
+--                             			'metric_name', cumd.metric_name,
+--                             			'metric_definition', cumd.metric_definition,
+--                             			'metric_units', cumd.metric_units,
+--                             			'metric_datatype', cumd.metric_datatype,
+--                                         'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
+--                         			)
+--                             	) AS metric_json 
+--                             	FROM {database_name}.collection_unit_metric cum 
+--                             	JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
+--                             	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
+--                             ) AS metric_json,
                             (
-                            	SELECT JSON_ARRAYAGG(
-                            		JSON_OBJECT(
-                            			'collection_unit_metric_id', cum.collection_unit_metric_id,
-                            			'metric_value', cum.metric_value,
-                            			'confidence_level', cum.confidence_level,
-                            			'date_from', DATE(cum.date_from),
-                            			'metric_name', cumd.metric_name,
-                            			'metric_definition', cumd.metric_definition,
-                            			'metric_units', cumd.metric_units,
-                            			'metric_datatype', cumd.metric_datatype
-                        			)
-                            	) AS metric_json 
-                            	FROM {database_name}.collection_unit_metric cum 
-                            	JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id 
-                            	WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes' 
-                            ) AS metric_json,
+							  SELECT JSON_ARRAYAGG(
+							    JSON_OBJECT(
+							      'collection_unit_metric_id', metrics.collection_unit_metric_id,
+							      'metric_value', metrics.metric_value,
+							      'confidence_level', metrics.confidence_level,
+							      'date_from', metrics.date_from,
+							      'metric_name', cumd.metric_name,
+							      'metric_definition', cumd.metric_definition,
+							      'metric_units', cumd.metric_units,
+							      'metric_datatype', cumd.metric_datatype,
+							      'collection_unit_metric_definition_id', metrics.collection_unit_metric_definition_id,
+							      'is_draft', metrics.is_draft
+							    )
+							  ) AS metric_json
+							  FROM (
+							    -- 🟦 Drafts
+							    SELECT
+							      NULL AS collection_unit_metric_id,
+							      umd.metric_value,
+							      umd.confidence_level,
+							      NULL AS date_from,
+							      umd.collection_unit_metric_definition_id,
+							      TRUE AS is_draft
+							    FROM {database_name}.unit_metric_draft umd
+							    WHERE umd.rescore_session_units_id = rsu.rescore_session_units_id
+							    UNION
+							    -- 🟩 Final Metrics (only if not overridden by drafts)
+							    SELECT
+							      cum.collection_unit_metric_id,
+							      cum.metric_value,
+							      cum.confidence_level,
+							      DATE(cum.date_from) AS date_from,
+							      cum.collection_unit_metric_definition_id,
+							      FALSE AS is_draft
+							    FROM {database_name}.collection_unit_metric cum
+							    WHERE
+							      cum.collection_unit_id = cu.collection_unit_id
+							      AND cum.current = 'yes'
+							      AND NOT EXISTS (
+							        SELECT 1
+							        FROM {database_name}.unit_metric_draft umd
+							        WHERE
+							          umd.rescore_session_units_id = rsu.rescore_session_units_id
+							          AND umd.collection_unit_metric_definition_id = cum.collection_unit_metric_definition_id
+							      )
+							  ) AS metrics
+							  JOIN {database_name}.collection_unit_metric_definition cumd
+							    ON metrics.collection_unit_metric_definition_id = cumd.collection_unit_metric_definition_id
+							)
+							AS metric_json,
                             (
                             select
                                 `uc`.`unit_comment`
@@ -412,32 +464,84 @@ RESCORE_UNITS = """
                             order by
                                 `uc`.`date_added` desc
                             limit 1) AS `unit_comment_date_added`,
+                            --                             (
+--                                 SELECT JSON_ARRAYAGG(
+--                                     JSON_OBJECT(
+--                                         'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
+--                                         'rank_id', uar.rank_id,
+--                                         'rank_value', r.rank_value,
+--                                         'comment', uar.comment,
+--                                         'definition', r.definition,
+--                                         'criterion_id', r.criterion_id,
+--                                         'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
+--                                     )
+--                                 ) AS percentages_json
+--                                 FROM {database_name}.unit_assessment_criterion uac
+--                                 JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+--                                 JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
+--                                 WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
+--                                 AND uar.unit_assessment_criterion_id IN (
+--                                     SELECT uac.unit_assessment_criterion_id
+--                                     FROM {database_name}.unit_assessment_criterion uac
+--                                     JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+--                                     WHERE uac.current = 'yes'
+--                                 )
+--                                 AND uar.rank_id IN (
+--                                     SELECT r.rank_id FROM {database_name}.rank r
+--                                 ))
+--                             ) AS ranks_json,
                             (
-                                SELECT JSON_ARRAYAGG(
-                                    JSON_OBJECT(
-                                        'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
-                                        'rank_id', uar.rank_id,
-                                        'rank_value', r.rank_value,
-                                        'comment', uar.comment,
-                                        'definition', r.definition,
-                                        'criterion_id', r.criterion_id,
-                                        'date_assessed', CASE WHEN uac.date_assessed IS NULL THEN DATE(uac.date_from) ELSE DATE(uac.date_assessed) END
-                                    )
-                                ) AS percentages_json
-                                FROM {database_name}.unit_assessment_criterion uac
-                                JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                                JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
-                                WHERE ((uac.collection_unit_id = cu.collection_unit_id) 
-                                AND uar.unit_assessment_criterion_id IN (
-                                    SELECT uac.unit_assessment_criterion_id
-                                    FROM {database_name}.unit_assessment_criterion uac
-                                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
-                                    WHERE uac.current = 'yes'
-                                )
-                                AND uar.rank_id IN (
-                                    SELECT r.rank_id FROM {database_name}.rank r
-                                ))
-                            ) AS ranks_json,
+								SELECT JSON_ARRAYAGG(
+									JSON_OBJECT(
+									'percentage', ranks.percentage,
+									'rank_id', ranks.rank_id,
+									'rank_value', r.rank_value,
+									'comment', ranks.comment,
+									'definition', r.definition,
+									'criterion_id', ranks.criterion_id,
+									'date_assessed', ranks.date_assessed,
+									'is_draft', ranks.is_draft
+									)
+								)
+								FROM (
+									-- Drafts
+									SELECT
+									urd.percentage,
+									urd.rank_id,
+									urd.comment,
+									urd.criterion_id,
+									urd.updated_at AS date_assessed,
+									TRUE AS is_draft
+									FROM {database_name}.unit_category_draft ucd
+									JOIN {database_name}.unit_rank_draft urd ON ucd.category_draft_id = urd.category_draft_id
+									WHERE ucd.rescore_session_units_id = rsu.rescore_session_units_id
+									UNION
+									-- Final Scores (exclude those overridden by drafts)
+									SELECT
+									uar.percentage,
+									uar.rank_id,
+									uar.comment,
+									r.criterion_id,
+									COALESCE(uac.date_assessed, uac.date_from) AS date_assessed,
+									FALSE AS is_draft
+									FROM {database_name}.unit_assessment_criterion uac
+									JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+									JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
+									WHERE
+									uac.collection_unit_id = cu.collection_unit_id
+									AND uac.current = 'yes'
+									AND NOT EXISTS (
+										SELECT 1
+										FROM {database_name}.unit_category_draft ucd2
+										JOIN {database_name}.unit_rank_draft urd2 ON ucd2.category_draft_id = urd2.category_draft_id
+										WHERE
+										ucd2.rescore_session_units_id = rsu.rescore_session_units_id
+										AND urd2.criterion_id = r.criterion_id
+									)
+								) AS ranks
+								JOIN {database_name}.rank r ON r.rank_id = ranks.rank_id
+							)
+						AS ranks_json,
                         rs.*, rsu.*, cu.unit_name,
                         (
                             SELECT JSON_ARRAYAGG(
@@ -449,7 +553,7 @@ RESCORE_UNITS = """
                                     'updated_at', ucd.updated_at
                                 )
                             ) AS category_tracking
-                            FROM jtd_test.unit_category_draft ucd
+                            FROM {database_name}.unit_category_draft ucd
                             WHERE ucd.rescore_session_units_id = rsu.rescore_session_units_id
                         ) AS category_tracking
                         from

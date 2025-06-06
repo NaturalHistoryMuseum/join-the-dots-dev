@@ -1,26 +1,57 @@
 <template>
   <div class="main-page">
     <div class="main-header">
+      <h1>Join the Dots Portal</h1>
       <div v-if="currentUser">
         <p>Welcome, {{ currentUser.name }}</p>
       </div>
-      <h1>Join the Dots Portal</h1>
-
-      <p>
+      <HomeStats />
+      <!-- <p>
         Sed dictum tincidunt dolor quis finibus. Donec in tincidunt augue. Curabitur dapibus vel
         mauris nec varius. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per
         inceptos himenaeos. Nunc cursus auctor dui, vel cursus nunc cursus a. Aenean eu sem et dui
       </p>
+      <p>to include per user:</p>
+      Viewer:
+      <ul>
+        <li>General overview of numbers</li>
+        <li></li>
+        <li></li>
+      </ul>
+      Editor:
+      <ul>
+        <li>Num units assigned to them</li>
+        <li>Last time changes were made</li>
+        <li></li>
+      </ul>
+      Manager:
+      <ul>
+        <li>Overview of division changes</li>
+        <li>Division statistics</li>
+        <li></li>
+      </ul>
+      Admin:
+      <ul>
+        <li>General overview of numbers</li>
+        <li></li>
+        <li></li>
+      </ul> -->
     </div>
     <div class="boader-header">
       <h2 class="boader-header-title">Actions</h2>
     </div>
     <b-row class="home-cards">
-      <div class="home-card col-md-4">
+      <div v-if="currentUser.level > 1" class="home-card col-md-4">
         <i class="bi bi-clipboard-check card-icon"></i>
         <h2>Rescore</h2>
         <p>Perform a re-scoring on your assigned sections.</p>
         <zoa-button label="Rescore" @click="navigate('/manage-rescore')" class="card-btn" />
+      </div>
+      <div v-if="currentUser.level == 1" class="home-card col-md-4">
+        <i class="bi bi-file-earmark card-icon"></i>
+        <h2>About</h2>
+        <p>Understand the JtD process further</p>
+        <zoa-button label="Rescore" @click="navigate('/about')" class="card-btn" />
       </div>
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
@@ -38,19 +69,24 @@
       </div>
     </b-row>
   </div>
+
+  <!-- <LoadingChart /> -->
 </template>
 
 <script>
+import HomeStats from '@/components/HomeStats.vue'
 import { currentUser } from '../services/authService'
 
 export default {
   setup() {
     return { currentUser }
   },
+  components: { HomeStats },
   data() {
     return {}
   },
-  async mounted() {},
+  mounted() {},
+
   methods: {
     // Navigate to path
     navigate(path) {

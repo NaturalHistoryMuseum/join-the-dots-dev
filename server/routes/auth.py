@@ -64,9 +64,9 @@ def auth_redirect():
 
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute("""SELECT u.*, r.role
-                      FROM jtd_test.users u
-                      LEFT JOIN jtd_test.roles r ON u.role_id = r.role_id
+        cursor.execute("""SELECT u.*, r.role, r.`level`
+                      FROM jtd_live.users u
+                      LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
                       WHERE azure_id = %s
                    """, (str(user_info["oid"]),))
         user = cursor.fetchone()
@@ -74,12 +74,12 @@ def auth_redirect():
         
         if not user:
             # Add user if not present
-            cursor.execute("INSERT INTO jtd_test.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 1))
+            cursor.execute("INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s)", (user_info["oid"], user_info["name"], user_info["preferred_username"], 1))
             connection.commit()
             # fetch user again
-            cursor.execute("""SELECT u.*, r.role
-                      FROM jtd_test.users u
-                      LEFT JOIN jtd_test.roles r ON u.role_id = r.role_id
+            cursor.execute("""SELECT u.*, r.role, r.`level`
+                      FROM jtd_live.users u
+                      LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
                       WHERE azure_id = %s
                    """, (str(user_info["oid"]),))
             user = cursor.fetchone()
@@ -93,7 +93,8 @@ def auth_redirect():
             "email": user["email"],
             "role_id": user["role_id"],
             "role": user["role"],
-            "division_id": user["division_id"]
+            "division_id": user["division_id"],
+            "level": user["level"],
         }
         jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
 
@@ -119,14 +120,14 @@ def auth_status():
 
     user_id = decode_token.get("user_id")
     # Get current user details
-    user_details = fetch_data("""SELECT u.*, r.role,
+    user_details = fetch_data("""SELECT u.*, r.role, r.`level`,
                         (
                             SELECT JSON_ARRAYAGG( au.collection_unit_id )
-                            FROM jtd_test.assigned_units au 
+                            FROM jtd_live.assigned_units au 
                             where au.user_id = u.user_id 
                         ) AS assigned_units
-                      FROM jtd_test.users u
-                      LEFT JOIN jtd_test.roles r ON u.role_id = r.role_id
+                      FROM jtd_live.users u
+                      LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
                       WHERE user_id = %s""", (user_id,))
     # If no user is found, return an error
     if not user_details:

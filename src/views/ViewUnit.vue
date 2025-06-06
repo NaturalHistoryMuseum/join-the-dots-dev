@@ -141,7 +141,7 @@
                 <zoa-input
                   zoa-type="dropdown"
                   label="Curatorial Unit Definition"
-                  :options="{ options: curatorial_def_options }"
+                  :config="{ options: curatorial_def_options }"
                   v-model="unit.curatorial_unit_definition_id"
                   @change="setCurrentCuratorialDef"
                 />
@@ -173,7 +173,7 @@
                 <zoa-input
                   zoa-type="dropdown"
                   label="Library and Archives Function"
-                  :options="{ options: lib_function_options }"
+                  :config="{ options: lib_function_options }"
                   v-model="unit.library_and_archives_function_id"
                   @change="setCurrentLibFunction"
                 />
@@ -186,7 +186,7 @@
               <zoa-input
                 zoa-type="dropdown"
                 label="Section Name"
-                :options="{ options: section_options }"
+                :config="{ options: section_options }"
                 v-model="unit.section_id"
                 @change="setCurrentSection"
               />
@@ -209,7 +209,7 @@
                 <zoa-input
                   zoa-type="dropdown"
                   label="Geological Time Period From"
-                  :options="{ options: geological_time_period_options }"
+                  :config="{ options: geological_time_period_options }"
                   v-model="unit.geological_time_period_from_id"
                   @change="setTimeFrom"
                 />
@@ -228,7 +228,7 @@
                     <zoa-input
                       zoa-type="dropdown"
                       label="Geological Time Period To"
-                      :options="{ options: geological_time_period_options }"
+                      :config="{ options: geological_time_period_options }"
                       v-model="unit.geological_time_period_to_id"
                       @change="setTimeTo"
                     />
@@ -246,7 +246,7 @@
                     <zoa-input
                       zoa-type="dropdown"
                       label="Geological Time Period From"
-                      :options="{ options: geological_time_period_options }"
+                      :config="{ options: geological_time_period_options }"
                       v-model="unit.geological_time_period_from_id"
                       @change="setTimeFrom"
                     />
@@ -264,7 +264,7 @@
                 <zoa-input
                   zoa-type="dropdown"
                   label="Geographic Origin Name"
-                  :options="{ options: geographic_origin_options }"
+                  :config="{ options: geographic_origin_options }"
                   v-model="unit.geographic_origin_id"
                   @change="setCurrentGeographicOrigin"
                 />
@@ -284,7 +284,7 @@
                 <zoa-input
                   zoa-type="dropdown"
                   label="Taxon Name"
-                  :options="{ options: taxon_options }"
+                  :config="{ options: taxon_options }"
                   v-model="unit.taxon_id"
                   @change="setCurrentTaxon"
                 />
@@ -313,7 +313,7 @@
                 zoa-type="dropdown"
                 label="Storage Container"
                 v-model="unit.storage_container_id"
-                :options="{ options: container_options }"
+                :config="{ options: container_options }"
                 @change="setCurrentContainer"
               />
             </div>
@@ -335,7 +335,7 @@
                 zoa-type="dropdown"
                 label="Room Code"
                 v-model="unit.storage_room_id"
-                :options="{ options: room_options }"
+                :config="{ options: room_options }"
                 @change="setCurrentRoom"
               />
             </div>
@@ -559,7 +559,12 @@ export default {
       this.unit = unitData[0]
       // this.unit_scores = await getGeneric(`unit-scores/${this.unitId}`)
       getGeneric(`unit-scores/${this.unitId}`).then((response) => {
-        this.unit_scores = response
+        this.unit_scores = response.map((unit) => {
+          // Parse category tracking JSON
+          unit.ranks_json = JSON.parse(unit.ranks_json)
+          unit.metric_json = JSON.parse(unit.metric_json)
+          return unit
+        })
       })
       getGeneric(`room-data`).then((response) => {
         this.room_options = response.map((room) => ({

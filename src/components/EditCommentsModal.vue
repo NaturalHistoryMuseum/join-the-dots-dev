@@ -4,23 +4,23 @@
     <template v-slot:header> Edit Comments </template>
     <div class="flex flex-col gap-4">
       <div>
-        <div
-          v-for="rank in JSON.parse(unit.ranks_json).filter(
-            (rank) => rank.criterion_id == crit.criterion_id,
-          )"
-          :key="rank.rank_id"
-        >
+        <div v-for="rank in ranks" :key="rank.rank_id">
           <!-- Show the comment for each rank -->
           <zoa-input
             zoa-type="empty"
             :label="`Rank ${rank.rank_value} Comment`"
             class="comments-title"
           />
-          <textarea class="text-area" rows="2" v-model="rank.comment"></textarea>
+          <textarea
+            class="text-area"
+            rows="2"
+            v-model="rank.comment"
+            @change="handleSave"
+          ></textarea>
         </div>
-        <div class="">
-          <zoa-button label="Save" />
-        </div>
+        <!-- <div class="">
+          <zoa-button label="Save" @click="handleSave" />
+        </div> -->
       </div>
     </div>
   </zoa-modal>
@@ -29,8 +29,14 @@
 <script>
 export default {
   props: {
-    crit: Object,
-    unit: Object,
+    criterion_id: Number,
+    ranks: Array,
+    submit: Function,
+  },
+  methods: {
+    handleSave() {
+      this.submit(this.ranks, this.criterion_id)
+    },
   },
 }
 </script>
