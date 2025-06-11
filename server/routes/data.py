@@ -158,6 +158,10 @@ def submit_draft_rank():
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not criterion_id:
         return jsonify({'error': 'criterion_id is required'}), 400
+    handle_draft_rank(criterion_id, ranks, category_draft_id)
+    return jsonify({"message": "Draft rank submitted successfully"}), 201
+
+def handle_draft_rank(criterion_id, ranks, category_draft_id):
     try:
         data = fetch_data("""
                     select urd.* 
@@ -189,7 +193,6 @@ def submit_draft_rank():
                 execute_query("""INSERT INTO {database_name}.unit_rank_draft (category_draft_id, criterion_id, rank_id, percentage, comment) 
                             VALUES (%s, %s, %s, %s, %s);
                     """, (category_draft_id, criterion_id, rank_id, percentage, comment))
-
         return jsonify({"message": "Draft rank submitted successfully"}), 201
 
     except Exception as e:
@@ -213,10 +216,15 @@ def submit_draft_metrics():
     if not user:
         return jsonify({"error": "Unauthorized"}), 401
     user_id = user["user_id"]
+    handle_draft_metrics(rescore_session_units_id, metric_json)
+    return jsonify({"message": "Draft metrics submitted successfully"}), 201
+
+def handle_draft_metrics(rescore_session_units_id, metric_json):
 
     try:
         # Loop through the metrics and update or insert them
         for metric in metric_json:
+            print(metric)
             collection_unit_metric_definition_id = metric['collection_unit_metric_definition_id']
             metric_value = metric['metric_value']
             confidence_level = metric['confidence_level']
@@ -236,11 +244,89 @@ def submit_draft_metrics():
                     execute_query("""INSERT INTO {database_name}.unit_metric_draft (rescore_session_units_id, collection_unit_metric_definition_id, metric_value, confidence_level) 
                                 VALUES (%s, %s, %s, %s);
                         """, (rescore_session_units_id, collection_unit_metric_definition_id, metric_value, confidence_level))
-
+            print(metric['collection_unit_metric_definition_id'], 'changesd')
         return jsonify({"message": "Draft metrics submitted successfully"}), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@data_bp.route('/submit-draft-comment', methods=['POST'])
+def submit_draft_comment():
+    data = request.get_json()
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    unit_comment = data.get('unit_comment')
+    
+    if not rescore_session_units_id:
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
+    if not unit_comment:
+        return jsonify({'error': 'unit_comment is required'}), 400
+    
+    handle_draft_comment(rescore_session_units_id, unit_comment)
+    return jsonify({"message": "Draft comment submitted successfully"}), 201
+
+
+
+def handle_draft_comment(rescore_session_units_id, unit_comment):
+    try:
+        existing_comment = fetch_data("""
+                    SELECT * FROM {database_name}.unit_comment_draft
+                    WHERE rescore_session_units_id = %s;
+                """, (rescore_session_units_id,))
+        if existing_comment:
+            # If a comment already exists, update it
+            execute_query("""UPDATE {database_name}.unit_comment_draft
+                        SET unit_comment = %s, updated_at = NOW()
+                        WHERE rescore_session_units_id = %s;
+                """, (unit_comment, rescore_session_units_id))
+        else:
+            # If no comment exists, insert a new one
+            execute_query("""INSERT INTO {database_name}.unit_comment_draft (rescore_session_units_id, unit_comment) 
+                            VALUES (%s, %s);
+                    """, (rescore_session_units_id, unit_comment))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@data_bp.route('/bulk-upload-rescore', methods=['POST'])
+def bulk_upload_rescore():
+    data = request.get_json()
+    units = data.get('units')
+    rescore_data = data.get('rescore_data')
+
+    success_count = 0
+
+    for unit in units:
+        collection_unit_id = unit.get('collection_unit_id')
+        rescore_session_units_id = unit.get('rescore_session_units_id')
+        
+        if not collection_unit_id or not rescore_session_units_id:
+            return jsonify({'error': 'collection_unit_id and rescore_session_units_id are required'}), 400
+        
+        # Handle ranks
+        if 'ranks_json' in rescore_data:
+            # Loop through all of the score changes
+            for criterion_ranks in rescore_data['ranks_json']:
+                print(criterion_ranks)
+                # Get the criterion_id for this score change
+                criterion_id = criterion_ranks[0]['criterion_id']
+                category_id = criterion_ranks[0]['category_id']
+                # Find category_draft_id
+                category_tracking = unit['category_tracking']
+                current_category = [category for category in category_tracking if category.get('category_id') == category_id]
+                category_draft_id = current_category[0]['category_draft_id']
+                # Make the score change
+                handle_draft_rank(criterion_id, criterion_ranks, category_draft_id)
+        
+        # Handle metrics
+        if 'metric_json' in rescore_data:
+            handle_draft_metrics(rescore_session_units_id, rescore_data['metric_json'])
+        
+        # Handle comment
+        if 'unit_comment' in rescore_data:
+            handle_draft_comment(rescore_session_units_id, rescore_data['unit_comment'])
+
+        # Increase success counter
+        success_count+=1
+    return jsonify({"message": "Bulk drafts submitted successfully", "success_count": success_count, "total_units": len(units)}), 201
 
 @data_bp.route('/end-rescore/<rescore_session_id>', methods=['POST'])
 def update_end_rescore(rescore_session_id):

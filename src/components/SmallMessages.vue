@@ -1,37 +1,26 @@
 <template>
-  <div class="warnings" v-for="error in checkErrors(criterion_id)" :key="error.message">
-    <div :class="error.type == 'error' ? 'error-msg' : 'warning-msg'">
-      <i
-        class="bi"
-        :class="
-          error.type == 'error'
-            ? 'bi-x-circle-fill error-icon'
-            : 'bi-exclamation-circle-fill warning-icon'
-        "
-      ></i>
-      {{ error.message }}
-    </div>
-  </div>
-  <div
-    class="warnings"
-    v-if="checkEdited(editedRanks[criterion_id]) && checkErrors(criterion_id).length == 0"
-  >
-    <div class="save-msg">
+  <div class="warnings">
+    <div v-if="message_type == 'success'" class="save-msg">
       <i class="bi bi-check-circle-fill save-icon"></i>
-      Change Saved
+      {{ message_text }}
+    </div>
+    <div v-if="message_type == 'error'" class="error-msg">
+      <i class="bi-x-circle-fill error-icon"></i>
+      {{ message_text }}
+    </div>
+    <div v-if="message_type == 'warning'" class="warning-msg">
+      <i class="bi-exclamation-circle-fill warning-icon"></i>
+      {{ message_text }}
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'RanksMessages',
+  name: 'SmallMessages',
   props: {
-    criterion_id: Object,
-    editedRanks: Object,
-    ranks: Array,
-    checkEdited: Function,
-    checkErrors: Function,
+    message_text: String,
+    message_type: String,
   },
   methods: {},
 }
@@ -42,6 +31,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 0.5rem;
 }
 
 .error-msg {
@@ -67,6 +57,7 @@ export default {
 .save-msg {
   font-weight: bold;
   margin-right: 1rem;
+  margin-bottom: 0.5rem;
   border: 1px solid #30ff2e;
   border-radius: 10px;
   background-color: #e5fee5;

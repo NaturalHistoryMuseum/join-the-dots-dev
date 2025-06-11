@@ -104,7 +104,7 @@ export default {
   padding: 0;
 }
 .main-header {
-  margin: 2rem 6rem;
+  margin: 2rem 6rem 1rem 6rem;
   text-align: left;
   width: 90%;
 }
@@ -182,7 +182,7 @@ export default {
     padding: 0.5rem 1rem;
   }
   .main-header {
-    margin: 2rem 2rem;
+    margin: 2rem 2rem 1rem 2rem;
   }
   * .home-cards > * {
     flex: 1 1 0;

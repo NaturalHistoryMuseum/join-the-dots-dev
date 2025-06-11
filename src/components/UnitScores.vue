@@ -1,31 +1,37 @@
 <template>
   <div v-if="rescore && !bulk_edit" class="unit-header">
+    <!-- Unit Tile and link to unit -->
     <div class="unit-link-container">
       <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">{{ unit.unit_name }}</h4>
     </div>
-    <zoa-button class="complete-btn" @click="changeCatComplete([0, 1, 2, 3, 4], 1)"
-      >Mark Unit Complete</zoa-button
-    >
+    <!-- Button for managing whole units complete status -->
+    <zoa-button class="complete-btn" @click="changeCatComplete([0, 1, 2, 3, 4], 1)">
+      Mark Unit Complete
+    </zoa-button>
   </div>
+  <!-- Date the whole unit was last edited -->
   <div v-if="!bulk_edit" class="date-title">Last Edited: {{ overallDate() }}</div>
+  <!-- Accordion for the Metrics and Comments -->
   <RescoreAccordionComp
     :accordion_id="0"
     :toggleAccordion="toggleAccordion"
     :expanded_accordion="expanded_accordion"
-    header="Unit Measures / Comments"
+    header="Unit Measures / Unit Comment"
     :category_cols="category_cols"
     :rescore="rescore && !bulk_edit"
     :complete="rescore && !bulk_edit ? checkCatComplete({ category_id: 0 }) : false"
     :changeCatComplete="() => changeCatComplete([0])"
   >
-    <div class="date-title">Last Edited: {{ metricDate() }}</div>
-
+    <div v-if="!bulk_edit" class="date-title">Last Edited: {{ metricDate() }}</div>
+    <!-- Metrics Section -->
     <div class="row">
+      <!-- Loop through each metric -->
       <div class="col-md-6" v-if="metric_definitions.length > 0">
         <div
           v-for="metric in metric_definitions"
           :key="metric.collection_unit_metric_definition_id"
         >
+          <!-- Add each metrics value field and confidence field -->
           <div class="row">
             <div class="col-md-6">
               <zoa-input
@@ -51,132 +57,151 @@
               />
             </div>
           </div>
-          <div class="warnings" v-if="metric.is_draft">
-            <div class="save-msg">
-              <i class="bi bi-check-circle-fill save-icon"></i>
-              Change Saved
-            </div>
-          </div>
+          <!-- Show saved message if metric came from drafts -->
+          <SmallMessages
+            v-if="metric.is_draft && !bulk_edit"
+            message_text="Change Saved"
+            message_type="success"
+          />
         </div>
       </div>
+      <!-- Unit Comments -->
       <div class="col-md-6">
-        <zoa-input zoa-type="empty" label="Comments" class="comments-title" />
-        <textarea class="text-area" rows="7" v-model="local_unit.unit_comment"></textarea>
+        <zoa-input zoa-type="empty" label="Unit Comment" class="comments-title" />
+        <textarea
+          class="text-area"
+          rows="7"
+          v-model="local_unit.unit_comment"
+          @change="handleCommentChange"
+        ></textarea>
+        <!-- Saved message if comment is in drafts -->
+        <SmallMessages
+          message_text="Change Saved"
+          message_type="success"
+          v-if="local_unit.unit_comment_is_draft && !bulk_edit"
+        />
       </div>
     </div>
   </RescoreAccordionComp>
+  <!-- Loop through each category and display an accordion for each one -->
   <div v-for="cat in categories" :key="cat.category_id">
-    <div class="">
+    <RescoreAccordionComp
+      :accordion_id="cat.category_id"
+      :toggleAccordion="toggleAccordion"
+      :expanded_accordion="expanded_accordion"
+      :header="cat.description"
+      :category_cols="category_cols"
+      :rescore="rescore && !bulk_edit"
+      :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
+      :changeCatComplete="() => changeCatComplete([cat.category_id])"
+    >
       <div class="">
-        <RescoreAccordionComp
-          :accordion_id="cat.category_id"
-          :toggleAccordion="toggleAccordion"
-          :expanded_accordion="expanded_accordion"
-          :header="cat.description"
-          :category_cols="category_cols"
-          :rescore="rescore && !bulk_edit"
-          :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
-          :changeCatComplete="() => changeCatComplete([cat.category_id])"
+        <!-- last edited date for this whole category -->
+        <div v-if="!bulk_edit" class="date-title">Last Edited: {{ groupCategoryDate(cat) }}</div>
+        <!-- Loop through each criterion in the category -->
+        <div
+          v-for="crit in criterion.filter((criteria) => criteria.category_id == cat.category_id)"
+          :key="crit.criterion_id"
         >
-          <div class="">
-            <div v-if="!bulk_edit" class="date-title">
-              Last Edited: {{ groupCategoryDate(cat) }}
+          <div class="criterion-row">
+            <div class="criterion-title">
+              <!-- Modal pop up for the criteria with its info -->
+              <CriterionDefModal :crit="crit" :unit="unit" />
+              <!-- Criterion Title -->
+              <h6 class="criterion-name">{{ crit.criterion_name.split('/').join(' / ') }}</h6>
             </div>
-
+            <!-- Loop through each rank in the criterion -->
             <div
-              v-for="crit in criterion.filter(
-                (criteria) => criteria.category_id == cat.category_id,
-              )"
-              :key="crit.criterion_id"
+              v-for="rank in editedRanks[crit.criterion_id]"
+              :key="rank.rank_id"
+              class="criterion-rank"
             >
-              <div class="criterion-row">
-                <div class="criterion-title">
-                  <CriterionDefModal :crit="crit" :unit="unit" />
-                  <h6 class="criterion-name">{{ crit.criterion_name.split('/').join(' / ') }}</h6>
-                </div>
-                <div
-                  v-for="rank in editedRanks[crit.criterion_id]"
-                  :key="rank.rank_id"
-                  class="criterion-rank"
-                >
-                  <PercentageInput
-                    v-if="rescore"
-                    v-model="rank.percentage"
-                    :label="`Rank ${rank.rank_value} (%)`"
-                    :error="checkErrors(crit.criterion_id)"
-                    :submit="submitRankChanges"
-                    :rank="rank"
-                    :ranks="editedRanks[crit.criterion_id]"
-                    :criterion_id="crit.criterion_id"
-                  />
-                  <div v-else>
-                    <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
-                    <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
-                  </div>
-                </div>
-                <!-- {{
-                  // FOR TESTING PURPOSES ONLY
-                  editedRanks[crit.criterion_id].reduce((sum, r) => sum + (r.percentage || 0), 0)
-                }} -->
-              </div>
-
-              <div class="row">
-                <div class="show-comments" v-if="rescore && !bulk_edit">
-                  <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
-                    <div @click="showCriterionComments(crit.criterion_id)">
-                      <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
-                    </div>
-                    <RanksMessages
-                      :criterion_id="crit.criterion_id"
-                      :editedRanks="editedRanks"
-                      :ranks="ranks"
-                      :checkEdited="checkEdited"
-                      :checkErrors="checkErrors"
-                    />
-                  </div>
-                  <div v-else class="show-comments">
-                    <div @click="showCriterionComments(crit.criterion_id)">
-                      <i class="bi bi-chevron-down"></i> {{ commentsTitle(crit.criterion_id) }}
-                    </div>
-                    <RanksMessages
-                      :criterion_id="crit.criterion_id"
-                      :editedRanks="editedRanks"
-                      :ranks="ranks"
-                      :checkEdited="checkEdited"
-                      :checkErrors="checkErrors"
-                    />
-                  </div>
-                </div>
-                <transition name="fade">
-                  <div v-if="expanded_criterion_comment == crit.criterion_id" class="row">
-                    <div class="col-md-10">
-                      <div
-                        v-for="rank in editedRanks[crit.criterion_id].filter(
-                          (rank) => rank.comment !== null,
-                        )"
-                        :key="rank.rank_id"
-                      >
-                        <div class="">
-                          <p class="view-field">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="col-md-2 edit-comments">
-                      <EditCommentsModal
-                        v-if="rescore && !bulk_edit"
-                        :criterion_id="crit.criterion_id"
-                        :ranks="editedRanks[crit.criterion_id]"
-                        :submit="submitRankChanges"
-                      />
-                    </div>
-                  </div>
-                </transition>
+              <!-- Allow for percentage input for this rank -->
+              <PercentageInput
+                v-if="rescore"
+                v-model="rank.percentage"
+                :label="`Rank ${rank.rank_value} (%)`"
+                :error="checkErrors(crit.criterion_id)"
+                :submit="submitRankChanges"
+                :rank="rank"
+                :ranks="editedRanks[crit.criterion_id]"
+                :criterion_id="crit.criterion_id"
+              />
+              <div v-else>
+                <!-- Display the rank value and percentage -->
+                <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
+                <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
               </div>
             </div>
+            {{
+              // FOR TESTING PURPOSES ONLY
+              editedRanks[crit.criterion_id].reduce((sum, r) => sum + (r.percentage || 0), 0)
+            }}
           </div>
-        </RescoreAccordionComp>
+          <!-- Container for other criterion interations -->
+          <div class="row">
+            <!-- Show comments asigned to ranks in this criterion -->
+            <div class="show-comments" v-if="rescore && !bulk_edit">
+              <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
+                <div @click="showCriterionComments(crit.criterion_id)">
+                  <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
+                </div>
+                <!-- Show warnings / Messages -->
+                <RanksWarnings
+                  :criterion_id="crit.criterion_id"
+                  :editedRanks="editedRanks"
+                  :ranks="ranks"
+                  :checkEdited="checkEdited"
+                  :checkErrors="checkErrors"
+                />
+              </div>
+              <div v-else class="show-comments">
+                <!-- Show comments asigned to ranks in this criterion -->
+                <div @click="showCriterionComments(crit.criterion_id)">
+                  <i class="bi bi-chevron-down"></i> {{ commentsTitle(crit.criterion_id) }}
+                </div>
+                <!-- Show warnings / Messages -->
+                <RanksWarnings
+                  :criterion_id="crit.criterion_id"
+                  :editedRanks="editedRanks"
+                  :ranks="ranks"
+                  :checkEdited="checkEdited"
+                  :checkErrors="checkErrors"
+                />
+              </div>
+            </div>
+            <!-- Pop out of the comments -->
+            <transition name="fade">
+              <div v-if="expanded_criterion_comment == crit.criterion_id" class="row">
+                <div class="col-md-10">
+                  <!-- Only show the ranks with comments assigned to them -->
+                  <div
+                    v-for="rank in editedRanks[crit.criterion_id].filter(
+                      (rank) => rank.comment !== null,
+                    )"
+                    :key="rank.rank_id"
+                  >
+                    <!-- Display comment -->
+                    <div class="">
+                      <p class="view-field">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-2 edit-comments">
+                  <!-- Modal pop out to edit the comments for each rank in this criterion -->
+                  <EditCommentsModal
+                    v-if="rescore && !bulk_edit"
+                    :criterion_id="crit.criterion_id"
+                    :ranks="editedRanks[crit.criterion_id]"
+                    :submit="submitRankChanges"
+                  />
+                </div>
+              </div>
+            </transition>
+          </div>
+        </div>
       </div>
-    </div>
+    </RescoreAccordionComp>
   </div>
 </template>
 
@@ -192,7 +217,8 @@ import {
 import fieldNameCalc from '@/utils/utils'
 import EditCommentsModal from './EditCommentsModal.vue'
 import PercentageInput from './PercentageInput.vue'
-import RanksMessages from './RanksMessages.vue'
+import RanksWarnings from './RanksWarnings.vue'
+import SmallMessages from './SmallMessages.vue'
 
 export default {
   name: 'DeptUnit',
@@ -207,7 +233,8 @@ export default {
     CriterionDefModal,
     EditCommentsModal,
     PercentageInput,
-    RanksMessages,
+    RanksWarnings,
+    SmallMessages,
   },
   setup() {},
   data() {
@@ -267,14 +294,11 @@ export default {
       if (this.local_unit.metric_json) {
         getGeneric('metric-definitions').then((response) => {
           this.metric_definitions = response.map((metric) => {
-            console.log('metric:', metric)
-            console.log('local_unit:', this.local_unit)
             const this_metric = this.local_unit.metric_json.find(
               (met) =>
                 metric.collection_unit_metric_definition_id ==
                 met.collection_unit_metric_definition_id,
             ) || { metric_value: null, confidence_level: null }
-            console.log('this_metric:', this_metric)
             return {
               ...metric,
               metric_value: this_metric.metric_value,
@@ -401,11 +425,16 @@ export default {
 
     submitMetricsChanges(collection_unit_metric_definition_id) {
       if (this.bulk_edit) {
-        // NOT WORKING FOR BULD YET
-        this.$emit('newMetrics', {
-          ...this.local_unit,
-          metric_json: this.metric_definitions,
-        })
+        const currentMetric = this.metric_definitions.find(
+          (metric) =>
+            metric.collection_unit_metric_definition_id == collection_unit_metric_definition_id,
+        )
+        if (currentMetric.metric_value == null || currentMetric.confidence_level == null) return
+        this.metric_definitions.find(
+          (metric) =>
+            metric.collection_unit_metric_definition_id == collection_unit_metric_definition_id,
+        ).is_draft = true
+        this.returnBulkEdit()
       } else {
         submitDataGeneric('submit-draft-metrics', {
           rescore_session_units_id: this.unit.rescore_session_units_id,
@@ -420,13 +449,18 @@ export default {
         })
       }
     },
+    returnBulkEdit() {
+      console.log('Returning to bulk edit', this.metric_definitions)
+      this.$emit('newUnit', {
+        ...this.local_unit,
+        metric_json: this.metric_definitions.filter((metric) => metric.is_draft),
+        ranks_json: this.getEditedRanksPerGroups(),
+      })
+    },
 
     submitRankChanges(ranks, criterion_id) {
       if (this.bulk_edit) {
-        this.$emit('newRanks', {
-          ...this.local_unit,
-          ranks_json: this.getEditedRanksPerGroups(),
-        })
+        this.returnBulkEdit()
       } else {
         // Check if there are any errors before submitting
         const errors = this.checkErrors(criterion_id)
@@ -459,14 +493,14 @@ export default {
       let new_ranks = []
       // Object.keys(this.editedRanks).forEach((criterion) => {
       for (const [key, value] of Object.entries(this.editedRanks)) {
-        console.log('getEditedRanksPerGroups called for criterion:', value)
         const percentage_total = value.reduce((sum, r) => sum + (r.percentage || 0), 0)
-        console.log('Percentage total for criterion:', percentage_total)
         if (percentage_total == 1) {
           let temp_ranks = value.map((rank) => ({
             ...rank,
-            criterion_name: this.criterion.find((c) => c.criterion_id === value[0].criterion_id)
+            criterion_name: this.criterion.find((c) => c.criterion_id === rank.criterion_id)
               .criterion_name,
+            category_id: this.criterion.find((c) => c.criterion_id === rank.criterion_id)
+              .category_id,
           }))
           new_ranks.push(temp_ranks)
         }
@@ -510,24 +544,35 @@ export default {
     },
     initializeEditedRanks(unit) {
       const ranks = unit.ranks_json
-      console.log('initializeEditedRanks called with ranks:', ranks.length)
       const grouped = {}
       if (!ranks || ranks.length === 0) {
         this.editedRanks = {}
         return
       }
       if (ranks && !Array.isArray(ranks) && typeof ranks === 'object') {
-        console.warn('already grouped :', ranks)
         this.editedRanks = ranks
         return
       }
-      console.log('ranks from intializeEditedRanks:', ranks)
       ranks.forEach((rank) => {
         if (!grouped[rank.criterion_id]) grouped[rank.criterion_id] = []
         grouped[rank.criterion_id].push({ ...rank }) // make a copy
       })
 
       this.editedRanks = grouped
+    },
+    handleCommentChange() {
+      if (this.bulk_edit) {
+        this.returnBulkEdit()
+      } else {
+        console.log('Submitting comment changes', this.local_unit.unit_comment)
+        submitDataGeneric('submit-draft-comment', {
+          rescore_session_units_id: this.unit.rescore_session_units_id,
+          unit_comment: this.local_unit.unit_comment,
+        }).then(() => {
+          // Fetch the updated data after submitting the comment changes
+          this.fetchUnitsData()
+        })
+      }
     },
   },
   computed: {},

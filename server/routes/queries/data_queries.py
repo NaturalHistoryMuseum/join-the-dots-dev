@@ -444,16 +444,76 @@ RESCORE_UNITS = """
 							    ON metrics.collection_unit_metric_definition_id = cumd.collection_unit_metric_definition_id
 							)
 							AS metric_json,
-                            (
-                            select
-                                `uc`.`unit_comment`
-                            from
-                                `{database_name}`.`unit_comment` `uc`
-                            where
-                                (`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
-                            order by
-                                `uc`.`date_added` desc
-                            limit 1) AS `unit_comment`,
+--                             (
+-- 								select
+-- 									`uc`.`unit_comment`
+-- 								from
+-- 									`jtd_live`.`unit_comment` `uc`
+-- 								where
+-- 									(`uc`.`collection_unit_id` = `cu`.`collection_unit_id`)
+-- 								order by
+-- 									`uc`.`date_added` desc
+-- 								limit 1) 
+--                             AS `unit_comment`,
+							(
+							  SELECT unit_comment FROM (
+							    SELECT 
+							      ucd.unit_comment AS unit_comment,
+							      ucd.updated_at AS comment_date,
+							      TRUE AS is_draft
+							    FROM jtd_live.unit_comment_draft ucd
+							    WHERE ucd.rescore_session_units_id = rsu.rescore_session_units_id
+							    UNION ALL
+							    SELECT 
+							      uc.unit_comment AS unit_comment,
+							      uc.date_added AS comment_date,
+							      FALSE AS is_draft
+							    FROM jtd_live.unit_comment uc
+							    WHERE uc.collection_unit_id = cu.collection_unit_id
+							    ORDER BY comment_date DESC
+							    LIMIT 1
+							  ) AS comments
+							) AS unit_comment,
+							-- Comment Date
+							(
+							  SELECT comment_date FROM (
+							    SELECT 
+							      ucd.unit_comment AS unit_comment,
+							      ucd.updated_at AS comment_date,
+							      TRUE AS is_draft
+							    FROM jtd_live.unit_comment_draft ucd
+							    WHERE ucd.rescore_session_units_id = rsu.rescore_session_units_id
+							    UNION ALL
+							    SELECT 
+							      uc.unit_comment AS unit_comment,
+							      uc.date_added AS comment_date,
+							      FALSE AS is_draft
+							    FROM jtd_live.unit_comment uc
+							    WHERE uc.collection_unit_id = cu.collection_unit_id
+							    ORDER BY comment_date DESC
+							    LIMIT 1
+							  ) AS comments
+							) AS unit_comment_date_added,
+							-- Draft Flag
+							(
+							  SELECT is_draft FROM (
+							    SELECT 
+							      ucd.unit_comment AS unit_comment,
+							      ucd.updated_at AS comment_date,
+							      TRUE AS is_draft
+							    FROM jtd_live.unit_comment_draft ucd
+							    WHERE ucd.rescore_session_units_id = rsu.rescore_session_units_id
+							    UNION ALL
+							    SELECT 
+							      uc.unit_comment AS unit_comment,
+							      uc.date_added AS comment_date,
+							      FALSE AS is_draft
+							    FROM jtd_live.unit_comment uc
+							    WHERE uc.collection_unit_id = cu.collection_unit_id
+							    ORDER BY comment_date DESC
+							    LIMIT 1
+							  ) AS comments
+							) AS unit_comment_is_draft,
                             (
                             select
                                 `uc`.`date_added`
