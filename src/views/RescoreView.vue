@@ -37,7 +37,7 @@ import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue'
 import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue'
 
 export default {
-  name: 'DeptUnit',
+  name: 'RescoreView',
   components: {
     CollapsibleTabs,
     ActionsBtnGroup,

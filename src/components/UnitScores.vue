@@ -221,7 +221,7 @@ import RanksWarnings from './RanksWarnings.vue'
 import SmallMessages from './SmallMessages.vue'
 
 export default {
-  name: 'DeptUnit',
+  name: 'UnitScores',
   props: {
     unit: Object,
     rescore: Boolean,
@@ -491,8 +491,7 @@ export default {
     getEditedRanksPerGroups() {
       // Get only the ranks that have been edited
       let new_ranks = []
-      // Object.keys(this.editedRanks).forEach((criterion) => {
-      for (const [key, value] of Object.entries(this.editedRanks)) {
+      for (const value of Object.entries(this.editedRanks)) {
         const percentage_total = value.reduce((sum, r) => sum + (r.percentage || 0), 0)
         if (percentage_total == 1) {
           let temp_ranks = value.map((rank) => ({

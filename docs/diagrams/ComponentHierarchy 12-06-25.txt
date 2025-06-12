@@ -1,0 +1,113 @@
+@startuml
+title Component Hierarchy
+
+skinparam componentStyle rectangle
+
+package "App (/)" {
+
+    [App.vue]
+}
+
+package "Router (/router)" {
+    [index.js]
+}
+
+package "Routed Pages (/views)" {
+    [HomeView.vue]
+    [LoginView.vue]
+    [AboutView.vue]
+    [AccountView.vue]
+    [AdminView.vue]
+    [HeaderView.vue]
+    [ManageRescoreView.vue]
+    [ReportsView.vue]
+    [RescoreView.vue]
+    [ViewUnit.vue]
+    [ViewUnits.vue]
+}
+
+package "Components (/components)" {
+    [ActionsBtnGroup.vue]
+    [BulkEditScoreModal.vue]
+    [CollapsibleTabs.vue]
+    [CriterionDefModal.vue]
+    [EditCommentsModal.vue]
+    [HomeStats.vue]
+    [LoadingChart.vue]
+    [LoadingOverlay.vue]
+    [NavLinks.vue]
+    [PercentageInput.vue]
+    [RanksWarnings.vue]
+    [RescoreAccordionComp.vue]
+    [SelectComp.vue]
+    [SmallMessages.vue]
+    [StepperComp.vue]
+    [TableCheckbox.vue]
+    [TestTable.vue]
+    [TopTabs.vue]
+    [UnitScores.vue]
+}
+
+/'package "Services (/services)" {'/
+/'    [authService.js]'/
+/'    [dataService.js]'/
+/'    [statsService.js]'/
+/'    [userService.js]'/
+/'}'/
+
+' App Routing hierarchy
+[App.vue] --> [index.js]
+[App.vue] --> [HeaderView.vue]
+[index.js] --> [HomeView.vue]
+[index.js] --> [LoginView.vue]
+[index.js] --> [AboutView.vue]
+[index.js] --> [AccountView.vue]
+[index.js] --> [AdminView.vue]
+[index.js] --> [ManageRescoreView.vue]
+[index.js] --> [ReportsView.vue]
+[index.js] --> [RescoreView.vue]
+[index.js] --> [ViewUnit.vue]
+[index.js] --> [ViewUnits.vue]
+
+
+' Page Component hierarchy
+[RescoreView.vue] --> [ActionsBtnGroup.vue]
+[RescoreView.vue] --> [BulkEditScoreModal.vue]
+[RescoreView.vue] --> [CollapsibleTabs.vue]
+
+[ManageRescoreView.vue] --> [TableCheckbox.vue]
+
+
+[HomeView.vue] --> [HomeStats.vue]
+
+[HeaderView.vue] --> [NavLinks.vue]
+
+[ReportsView.vue] --> [SelectComp.vue]
+
+[ViewUnit.vue] --> [TopTabs.vue]
+[ViewUnit.vue] --> [UnitScores.vue]
+
+[ViewUnits.vue] --> [TestTable.vue]
+
+' Sub Component hierarchy
+
+[BulkEditScoreModal.vue] --> [StepperComp.vue]
+[BulkEditScoreModal.vue] --> [TableCheckbox.vue]
+[BulkEditScoreModal.vue] --> [UnitScores.vue]
+
+[CollapsibleTabs.vue] --> [UnitScores.vue]
+
+[RanksWarnings.vue] --> [SmallMessages.vue]
+
+[TestTable.vue] --> [ActionsBtnGroup.vue]
+
+[UnitScores.vue] --> [RescoreAccordionComp.vue]
+[UnitScores.vue] --> [CriterionDefModal.vue]
+[UnitScores.vue] --> [EditCommentsModal.vue]
+[UnitScores.vue] --> [PercentageInput.vue]
+[UnitScores.vue] --> [RanksWarnings.vue]
+[UnitScores.vue] --> [SmallMessages.vue]
+
+
+
+@enduml
