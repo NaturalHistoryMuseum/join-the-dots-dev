@@ -1,8 +1,7 @@
-nav-container
 <template>
   <zoa-modal
     class="modal-btn bulk-modal"
-    kind="warning"
+    :kind="success ? 'success' : 'warning'"
     @opened="
       () => {
         resetModal()
@@ -12,7 +11,6 @@ nav-container
     @closed="
       () => {
         resetModal()
-        this.$refs.tableCheckbox.resetSelection()
       }
     "
   >
@@ -37,7 +35,7 @@ nav-container
             </div>
           </TableCheckbox>
         </div>
-        <div v-if="current_step === 2" class="modal-step-content">
+        <div v-show="current_step === 2" class="modal-step-content">
           <p class="text-center">Edit the scores for the selected units.</p>
           <div class="nav-container">
             <zoa-button class="" @click="current_step = current_step - 1">Back</zoa-button>
@@ -49,48 +47,72 @@ nav-container
             :unit="unit"
             :rescore="true"
             :bulk_edit="true"
-            @newRanks="handleBulkUnitUpdate"
+            @newUnit="handleBulkUnitUpdate"
           />
         </div>
-        <div v-if="current_step === 3" class="modal-step-content">
-          <div v-if="edited_unit">
-            <p class="text-center">Confirm the changes you made to the scores.</p>
-            <div class="nav-container">
-              <zoa-button class="" @click="current_step = current_step - 1">Back</zoa-button>
-              <!-- Display the scores for this unit and enable editing for rescore -->
-            </div>
-            <div class="save-changes-container">
-              <zoa-input
-                class="check"
-                zoa-type="checkbox"
-                label="Confirm score changes"
-                label-position="left"
-                v-model="confirm_changes"
-              />
-              <zoa-button
-                v-if="confirm_changes"
-                label="Save Changes"
-                @click="$emit('saveChanges')"
-              />
-            </div>
-            <p>These are your changes:</p>
-            <div v-for="(criterion, index) in edited_unit.ranks_json" :key="index">
-              <h5>{{ criterion[0].criterion_name }}</h5>
-              <div class="changed-ranks-container">
-                <div
-                  v-for="(rank, rankIndex) in criterion"
-                  :key="rankIndex"
-                  class="changed-rank-item"
-                >
-                  <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
-                  <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
-                  <!-- Rank {{ rank.rank_value }}: {{ rank.percentage * 100 }}% -->
+        <div v-show="current_step === 3" class="modal-step-content">
+          <div v-if="!loading && !success">
+            <div v-if="edited_unit">
+              <p class="text-center">Confirm the changes you made.</p>
+              <div class="nav-container">
+                <zoa-button class="" @click="current_step = current_step - 1">Back</zoa-button>
+                <!-- Display the scores for this unit and enable editing for rescore -->
+              </div>
+              <div class="save-changes-container">
+                <zoa-input
+                  class="check"
+                  zoa-type="checkbox"
+                  label="Confirm score changes"
+                  label-position="left"
+                  v-model="confirm_changes"
+                />
+                <zoa-button v-if="confirm_changes" label="Save Changes" @click="handleBulkUpload" />
+              </div>
+              <p>These are your changes:</p>
+              <div v-if="edited_unit.metric_json && edited_unit.metric_json.length > 0">
+                <h4>Metrics</h4>
+                <div v-for="(metric, index) in edited_unit.metric_json" :key="index">
+                  <div class="changed-container metric">
+                    <div class="changed-item">
+                      <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
+                      <p>{{ metric.metric_value }}</p>
+                    </div>
+                    <div class="changed-item">
+                      <p>Confidence:</p>
+                      <p>{{ metric.confidence_level }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="edited_unit.unit_comment">
+                <h4>Unit Comment</h4>
+                <p>{{ edited_unit.unit_comment }}</p>
+              </div>
+              <div v-if="edited_unit.ranks_json && edited_unit.ranks_json.length > 0">
+                <h4>Scores</h4>
+                <div v-for="(criterion, index) in edited_unit.ranks_json" :key="index">
+                  <h5>{{ criterion[0].criterion_name }}</h5>
+                  <div class="changed-container">
+                    <div
+                      v-for="(rank, rankIndex) in criterion"
+                      :key="rankIndex"
+                      class="changed-item"
+                    >
+                      <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
+                      <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
+                      <!-- Rank {{ rank.rank_value }}: {{ rank.percentage * 100 }}% -->
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+            <div v-else>
+              <p class="text-center">No changes made to the scores.</p>
+            </div>
           </div>
-          <div v-else>
-            <p class="text-center">No changes made to the scores.</p>
+          <div v-if="loading">chill im loading mate</div>
+          <div v-if="success">
+            {{ success_message }}
           </div>
         </div>
       </div>
@@ -99,9 +121,11 @@ nav-container
 </template>
 
 <script>
-import TableCheckbox from '@/views/TableCheckbox.vue'
+import TableCheckbox from './TableCheckbox.vue'
 import StepperComp from './StepperComp.vue'
 import UnitScores from './UnitScores.vue'
+import fieldNameCalc from '@/utils/utils'
+import { submitDataGeneric } from '@/services/dataService'
 
 export default {
   name: 'BulkEditScoreModal',
@@ -116,7 +140,7 @@ export default {
   async mounted() {
     const data = await import('../utils/ranks_json_temp.json')
     this.rank_json = data.default
-    this.unit.ranks_json = this.rank_json
+    this.resetModal()
   },
   data() {
     return {
@@ -155,15 +179,16 @@ export default {
       },
       confirm_changes: false,
       edited_unit: [],
+      success: false,
+      success_message: '',
+      loading: false,
     }
   },
   methods: {
+    fieldNameCalc,
     handleBulkUnitUpdate(updatedUnit) {
-      console.log('Bulk unit update:', updatedUnit)
       // Merge the updated ranks into the corresponding unit in your parent data
       this.edited_unit = updatedUnit
-      // You might want to emit an event or handle the updated unit further
-      // this.$emit('update:unit', this.unit);
     },
     handleStepChange(step) {
       this.current_step = step
@@ -173,6 +198,21 @@ export default {
       this.current_step = 1
       this.edited_unit = []
       this.confirm_changes = false
+      this.success = false
+      this.success_message = ''
+      this.loading = false
+      // Reset the score data
+      this.unit.ranks_json = JSON.parse(JSON.stringify(this.rank_json))
+    },
+    async handleBulkUpload() {
+      this.loading = true
+      const response = await submitDataGeneric('bulk-upload-rescore', {
+        units: this.units.filter((unit) => unit.selected),
+        rescore_data: this.edited_unit,
+      })
+      this.loading = false
+      this.success = response.success_count > 0
+      this.success_message = `Changes successfully made for ${response.success_count} / ${response.total_units}! ${response.success_count < response.total_units ? 'Please check changes and try again' : ''}`
     },
   },
 }
@@ -197,15 +237,14 @@ export default {
   overflow: auto;
 }
 
-.changed-ranks-container {
+.changed-container {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   padding: 0.5rem;
   margin-bottom: 0.5rem;
-}
-.changed-rank-item {
-  width: 20%;
+  margin-left: 2rem;
+  gap: 3rem;
 }
 
 .nav-container {

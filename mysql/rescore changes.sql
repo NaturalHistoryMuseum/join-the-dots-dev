@@ -46,3 +46,11 @@ CREATE TABLE unit_metric_draft (
     FOREIGN KEY (rescore_session_units_id) REFERENCES rescore_session_units(rescore_session_units_id),
     FOREIGN KEY (collection_unit_metric_definition_id) REFERENCES collection_unit_metric_definition(collection_unit_metric_definition_id)
 );
+CREATE TABLE unit_comment_draft (
+    unit_comment_draft_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    rescore_session_units_id INT NOT NULL,
+    unit_comment longtext NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (rescore_session_units_id) REFERENCES rescore_session_units(rescore_session_units_id)
+);

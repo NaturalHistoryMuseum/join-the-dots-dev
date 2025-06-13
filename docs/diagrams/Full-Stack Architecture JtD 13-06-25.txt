@@ -1,0 +1,60 @@
+@startuml
+title Full-Stack Architecture JtD
+
+skinparam componentStyle rectangle
+
+actor User
+
+package "Frontend (Vue.js)" {
+  [Vue App]
+  [Axios HTTP Client]
+}
+
+package "Backend (Flask)" {
+  [run.py] as EntryPoint
+  [register_routes.py]
+  [_init_.py]
+  [config.py]
+  [database.py]
+  
+  package "Routes" {
+    [data.py]
+    [auth.py]
+    [user.py]
+    [stats.py]
+    [report.py]
+    package "Queries" {
+    [data_queries.py]
+    }
+  }
+}
+
+database "MySQL" as DB
+
+' Interactions
+User --> [Vue App] : UI Interaction
+[Vue App] --> [Axios HTTP Client] : API Call
+[Axios HTTP Client] --> EntryPoint : HTTP Request
+EntryPoint --> [_init_.py]
+
+[config.py] <-- [_init_.py]
+[register_routes.py] <-- [_init_.py]
+
+[register_routes.py] --> [auth.py]
+[register_routes.py] --> [user.py]
+[register_routes.py] --> [data.py]
+[register_routes.py] --> [report.py]
+[register_routes.py] --> [stats.py]
+
+
+[auth.py] --> [database.py]
+[user.py] --> [database.py]
+[data.py] --> [database.py]
+[report.py] --> [database.py]
+[stats.py] --> [database.py]
+
+[database.py] --> DB
+
+[data.py] --> [data_queries.py]
+
+@enduml

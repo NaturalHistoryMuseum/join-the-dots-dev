@@ -13,6 +13,10 @@
       <zoa-button label="Login using SSO (Single Sign On)" @click="login" class="login-btn" />
     </div>
   </div>
+
+  <p class="temp-warning">
+    *Please note: This web app is still in development. No changes will affect actual JtD data.
+  </p>
 </template>
 
 <script>
@@ -34,4 +38,8 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.temp-warning {
+  margin: 2rem;
+}
+</style>

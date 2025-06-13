@@ -35,7 +35,7 @@
 <script>
 import { getGeneric, markRescoreComplete, markRescoreOpen } from '@/services/dataService'
 import { currentUser } from '../services/authService'
-import TableCheckbox from './TableCheckbox.vue'
+import TableCheckbox from '../components/TableCheckbox.vue'
 
 export default {
   name: 'ManageRescoreView',

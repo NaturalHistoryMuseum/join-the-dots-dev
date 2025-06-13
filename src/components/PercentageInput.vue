@@ -30,11 +30,11 @@ export default {
   computed: {
     percentageValue: {
       get() {
-        return parseFloat(((this.modelValue ?? 0) * 100).toFixed(3))
+        return this.modelValue !== undefined ? parseFloat((this.modelValue * 100).toFixed(2)) : 0
       },
       set(val) {
-        const rounded = parseFloat(val.toFixed(3))
-        this.$emit('update:modelValue', rounded / 100)
+        const normalized = Number(val) / 100
+        this.$emit('update:modelValue', parseFloat(normalized.toFixed(5)))
       },
     },
     computedClass() {

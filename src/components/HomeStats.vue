@@ -2,6 +2,7 @@
   <div class="boader-header">
     <h2 class="boader-header-title">Statistics</h2>
   </div>
+  *Not live data
   <div v-if="currentUser.level == 1" class="row">
     <div class="col-md-8">
       <!-- Table -->
