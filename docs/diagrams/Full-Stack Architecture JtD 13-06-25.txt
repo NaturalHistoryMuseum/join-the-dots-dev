@@ -16,23 +16,17 @@ package "Backend (Flask)" {
   [_init_.py]
   [config.py]
   [database.py]
-  /'[models.py]'/
   
   package "Routes" {
+    [data.py]
     [auth.py]
     [user.py]
     [stats.py]
     [report.py]
-    [data.py]
-  }
-
-  package "Queries" {
+    package "Queries" {
     [data_queries.py]
+    }
   }
-
-  /'package "Services" {'/
-  /'  [auth_service.py]'/
-  /'}'/
 }
 
 database "MySQL" as DB
@@ -61,7 +55,6 @@ EntryPoint --> [_init_.py]
 
 [database.py] --> DB
 
-/'[auth.py] --> [auth_service.py]'/
 [data.py] --> [data_queries.py]
 
 @enduml

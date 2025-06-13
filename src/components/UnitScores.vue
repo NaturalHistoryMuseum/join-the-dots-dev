@@ -133,10 +133,10 @@
                 <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
               </div>
             </div>
-            {{
+            <!-- {{
               // FOR TESTING PURPOSES ONLY
               editedRanks[crit.criterion_id].reduce((sum, r) => sum + (r.percentage || 0), 0)
-            }}
+            }} -->
           </div>
           <!-- Container for other criterion interations -->
           <div class="row">
@@ -269,6 +269,7 @@ export default {
         this.local_unit = { ...newVal }
         this.initializeEditedRanks(newVal)
         this.fetchMetrics()
+        this.expanded_accordion = null
       },
       deep: true,
     },
@@ -450,7 +451,6 @@ export default {
       }
     },
     returnBulkEdit() {
-      console.log('Returning to bulk edit', this.metric_definitions)
       this.$emit('newUnit', {
         ...this.local_unit,
         metric_json: this.metric_definitions.filter((metric) => metric.is_draft),
@@ -563,7 +563,6 @@ export default {
       if (this.bulk_edit) {
         this.returnBulkEdit()
       } else {
-        console.log('Submitting comment changes', this.local_unit.unit_comment)
         submitDataGeneric('submit-draft-comment', {
           rescore_session_units_id: this.unit.rescore_session_units_id,
           unit_comment: this.local_unit.unit_comment,

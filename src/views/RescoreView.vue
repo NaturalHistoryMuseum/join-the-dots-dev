@@ -12,8 +12,7 @@
         </div>
         <!-- Actions button group -->
         <div class="col-md-8 actions">
-          <ActionsBtnGroup
-            ><zoa-button kind="primary">Bulk update</zoa-button>
+          <ActionsBtnGroup>
             <BulkEditScoreModal :units="units" />
             <zoa-button kind="alt">See History</zoa-button>
             <zoa-button kind="primary">Other Action</zoa-button>

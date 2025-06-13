@@ -187,11 +187,8 @@ export default {
   methods: {
     fieldNameCalc,
     handleBulkUnitUpdate(updatedUnit) {
-      console.log('Bulk unit update:', updatedUnit)
       // Merge the updated ranks into the corresponding unit in your parent data
       this.edited_unit = updatedUnit
-      // You might want to emit an event or handle the updated unit further
-      // this.$emit('update:unit', this.unit);
     },
     handleStepChange(step) {
       this.current_step = step
@@ -214,7 +211,6 @@ export default {
         rescore_data: this.edited_unit,
       })
       this.loading = false
-      console.log('resp - ', response)
       this.success = response.success_count > 0
       this.success_message = `Changes successfully made for ${response.success_count} / ${response.total_units}! ${response.success_count < response.total_units ? 'Please check changes and try again' : ''}`
     },
