@@ -492,9 +492,10 @@ export default {
       // Get only the ranks that have been edited
       let new_ranks = []
       for (const value of Object.entries(this.editedRanks)) {
-        const percentage_total = value.reduce((sum, r) => sum + (r.percentage || 0), 0)
+        const criterion = value[1]
+        const percentage_total = criterion.reduce((sum, r) => sum + (r.percentage || 0), 0)
         if (percentage_total == 1) {
-          let temp_ranks = value.map((rank) => ({
+          let temp_ranks = criterion.map((rank) => ({
             ...rank,
             criterion_name: this.criterion.find((c) => c.criterion_id === rank.criterion_id)
               .criterion_name,
