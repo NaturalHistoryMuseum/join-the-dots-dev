@@ -6,7 +6,12 @@
       label="Storage Container"
       v-model="unit_value.storage_container_id"
       :config="{ options: container_options }"
-      @change="setCurrentContainer"
+      @change="
+        () => {
+          setCurrentContainer()
+          handleFieldChange('storage_container_id', unit_value.storage_container_id)
+        }
+      "
     />
   </div>
   <div class="col-md-4 field">
@@ -28,7 +33,12 @@
       label="Room Code"
       v-model="unit_value.storage_room_id"
       :config="{ options: room_options }"
-      @change="setCurrentRoom"
+      @change="
+        () => {
+          setCurrentRoom()
+          handleFieldChange('storage_room_id', unit_value.storage_room_id)
+        }
+      "
     />
   </div>
   <div v-for="field in room_fields" :key="field" class="col-md-4 field">
@@ -67,6 +77,7 @@ export default {
   name: 'StorageTab',
   props: {
     unit: Object,
+    handleFieldChange: Function,
   },
   data() {
     return {
@@ -109,11 +120,7 @@ export default {
   },
   methods: {
     fieldNameCalc,
-    setCurrentRoom() {
-      this.current_room = this.room_data.filter(
-        (room) => room.storage_room_id == this.unit.storage_room_id,
-      )[0]
-    },
+
     async fetchData() {
       getGeneric(`room-data`).then((response) => {
         this.room_options = response.map((room) => ({
@@ -146,6 +153,11 @@ export default {
           (container) => container.storage_container_id == this.unit.storage_container_id,
         )[0]
       }
+    },
+    setCurrentRoom() {
+      this.current_room = this.room_data.filter(
+        (room) => room.storage_room_id == this.unit.storage_room_id,
+      )[0]
     },
   },
 }

@@ -5,7 +5,12 @@
       label="Section Name"
       :config="{ options: section_options }"
       v-model="unit_value.section_id"
-      @change="setCurrentSection"
+      @change="
+        () => {
+          setCurrentSection()
+          handleFieldChange('section_id', unit_value.section_id)
+        }
+      "
     />
   </div>
   <div class="col-md-4 field">
@@ -26,6 +31,7 @@ export default {
     section_options: Array,
     current_section: Object,
     setCurrentSection: Function,
+    handleFieldChange: Function,
   },
   data() {
     return {}

@@ -1,4 +1,15 @@
 <template>
+  <div class="unit-save-msg-container">
+    <transition-group name="fade" tag="div" class="message-stack">
+      <div v-for="(message, index) in messages" :key="index">
+        <SmallMessages
+          :message_text="message.message_text"
+          :message_type="message.message_type"
+          class="unit-save-msg"
+        />
+      </div>
+    </transition-group>
+  </div>
   <div class="main-page">
     <div class="main-header">
       <h1>View Unit</h1>
@@ -7,7 +18,11 @@
         <div v-if="unit && unit_id">
           <!-- Unit Details -->
           <div v-if="active_tab == 0" class="content row">
-            <DetailsTab :unit="unit" :department_id="current_section.department_id" />
+            <DetailsTab
+              :unit="unit"
+              :department_id="current_section.department_id"
+              :handleFieldChange="handleFieldChange"
+            />
           </div>
           <!-- Section -->
           <div v-if="active_tab == 1" class="content row">
@@ -16,15 +31,20 @@
               :current_section="current_section"
               :section_options="section_options"
               :setCurrentSection="setCurrentSection"
+              :handleFieldChange="handleFieldChange"
             />
           </div>
           <!-- Properties -->
           <div v-if="active_tab == 2" class="content row">
-            <PropertiesTab :unit="unit" :department_id="current_section.department_id" />
+            <PropertiesTab
+              :unit="unit"
+              :department_id="current_section.department_id"
+              :handleFieldChange="handleFieldChange"
+            />
           </div>
           <!-- Storage -->
           <div v-if="active_tab == 3" class="content row">
-            <StorageTab :unit="unit" />
+            <StorageTab :unit="unit" :handleFieldChange="handleFieldChange" />
           </div>
           <!-- Scores -->
           <div v-show="active_tab == 4" class="content row">
@@ -33,14 +53,6 @@
           <!-- Comments -->
           <div v-if="active_tab == 5" class="content row">
             <CommentsTab :unit="unit" />
-            <!-- <div class="col-md-6 field">
-              <zoa-input zoa-type="empty" label="Unit Comments" class="comments-title" />
-              <textarea class="text-area" rows="7" v-model="unit.unit_comment"></textarea>
-            </div>
-            <div class="col-md-4 field">
-              <zoa-input zoa-type="empty" label="Date Comment Added" class="comments-title" />
-              <p class="view-field">{{ unit.date_comment_added }}</p>
-            </div> -->
           </div>
         </div>
       </TopTabs>
@@ -50,7 +62,7 @@
 
 <script>
 import TopTabs from '@/components/TopTabs.vue'
-import { getGeneric } from '@/services/dataService'
+import { getGeneric, submitDataGeneric } from '@/services/dataService'
 import fieldNameCalc from '@/utils/utils'
 import CommentsTab from '@/components/unit sections/CommentsTab.vue'
 import ScoresTab from '@/components/unit sections/ScoresTab.vue'
@@ -58,6 +70,7 @@ import StorageTab from '@/components/unit sections/StorageTab.vue'
 import PropertiesTab from '@/components/unit sections/PropertiesTab.vue'
 import SectionTab from '@/components/unit sections/SectionTab.vue'
 import DetailsTab from '@/components/unit sections/DetailsTab.vue'
+import SmallMessages from '@/components/SmallMessages.vue'
 
 export default {
   name: 'ViewUnit',
@@ -69,6 +82,7 @@ export default {
     PropertiesTab,
     SectionTab,
     DetailsTab,
+    SmallMessages,
   },
   data() {
     return {
@@ -87,6 +101,8 @@ export default {
       section_options: [],
       current_section: {},
       unit_id: null,
+
+      messages: [],
     }
   },
   created() {
@@ -127,6 +143,45 @@ export default {
         )[0]
       }
     },
+
+    async handleFieldChange(field_name, new_value) {
+      try {
+        // Set data for the field
+        const data = {
+          field_name: field_name,
+          new_value: new_value,
+          collection_unit_id: this.unit_id,
+        }
+        // Submit the data
+        const resp = await submitDataGeneric('submit-field', data)
+        // If the data is saved correctly
+        if (resp.success) {
+          this.messages.push({
+            message_text: 'Change saved!',
+            message_type: 'success',
+          })
+          setTimeout(() => {
+            this.messages.shift()
+          }, 3000)
+        } else {
+          this.messages.push({ message_text: 'Change not saved', message_type: 'error' })
+          setTimeout(() => {
+            this.messages.shift()
+          }, 3000)
+        }
+        this.fetchData()
+      } catch (error) {
+        console.error('Submission error:', error)
+
+        this.messages.push({
+          message_text: 'Error saving change. Please try again.',
+          message_type: 'error',
+        })
+        setTimeout(() => {
+          this.messages.shift()
+        }, 3000)
+      }
+    },
   },
   computed: {},
 }
@@ -162,5 +217,40 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100%;
+}
+
+.unit-save-msg {
+  margin-top: 1rem;
+  margin-bottom: -3rem;
+}
+
+.unit-save-msg-container {
+  position: absolute;
+  top: 20rem;
+  left: 85%;
+  z-index: 1;
+  pointer-events: none;
+  gap: 1rem;
+}
+
+.message-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
 }
 </style>

@@ -10,7 +10,15 @@
             label="Geological Time Period To"
             :config="{ options: geological_time_period_options }"
             v-model="unit_value.geological_time_period_to_id"
-            @change="setTimeTo"
+            @change="
+              () => {
+                setTimeTo()
+                handleFieldChange(
+                  'geological_time_period_to_id',
+                  unit_value.geological_time_period_to_id,
+                )
+              }
+            "
           />
         </div>
         <div class="col-md-6 field">
@@ -28,7 +36,15 @@
             label="Geological Time Period From"
             :config="{ options: geological_time_period_options }"
             v-model="unit_value.geological_time_period_from_id"
-            @change="setTimeFrom"
+            @change="
+              () => {
+                setTimeFrom()
+                handleFieldChange(
+                  'geological_time_period_from_id',
+                  unit_value.geological_time_period_from_id,
+                )
+              }
+            "
           />
         </div>
         <div class="col-md-6 field">
@@ -46,7 +62,12 @@
         label="Geographic Origin Name"
         :config="{ options: geographic_origin_options }"
         v-model="unit_value.geographic_origin_id"
-        @change="setCurrentGeographicOrigin"
+        @change="
+          () => {
+            setCurrentGeographicOrigin()
+            handleFieldChange('geographic_origin_id', unit_value.geographic_origin_id)
+          }
+        "
       />
     </div>
     <div class="col-md-3 field">
@@ -66,7 +87,12 @@
         label="Taxon Name"
         :config="{ options: taxon_options }"
         v-model="unit_value.taxon_id"
-        @change="setCurrentTaxon"
+        @change="
+          () => {
+            setCurrentTaxon()
+            handleFieldChange('taxon_id', unit_value.taxon_id)
+          }
+        "
       />
     </div>
     <div class="col-md-3 field">
@@ -94,6 +120,7 @@ export default {
   props: {
     unit: Object,
     department_id: Number,
+    handleFieldChange: Function,
   },
   data() {
     return {

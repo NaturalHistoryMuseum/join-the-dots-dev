@@ -2,13 +2,19 @@
   <div class="row">
     <h4 class="subheading">Unit Details</h4>
     <div class="col-md-4 field">
-      <zoa-input zoa-type="textbox" label="Unit Name" v-model="unit_value.unit_name" />
+      <zoa-input
+        zoa-type="textbox"
+        label="Unit Name"
+        v-model="unit_value.unit_name"
+        @change="handleFieldChange('unit_name', unit_value.unit_name)"
+      />
     </div>
     <div class="col-md-4 field">
       <zoa-input
         zoa-type="textbox"
         label="Public Unit Name"
         v-model="unit_value.public_unit_name"
+        @change="handleFieldChange('public_unit_name', unit_value.public_unit_name)"
       />
     </div>
     <div class="col-md-4 field">
@@ -16,6 +22,7 @@
         zoa-type="textbox"
         label="Named Collection"
         v-model="unit_value.named_collection"
+        @change="handleFieldChange('named_collection', unit_value.named_collection)"
       />
     </div>
     <div class="col-md-4 field">
@@ -23,10 +30,16 @@
         zoa-type="textbox"
         label="Archives Fond Ref"
         v-model="unit_value.archives_fond_ref"
+        @change="handleFieldChange('archives_fond_ref', unit_value.archives_fond_ref)"
       />
     </div>
     <div class="col-md-4 field">
-      <zoa-input zoa-type="number" label="Sort Order" v-model="unit_value.sort_order" />
+      <zoa-input
+        zoa-type="number"
+        label="Sort Order"
+        v-model="unit_value.sort_order"
+        @change="handleFieldChange('sort_order', unit_value.sort_order)"
+      />
     </div>
     <div class="col-md-4 field">
       <zoa-input zoa-type="empty" label="Unit Active?" class="comments-title" />
@@ -39,6 +52,7 @@
         "
         label-position="right"
         v-model="unitIsActive"
+        @change="handleFieldChange('unit_active', unit_value.unit_active)"
       />
     </div>
     <div class="col-md-4 field">
@@ -52,6 +66,7 @@
         "
         label-position="right"
         v-model="publishFlag"
+        @change="handleFieldChange('publish_flag', unit_value.publish_flag)"
       />
     </div>
     <div class="col-md-4 field">
@@ -66,6 +81,7 @@
         "
         label-position="right"
         v-model="typeCollectionFlag"
+        @change="handleFieldChange('type_collection_flag', unit_value.type_collection_flag)"
       />
     </div>
     <div class="col-md-4 field">
@@ -80,6 +96,7 @@
         "
         label-position="right"
         v-model="recentSpecimenFlag"
+        @change="handleFieldChange('es_recent_specimen_flag', unit_value.es_recent_specimen_flag)"
       />
     </div>
     <div class="col-md-4 field">
@@ -94,6 +111,9 @@
         "
         label-position="right"
         v-model="countCuratorialUnitsFlag"
+        @change="
+          handleFieldChange('count_curatorial_units_flag', unit_value.count_curatorial_units_flag)
+        "
       />
     </div>
   </div>
@@ -113,7 +133,15 @@
         label="Curatorial Unit Definition"
         :config="{ options: curatorial_def_options }"
         v-model="unit_value.curatorial_unit_definition_id"
-        @change="setCurrentCuratorialDef"
+        @change="
+          () => {
+            setCurrentCuratorialDef()
+            handleFieldChange(
+              'curatorial_unit_definition_id',
+              unit_value.curatorial_unit_definition_id,
+            )
+          }
+        "
       />
     </div>
     <div class="col-md-4 field">
@@ -141,7 +169,15 @@
         label="Library and Archives Function"
         :config="{ options: lib_function_options }"
         v-model="unit_value.library_and_archives_function_id"
-        @change="setCurrentLibFunction"
+        @change="
+          () => {
+            setCurrentLibFunction()
+            handleFieldChange(
+              'library_and_archives_function_id',
+              unit_value.library_and_archives_function_id,
+            )
+          }
+        "
       />
     </div>
   </div>
@@ -155,6 +191,7 @@ export default {
   props: {
     unit: Object,
     department_id: Number,
+    handleFieldChange: Function,
   },
   data() {
     return {
@@ -233,6 +270,9 @@ export default {
         }
       },
     },
+  },
+  mounted() {
+    this.fetchData()
   },
   methods: {
     async fetchData() {
