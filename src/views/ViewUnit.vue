@@ -22,6 +22,7 @@
               :unit="unit"
               :department_id="current_section.department_id"
               :handleFieldChange="handleFieldChange"
+              :errors="errors"
             />
           </div>
           <!-- Section -->
@@ -32,6 +33,7 @@
               :section_options="section_options"
               :setCurrentSection="setCurrentSection"
               :handleFieldChange="handleFieldChange"
+              :errors="errors"
             />
           </div>
           <!-- Properties -->
@@ -44,16 +46,16 @@
           </div>
           <!-- Storage -->
           <div v-if="active_tab == 3" class="content row">
-            <StorageTab :unit="unit" :handleFieldChange="handleFieldChange" />
+            <StorageTab :unit="unit" :handleFieldChange="handleFieldChange" :errors="errors" />
           </div>
           <!-- Scores -->
           <div v-show="active_tab == 4" class="content row">
             <ScoresTab :unit="unit" :unit_id="unit_id" />
           </div>
           <!-- Comments -->
-          <div v-if="active_tab == 5" class="content row">
+          <!-- <div v-if="active_tab == 5" class="content row">
             <CommentsTab :unit="unit" />
-          </div>
+          </div> -->
         </div>
       </TopTabs>
     </div>
@@ -64,7 +66,7 @@
 import TopTabs from '@/components/TopTabs.vue'
 import { getGeneric, submitDataGeneric } from '@/services/dataService'
 import fieldNameCalc from '@/utils/utils'
-import CommentsTab from '@/components/unit sections/CommentsTab.vue'
+// import CommentsTab from '@/components/unit sections/CommentsTab.vue'
 import ScoresTab from '@/components/unit sections/ScoresTab.vue'
 import StorageTab from '@/components/unit sections/StorageTab.vue'
 import PropertiesTab from '@/components/unit sections/PropertiesTab.vue'
@@ -76,7 +78,7 @@ export default {
   name: 'ViewUnit',
   components: {
     TopTabs,
-    CommentsTab,
+    // CommentsTab,
     ScoresTab,
     StorageTab,
     PropertiesTab,
@@ -93,7 +95,7 @@ export default {
         { id: 2, label: 'Properties' },
         { id: 3, label: 'Storage' },
         { id: 4, label: 'Scores' },
-        { id: 5, label: 'Comments' },
+        // { id: 5, label: 'Comments' },
       ],
 
       active_tab: 0,
@@ -103,6 +105,14 @@ export default {
       unit_id: null,
 
       messages: [],
+      errors: [],
+      required_fields: [
+        'unit_name',
+        'section_id',
+        'public_unit_name',
+        'storage_room_id',
+        'curatorial_unit_definition_id',
+      ],
     }
   },
   created() {
@@ -144,43 +154,56 @@ export default {
       }
     },
 
-    async handleFieldChange(field_name, new_value) {
-      try {
-        // Set data for the field
-        const data = {
-          field_name: field_name,
-          new_value: new_value,
-          collection_unit_id: this.unit_id,
-        }
-        // Submit the data
-        const resp = await submitDataGeneric('submit-field', data)
-        // If the data is saved correctly
-        if (resp.success) {
-          this.messages.push({
-            message_text: 'Change saved!',
-            message_type: 'success',
-          })
-          setTimeout(() => {
-            this.messages.shift()
-          }, 3000)
-        } else {
-          this.messages.push({ message_text: 'Change not saved', message_type: 'error' })
-          setTimeout(() => {
-            this.messages.shift()
-          }, 3000)
-        }
-        this.fetchData()
-      } catch (error) {
-        console.error('Submission error:', error)
+    checkRequired(field_name) {
+      return this.required_fields.includes(field_name)
+    },
 
-        this.messages.push({
-          message_text: 'Error saving change. Please try again.',
-          message_type: 'error',
-        })
-        setTimeout(() => {
-          this.messages.shift()
-        }, 3000)
+    async handleFieldChange(field_name, new_value) {
+      console.log('field_name', field_name)
+      console.log('new_value', new_value)
+      console.log('required - ', this.checkRequired(field_name))
+      console.log('is null - ', !new_value)
+      if (this.checkRequired(field_name) && !new_value) {
+        this.errors.push({ field: field_name, error: 'This field is required' })
+        this.messages.push({ message_text: 'Field is required! Not saved', message_type: 'error' })
+        this.removeMessage()
+      } else {
+        try {
+          // Set data for the field
+          const data = {
+            field_name: field_name,
+            new_value: new_value,
+            collection_unit_id: this.unit_id,
+          }
+          // Submit the data
+          const resp = await submitDataGeneric('submit-field', data)
+          // If the data is saved correctly
+          if (resp.success) {
+            this.messages.push({
+              message_text: 'Change saved!',
+              message_type: 'success',
+            })
+            this.removeMessage()
+          } else {
+            this.messages.push({ message_text: 'Change not saved', message_type: 'error' })
+            this.removeMessage()
+          }
+          this.fetchData()
+        } catch (error) {
+          console.error('Submission error:', error)
+
+          this.messages.push({
+            message_text: 'Error saving change. Please try again.',
+            message_type: 'error',
+          })
+          this.removeMessage()
+        }
       }
+    },
+    removeMessage() {
+      setTimeout(() => {
+        this.messages.shift()
+      }, 3000)
     },
   },
   computed: {},
@@ -219,6 +242,19 @@ export default {
   height: 100%;
 }
 
+.required-tag {
+  color: red;
+  margin-bottom: -1.5rem;
+}
+
+.error-field .zoa__textbox__input {
+  border: 1px solid red !important;
+  border-radius: 10px;
+}
+.error-field .zoa__dropdown__input {
+  border: 1px solid red !important;
+  border-radius: 10px;
+}
 .unit-save-msg {
   margin-top: 1rem;
   margin-bottom: -3rem;

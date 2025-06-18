@@ -399,7 +399,7 @@ def submit_field():
 
     if not field_name:
         return jsonify({'error': 'field_name is required'}), 400
-    if not new_value and not "":
+    if new_value is None:
         return jsonify({'error': 'new_value is required'}), 400
     if not collection_unit_id:
         return jsonify({'error': 'collection_unit_id is required'}), 400

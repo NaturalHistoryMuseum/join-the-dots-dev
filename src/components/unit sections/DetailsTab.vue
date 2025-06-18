@@ -2,7 +2,9 @@
   <div class="row">
     <h4 class="subheading">Unit Details</h4>
     <div class="col-md-4 field">
+      <div class="required-tag">*</div>
       <zoa-input
+        :class="errors.find((err) => err.field == 'unit_name') ? 'error-field' : ''"
         zoa-type="textbox"
         label="Unit Name"
         v-model="unit_value.unit_name"
@@ -10,7 +12,9 @@
       />
     </div>
     <div class="col-md-4 field">
+      <div class="required-tag">*</div>
       <zoa-input
+        :class="errors.find((err) => err.field == 'public_unit_name') ? 'error-field' : ''"
         zoa-type="textbox"
         label="Public Unit Name"
         v-model="unit_value.public_unit_name"
@@ -56,6 +60,7 @@
       />
     </div>
     <div class="col-md-4 field">
+      <div class="required-tag">*</div>
       <zoa-input zoa-type="empty" label="Publish Unit?" class="comments-title" />
       <zoa-input
         zoa-type="checkbox"
@@ -128,8 +133,12 @@
   <div class="row">
     <h4 class="subheading">Curtorial Unit Definition</h4>
     <div class="col-md-4 field">
+      <div class="required-tag">*</div>
       <zoa-input
         zoa-type="dropdown"
+        :class="
+          errors.find((err) => err.field == 'curatorial_unit_definition_id') ? 'error-field' : ''
+        "
         label="Curatorial Unit Definition"
         :config="{ options: curatorial_def_options }"
         v-model="unit_value.curatorial_unit_definition_id"
@@ -192,6 +201,7 @@ export default {
     unit: Object,
     department_id: Number,
     handleFieldChange: Function,
+    errors: Array,
   },
   data() {
     return {

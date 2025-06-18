@@ -1,6 +1,8 @@
 <template>
   <div class="col-md-4 field">
+    <div class="required-tag">*</div>
     <zoa-input
+      :class="errors.find((err) => err.field == 'section_id') ? 'error-field' : ''"
       zoa-type="dropdown"
       label="Section Name"
       :config="{ options: section_options }"
@@ -32,6 +34,7 @@ export default {
     current_section: Object,
     setCurrentSection: Function,
     handleFieldChange: Function,
+    errors: Array,
   },
   data() {
     return {}

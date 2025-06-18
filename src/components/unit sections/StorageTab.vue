@@ -28,7 +28,9 @@
   </div>
   <h4 class="subheading">Room Info</h4>
   <div class="col-md-4 field">
+    <div class="required-tag">*</div>
     <zoa-input
+      :class="errors.find((err) => err.field == 'storage_room_id') ? 'error-field' : ''"
       zoa-type="dropdown"
       label="Room Code"
       v-model="unit_value.storage_room_id"
@@ -41,10 +43,11 @@
       "
     />
   </div>
+
   <div v-for="field in room_fields" :key="field" class="col-md-4 field">
     <zoa-input zoa-type="empty" :label="fieldNameCalc(field)" class="comments-title" />
     <p class="view-field">
-      {{ current_room[field] }}
+      {{ unit_value.storage_room_id && current_room[field] }}
     </p>
   </div>
 
@@ -52,19 +55,19 @@
   <div class="col-md-4 field">
     <zoa-input zoa-type="empty" label="Floor Name" class="comments-title" />
     <p class="view-field">
-      {{ current_room.floor_name }}
+      {{ unit_value.storage_room_id && current_room.floor_name }}
     </p>
   </div>
   <div class="col-md-4 field">
     <zoa-input zoa-type="empty" label="Building Name" class="comments-title" />
     <p class="view-field">
-      {{ current_room.building_name }}
+      {{ unit_value.storage_room_id && current_room.building_name }}
     </p>
   </div>
   <div class="col-md-4 field">
     <zoa-input zoa-type="empty" label="Site Name" class="comments-title" />
     <p class="view-field">
-      {{ current_room.site_name }}
+      {{ unit_value.storage_room_id && current_room.site_name }}
     </p>
   </div>
 </template>
@@ -78,6 +81,7 @@ export default {
   props: {
     unit: Object,
     handleFieldChange: Function,
+    errors: Array,
   },
   data() {
     return {
