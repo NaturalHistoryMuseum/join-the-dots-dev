@@ -228,7 +228,7 @@ export default {
 
 .view-field {
   margin: 0 1.5rem;
-  height: 1rem;
+  min-height: 1rem;
 }
 
 .subheading {

@@ -172,7 +172,7 @@
             </div>
             <!-- Pop out of the comments -->
             <transition name="fade">
-              <div v-if="expanded_criterion_comment == crit.criterion_id" class="row">
+              <div v-if="expanded_criterion_comment == crit.criterion_id" class="row comments-list">
                 <div class="col-md-10">
                   <!-- Only show the ranks with comments assigned to them -->
                   <div
@@ -183,7 +183,7 @@
                   >
                     <!-- Display comment -->
                     <div class="">
-                      <p class="view-field">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
+                      <p class="view-comment">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
                     </div>
                   </div>
                 </div>
@@ -667,9 +667,8 @@ export default {
   margin-top: 1rem;
 }
 
-.view-field {
+.view-comment {
   margin: 0 1.5rem;
-  /* height: 1rem; */
 }
 
 .show-comments {
