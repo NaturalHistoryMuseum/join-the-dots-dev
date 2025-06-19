@@ -48,9 +48,9 @@ version = "0.0.1"
 tag_format = "v$version"
 update_changelog_on_bump = true
 changelog_incremental = true
+version_provider = "npm"
 version_files = [
-    "pyproject.toml:version",
-    "CITATION.cff:^version"
+    "pyproject.toml:version"
 ]
 
 [tool.ruff.format]
