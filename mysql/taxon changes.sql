@@ -18,18 +18,18 @@ FROM jtd_live.taxon_palaeontology ;
 INSERT INTO jtd_live.taxon
 (taxon_name, taxon_rank, external_ref_name, external_ref_id, department_id, taxon_life_science_id)
 SELECT taxon_name, taxon_rank, external_ref_name, external_ref_id, 3, taxon_life_science_id
-FROM jtd_live.taxon_life_science ; 
+FROM jtd_live.taxon_life_science ;
 
 
 ALTER TABLE jtd_live.collection_unit ADD COLUMN taxon_id INT ;
 
 
-UPDATE jtd_live.collection_unit cu 
-JOIN jtd_live.taxon t ON cu.taxon_life_science_id = t.taxon_life_science_id 
-SET cu.taxon_id = t.taxon_id 
+UPDATE jtd_live.collection_unit cu
+JOIN jtd_live.taxon t ON cu.taxon_life_science_id = t.taxon_life_science_id
+SET cu.taxon_id = t.taxon_id
 WHERE cu.taxon_life_science_id IS NOT NULL;
 
-UPDATE jtd_live.collection_unit cu 
-JOIN jtd_live.taxon t ON cu.taxon_palaeontology_id = t.taxon_palaeontology_id 
-SET cu.taxon_id = t.taxon_id 
+UPDATE jtd_live.collection_unit cu
+JOIN jtd_live.taxon t ON cu.taxon_palaeontology_id = t.taxon_palaeontology_id
+SET cu.taxon_id = t.taxon_id
 WHERE cu.taxon_palaeontology_id IS NOT NULL;
