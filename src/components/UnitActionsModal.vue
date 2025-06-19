@@ -7,6 +7,7 @@
       <div>
         {{ selected_unit_ids }}
       </div>
+      <div v-if="action.id == 2">Rescore the following units:</div>
     </div>
   </zoa-modal>
 </template>
