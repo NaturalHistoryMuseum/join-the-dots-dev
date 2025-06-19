@@ -1,6 +1,6 @@
 [project]
 name = "join-the-dots-dev"
-version = "0.0.1"
+version = "0.1.0"
 description = "Join the Dots web application"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -44,7 +44,7 @@ exclude = ["tests", "docs"]
 
 [tool.commitizen]
 name = "cz_nhm"
-version = "0.0.1"
+version = "0.1.0"
 tag_format = "v$version"
 update_changelog_on_bump = true
 changelog_incremental = true
