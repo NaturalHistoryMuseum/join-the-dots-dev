@@ -379,6 +379,46 @@ def update_complete_category():
 
 # Unit routes
 
+def column_exists(field_name, new_value):
+    try:
+        field_is_valid = fetch_data("""
+                    SELECT COUNT(*)
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE table_schema = {database_name} AND table_name = %s AND column_name = %s
+                    """, [field_name, new_value])
+        return field_is_valid
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@data_bp.route('/submit-field', methods=['POST'])
+def submit_field():
+    data = request.get_json()
+    field_name = data.get('field_name')
+    new_value = data.get('new_value')
+    collection_unit_id = data.get('collection_unit_id')
+
+    if not field_name:
+        return jsonify({'error': 'field_name is required'}), 400
+    if new_value is None:
+        return jsonify({'error': 'new_value is required'}), 400
+    if not collection_unit_id:
+        return jsonify({'error': 'collection_unit_id is required'}), 400
+    
+    try:
+        if column_exists(field_name=field_name, new_value=new_value):
+            data = execute_query(f"""
+                UPDATE {database_name}.collection_unit
+                SET `{field_name}` = %s
+                WHERE collection_unit_id = %s;
+                """, [ new_value, collection_unit_id])
+            return jsonify({'data':data, 'success': True})
+        else:
+            return jsonify({"error: column does not exist"}), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @data_bp.route('/unit-department', methods=['GET'])
 def get_units_and_departments():
     data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active

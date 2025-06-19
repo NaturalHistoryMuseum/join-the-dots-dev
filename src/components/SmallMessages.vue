@@ -1,14 +1,14 @@
 <template>
   <div class="warnings">
-    <div v-if="message_type == 'success'" class="save-msg">
+    <div v-if="message_type == 'success'" class="msg save-msg">
       <i class="bi bi-check-circle-fill save-icon"></i>
       {{ message_text }}
     </div>
-    <div v-if="message_type == 'error'" class="error-msg">
+    <div v-if="message_type == 'error'" class="msg error-msg">
       <i class="bi-x-circle-fill error-icon"></i>
       {{ message_text }}
     </div>
-    <div v-if="message_type == 'warning'" class="warning-msg">
+    <div v-if="message_type == 'warning'" class="msg warning-msg">
       <i class="bi-exclamation-circle-fill warning-icon"></i>
       {{ message_text }}
     </div>
@@ -34,34 +34,26 @@ export default {
   gap: 0.5rem;
 }
 
-.error-msg {
-  /* color: red; */
+.msg {
   font-weight: bold;
   margin-right: 1rem;
-  border: 1px solid red;
   border-radius: 10px;
-  background-color: #feeae6;
   padding: 0.25rem 1rem;
+}
+
+.error-msg {
+  border: 1px solid red;
+  background-color: #feeae6;
 }
 
 .warning-msg {
-  /* color: darkorange; */
-  font-weight: bold;
-  margin-right: 1rem;
   border: 1px solid #ffe600;
-  border-radius: 10px;
   background-color: #fefce5;
-  padding: 0.25rem 1rem;
 }
 
 .save-msg {
-  font-weight: bold;
-  margin-right: 1rem;
-  margin-bottom: 0.5rem;
   border: 1px solid #30ff2e;
-  border-radius: 10px;
   background-color: #e5fee5;
-  padding: 0.25rem 1rem;
 }
 
 .save-icon {
