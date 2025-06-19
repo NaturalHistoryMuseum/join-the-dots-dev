@@ -141,7 +141,7 @@
           <!-- Container for other criterion interations -->
           <div class="row">
             <!-- Show comments asigned to ranks in this criterion -->
-            <div class="show-comments" v-if="rescore && !bulk_edit">
+            <div class="show-comments">
               <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
                 <div @click="showCriterionComments(crit.criterion_id)">
                   <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
@@ -172,7 +172,7 @@
             </div>
             <!-- Pop out of the comments -->
             <transition name="fade">
-              <div v-if="expanded_criterion_comment == crit.criterion_id" class="row">
+              <div v-if="expanded_criterion_comment == crit.criterion_id" class="row comments-list">
                 <div class="col-md-10">
                   <!-- Only show the ranks with comments assigned to them -->
                   <div
@@ -183,11 +183,11 @@
                   >
                     <!-- Display comment -->
                     <div class="">
-                      <p class="view-field">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
+                      <p class="view-comment">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
                     </div>
                   </div>
                 </div>
-                <div class="col-md-2 edit-comments">
+                <div class="col-md-2 edit-comments" v-if="rescore && !bulk_edit">
                   <!-- Modal pop out to edit the comments for each rank in this criterion -->
                   <EditCommentsModal
                     v-if="rescore && !bulk_edit"
@@ -382,14 +382,16 @@ export default {
       }
     },
     commentsTitle(criterion_id) {
-      const ranks_comments = this.editedRanks[criterion_id].filter(
-        (rank) =>
-          rank.criterion_id == criterion_id && rank.comment !== null && rank.comment.length > 0,
-      )
-      if (ranks_comments.length == 0) {
-        return 'Add comments'
+      if (this.editedRanks) {
+        const ranks_comments = this.editedRanks[criterion_id].filter(
+          (rank) =>
+            rank.criterion_id == criterion_id && rank.comment !== null && rank.comment.length > 0,
+        )
+        if (ranks_comments.length == 0) {
+          return 'Add comments'
+        }
+        return `Show comments (${ranks_comments.length})`
       }
-      return `Show comments (${ranks_comments.length})`
     },
     checkCatComplete(cat) {
       const category_tracking = this.local_unit.category_tracking
@@ -665,9 +667,8 @@ export default {
   margin-top: 1rem;
 }
 
-.view-field {
+.view-comment {
   margin: 0 1.5rem;
-  /* height: 1rem; */
 }
 
 .show-comments {
