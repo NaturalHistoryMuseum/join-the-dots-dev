@@ -46,7 +46,11 @@
           </div>
           <!-- Storage -->
           <div v-if="active_tab == 3" class="content row">
-            <StorageTab :unit="unit" :handleFieldChange="handleFieldChange" :errors="errors" />
+            <StorageTab
+              :unit="unit"
+              :handleFieldChange="handleFieldChange"
+              :errors="errors"
+            />
           </div>
           <!-- Scores -->
           <div v-show="active_tab == 4" class="content row">
@@ -63,16 +67,16 @@
 </template>
 
 <script>
-import TopTabs from '@/components/TopTabs.vue'
-import { getGeneric, submitDataGeneric } from '@/services/dataService'
-import fieldNameCalc from '@/utils/utils'
+import TopTabs from '@/components/TopTabs.vue';
+import { getGeneric, submitDataGeneric } from '@/services/dataService';
+import fieldNameCalc from '@/utils/utils';
 // import CommentsTab from '@/components/unit sections/CommentsTab.vue'
-import ScoresTab from '@/components/unit sections/ScoresTab.vue'
-import StorageTab from '@/components/unit sections/StorageTab.vue'
-import PropertiesTab from '@/components/unit sections/PropertiesTab.vue'
-import SectionTab from '@/components/unit sections/SectionTab.vue'
-import DetailsTab from '@/components/unit sections/DetailsTab.vue'
-import SmallMessages from '@/components/SmallMessages.vue'
+import SmallMessages from '@/components/SmallMessages.vue';
+import DetailsTab from '@/components/unit sections/DetailsTab.vue';
+import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
+import ScoresTab from '@/components/unit sections/ScoresTab.vue';
+import SectionTab from '@/components/unit sections/SectionTab.vue';
+import StorageTab from '@/components/unit sections/StorageTab.vue';
 
 export default {
   name: 'ViewUnit',
@@ -113,30 +117,30 @@ export default {
         'storage_room_id',
         'curatorial_unit_definition_id',
       ],
-    }
+    };
   },
   created() {
-    this.unit_id = this.$route.query.unit_id
-    this.fetchData()
-    console.log('call to get data')
+    this.unit_id = this.$route.query.unit_id;
+    this.fetchData();
+    console.log('call to get data');
   },
   methods: {
     async fetchData() {
-      let unitData = await getGeneric(`full-unit/${this.unit_id}`)
-      this.unit = unitData[0]
-      console.log('there is a unit: ', this.unit)
+      let unitData = await getGeneric(`full-unit/${this.unit_id}`);
+      this.unit = unitData[0];
+      console.log('there is a unit: ', this.unit);
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,
           label: section.section_name,
           value: section.section_id,
-        }))
-        this.setCurrentSection()
-      })
+        }));
+        this.setCurrentSection();
+      });
     },
     fieldNameCalc,
     changeTab(index) {
-      this.active_tab = index
+      this.active_tab = index;
     },
 
     setCurrentSection() {
@@ -146,27 +150,33 @@ export default {
           section_name: null,
           division_name: null,
           department_name: null,
-        }
+        };
       } else {
         this.current_section = this.section_options.filter(
           (section) => section.section_id == this.unit.section_id,
-        )[0]
+        )[0];
       }
     },
 
     checkRequired(field_name) {
-      return this.required_fields.includes(field_name)
+      return this.required_fields.includes(field_name);
     },
 
     async handleFieldChange(field_name, new_value) {
-      console.log('field_name', field_name)
-      console.log('new_value', new_value)
-      console.log('required - ', this.checkRequired(field_name))
-      console.log('is null - ', !new_value)
+      console.log('field_name', field_name);
+      console.log('new_value', new_value);
+      console.log('required - ', this.checkRequired(field_name));
+      console.log('is null - ', !new_value);
       if (this.checkRequired(field_name) && !new_value) {
-        this.errors.push({ field: field_name, error: 'This field is required' })
-        this.messages.push({ message_text: 'Field is required! Not saved', message_type: 'error' })
-        this.removeMessage()
+        this.errors.push({
+          field: field_name,
+          error: 'This field is required',
+        });
+        this.messages.push({
+          message_text: 'Field is required! Not saved',
+          message_type: 'error',
+        });
+        this.removeMessage();
       } else {
         try {
           // Set data for the field
@@ -174,40 +184,43 @@ export default {
             field_name: field_name,
             new_value: new_value,
             collection_unit_id: this.unit_id,
-          }
+          };
           // Submit the data
-          const resp = await submitDataGeneric('submit-field', data)
+          const resp = await submitDataGeneric('submit-field', data);
           // If the data is saved correctly
           if (resp.success) {
             this.messages.push({
               message_text: 'Change saved!',
               message_type: 'success',
-            })
-            this.removeMessage()
+            });
+            this.removeMessage();
           } else {
-            this.messages.push({ message_text: 'Change not saved', message_type: 'error' })
-            this.removeMessage()
+            this.messages.push({
+              message_text: 'Change not saved',
+              message_type: 'error',
+            });
+            this.removeMessage();
           }
-          this.fetchData()
+          this.fetchData();
         } catch (error) {
-          console.error('Submission error:', error)
+          console.error('Submission error:', error);
 
           this.messages.push({
             message_text: 'Error saving change. Please try again.',
             message_type: 'error',
-          })
-          this.removeMessage()
+          });
+          this.removeMessage();
         }
       }
     },
     removeMessage() {
       setTimeout(() => {
-        this.messages.shift()
-      }, 3000)
+        this.messages.shift();
+      }, 3000);
     },
   },
   computed: {},
-}
+};
 </script>
 
 <style>

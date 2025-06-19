@@ -12,17 +12,21 @@
             v-model="unit_value.geological_time_period_to_id"
             @change="
               () => {
-                setTimeTo()
+                setTimeTo();
                 handleFieldChange(
                   'geological_time_period_to_id',
                   unit_value.geological_time_period_to_id,
-                )
+                );
               }
             "
           />
         </div>
         <div class="col-md-6 field">
-          <zoa-input zoa-type="empty" label="Time To Rank" class="comments-title" />
+          <zoa-input
+            zoa-type="empty"
+            label="Time To Rank"
+            class="comments-title"
+          />
           <p class="view-field">{{ current_time_to.rank }}</p>
         </div>
       </div>
@@ -38,17 +42,21 @@
             v-model="unit_value.geological_time_period_from_id"
             @change="
               () => {
-                setTimeFrom()
+                setTimeFrom();
                 handleFieldChange(
                   'geological_time_period_from_id',
                   unit_value.geological_time_period_from_id,
-                )
+                );
               }
             "
           />
         </div>
         <div class="col-md-6 field">
-          <zoa-input zoa-type="empty" label="Time From Rank" class="comments-title" />
+          <zoa-input
+            zoa-type="empty"
+            label="Time From Rank"
+            class="comments-title"
+          />
           <p class="view-field">{{ current_time_from.rank }}</p>
         </div>
       </div>
@@ -64,8 +72,11 @@
         v-model="unit_value.geographic_origin_id"
         @change="
           () => {
-            setCurrentGeographicOrigin()
-            handleFieldChange('geographic_origin_id', unit_value.geographic_origin_id)
+            setCurrentGeographicOrigin();
+            handleFieldChange(
+              'geographic_origin_id',
+              unit_value.geographic_origin_id,
+            );
           }
         "
       />
@@ -79,7 +90,11 @@
   <div class="row">
     <h4 class="subheading">Taxon</h4>
     <div class="col-md-3 field">
-      <zoa-input zoa-type="textbox" label="Informal Taxon" v-model="unit_value.infomal_taxon" />
+      <zoa-input
+        zoa-type="textbox"
+        label="Informal Taxon"
+        v-model="unit_value.infomal_taxon"
+      />
     </div>
     <div class="col-md-3 field">
       <zoa-input
@@ -89,8 +104,8 @@
         v-model="unit_value.taxon_id"
         @change="
           () => {
-            setCurrentTaxon()
-            handleFieldChange('taxon_id', unit_value.taxon_id)
+            setCurrentTaxon();
+            handleFieldChange('taxon_id', unit_value.taxon_id);
           }
         "
       />
@@ -102,18 +117,26 @@
       </p>
     </div>
     <div class="col-md-3 field">
-      <zoa-input zoa-type="empty" label="External Ref Name" class="comments-title" />
+      <zoa-input
+        zoa-type="empty"
+        label="External Ref Name"
+        class="comments-title"
+      />
       <p class="view-field">{{ current_taxon.external_ref_name }}</p>
     </div>
     <div class="col-md-3 field">
-      <zoa-input zoa-type="empty" label="External Ref Id" class="comments-title" />
+      <zoa-input
+        zoa-type="empty"
+        label="External Ref Id"
+        class="comments-title"
+      />
       <p class="view-field">{{ current_taxon.external_ref_id }}</p>
     </div>
   </div>
 </template>
 
 <script>
-import { getGeneric } from '@/services/dataService'
+import { getGeneric } from '@/services/dataService';
 
 export default {
   name: 'PropertiesTab',
@@ -138,20 +161,20 @@ export default {
         external_ref_name: null,
         external_ref_id: null,
       },
-    }
+    };
   },
   computed: {
     unit_value: {
       get() {
-        return this.unit
+        return this.unit;
       },
       set(value) {
-        this.$emit('updateUnit', value)
+        this.$emit('updateUnit', value);
       },
     },
   },
   mounted() {
-    this.fetchData()
+    this.fetchData();
   },
   methods: {
     async fetchData() {
@@ -160,26 +183,28 @@ export default {
           ...geographic_origin,
           label: geographic_origin.geographic_origin_name,
           value: geographic_origin.geographic_origin_id,
-        }))
-        this.setCurrentGeographicOrigin()
-      })
+        }));
+        this.setCurrentGeographicOrigin();
+      });
       getGeneric(`all-geological-time-period`).then((response) => {
-        this.geological_time_period_options = response.map((geological_time_period) => ({
-          ...geological_time_period,
-          value: geological_time_period.geological_time_period_id,
-          label: geological_time_period.period_name,
-        }))
-        this.setTimeFrom()
-      })
+        this.geological_time_period_options = response.map(
+          (geological_time_period) => ({
+            ...geological_time_period,
+            value: geological_time_period.geological_time_period_id,
+            label: geological_time_period.period_name,
+          }),
+        );
+        this.setTimeFrom();
+      });
       getGeneric(`all-taxon`).then((response) => {
         this.taxon_all_options = response.map((taxon) => ({
           ...taxon,
           value: taxon.taxon_id,
           label: `${taxon.taxon_name} (${taxon.taxon_rank})`,
-        }))
-        this.setCurrentTaxon()
-        this.filterTaxonOptions()
-      })
+        }));
+        this.setCurrentTaxon();
+        this.filterTaxonOptions();
+      });
     },
     setCurrentGeographicOrigin() {
       if (this.unit.geographic_origin_id == null) {
@@ -187,12 +212,13 @@ export default {
           value: null,
           geographic_origin_name: null,
           region_type: null,
-        }
+        };
       } else {
         this.current_geographic_origin = this.geographic_origin_options.filter(
           (geographic_origin) =>
-            geographic_origin.geographic_origin_id == this.unit.geographic_origin_id,
-        )[0]
+            geographic_origin.geographic_origin_id ==
+            this.unit.geographic_origin_id,
+        )[0];
       }
     },
     setTimeFrom() {
@@ -201,13 +227,13 @@ export default {
           value: null,
           geological_time_period_from_id: null,
           period_name: null,
-        }
+        };
       } else {
         this.current_time_from = this.geological_time_period_options.filter(
           (geological_time_period) =>
             geological_time_period.geological_time_period_id ==
             this.unit.geological_time_period_from_id,
-        )[0]
+        )[0];
       }
     },
     setTimeTo() {
@@ -216,13 +242,13 @@ export default {
           value: null,
           geological_time_period_to_id: null,
           period_name: null,
-        }
+        };
       } else {
         this.current_time_to = this.geological_time_period_options.filter(
           (geological_time_period) =>
             geological_time_period.geological_time_period_id ==
             this.unit.geological_time_period_to_id,
-        )[0]
+        )[0];
       }
     },
     setCurrentTaxon() {
@@ -233,22 +259,22 @@ export default {
           taxon_rank: null,
           external_ref_name: null,
           external_ref_id: null,
-        }
+        };
       } else {
         this.current_taxon = this.taxon_all_options.filter(
           (taxon) => taxon.taxon_id == this.unit.taxon_id,
-        )[0]
+        )[0];
       }
     },
     filterTaxonOptions() {
-      console.log(this.taxon_all_options)
-      console.log(this.unit)
+      console.log(this.taxon_all_options);
+      console.log(this.unit);
       this.taxon_options = this.taxon_all_options.filter(
         (taxon) => taxon.department_id == this.department_id,
-      )
+      );
     },
   },
-}
+};
 </script>
 
 <style></style>

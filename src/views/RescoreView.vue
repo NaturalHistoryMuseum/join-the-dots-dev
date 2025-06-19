@@ -28,12 +28,12 @@
 </template>
 
 <script>
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
-import CollapsibleTabs from '@/components/CollapsibleTabs.vue'
-import { getGeneric } from '@/services/dataService'
-import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue'
-import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue'
+import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
+import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue';
+import CollapsibleTabs from '@/components/CollapsibleTabs.vue';
+import { getGeneric } from '@/services/dataService';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 export default {
   name: 'RescoreView',
@@ -43,61 +43,63 @@ export default {
     BulkEditScoreModal,
   },
   setup() {
-    const route = useRoute()
+    const route = useRoute();
 
     // Access query parameters
-    const rescore_session_id = ref(null)
+    const rescore_session_id = ref(null);
     onMounted(() => {
-      rescore_session_id.value = route.query.rescore_session_id
-    })
+      rescore_session_id.value = route.query.rescore_session_id;
+    });
 
     return {
       rescore_session_id,
-    }
+    };
   },
   data() {
     return {
       units: [],
       show_actions: false,
-    }
+    };
   },
   mounted() {
-    this.fetchUnitsData()
+    this.fetchUnitsData();
   },
   methods: {
     fetchUnitsData() {
       // Fetch units in this rescore session
-      getGeneric(`rescore-units/${this.rescore_session_id}`).then((response) => {
-        this.units = response.map((unit) => {
-          // Parse category tracking JSON
-          unit.category_tracking = JSON.parse(unit.category_tracking)
-          unit.ranks_json = JSON.parse(unit.ranks_json)
-          unit.metric_json = JSON.parse(unit.metric_json)
-          return unit
-        })
-      })
+      getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+        (response) => {
+          this.units = response.map((unit) => {
+            // Parse category tracking JSON
+            unit.category_tracking = JSON.parse(unit.category_tracking);
+            unit.ranks_json = JSON.parse(unit.ranks_json);
+            unit.metric_json = JSON.parse(unit.metric_json);
+            return unit;
+          });
+        },
+      );
     },
     // Function to toggle the visibility of the actions button group
     toggleActions() {
-      this.show_actions = !this.show_actions
+      this.show_actions = !this.show_actions;
     },
     // Function to count the number of completed units
     countUnitsCompleted(units) {
-      let completed_count = 0
+      let completed_count = 0;
       // Loop through each unit and check if all categories are complete
       units.forEach((unit) => {
-        const categories_json = unit.category_tracking
+        const categories_json = unit.category_tracking;
         const completed = categories_json.every((category) => {
-          return category.complete == 1
-        })
+          return category.complete == 1;
+        });
         if (completed) {
-          completed_count++
+          completed_count++;
         }
-      })
-      return completed_count
+      });
+      return completed_count;
     },
   },
-}
+};
 </script>
 
 <style>

@@ -1,8 +1,8 @@
 <script setup>
-import { RouterView } from 'vue-router'
-import HeaderView from './views/HeaderView.vue'
-import LoadingOverlay from './components/LoadingOverlay.vue'
-import FooterView from './views/FooterView.vue'
+import { RouterView } from 'vue-router';
+import LoadingOverlay from './components/LoadingOverlay.vue';
+import FooterView from './views/FooterView.vue';
+import HeaderView from './views/HeaderView.vue';
 </script>
 
 <template>

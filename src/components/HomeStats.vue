@@ -90,20 +90,20 @@
 </template>
 
 <script>
-import { getStatsGeneric } from '@/services/statsService'
-import { currentUser } from '../services/authService'
-import { Bubble, Pie, Doughnut } from 'vue-chartjs'
+import { getStatsGeneric } from '@/services/statsService';
 import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
+  ArcElement,
   BarElement,
   CategoryScale,
+  Chart as ChartJS,
+  Legend,
   LinearScale,
-  ArcElement,
   PointElement,
-} from 'chart.js'
+  Title,
+  Tooltip,
+} from 'chart.js';
+import { Bubble, Doughnut, Pie } from 'vue-chartjs';
+import { currentUser } from '../services/authService';
 // import LoadingChart from '@/components/LoadingChart.vue'
 ChartJS.register(
   Title,
@@ -114,10 +114,10 @@ ChartJS.register(
   LinearScale,
   ArcElement,
   PointElement,
-)
+);
 export default {
   setup() {
-    return { currentUser }
+    return { currentUser };
   },
   components: {
     Bubble,
@@ -154,7 +154,12 @@ export default {
         responsive: true,
       },
       chart_data: {
-        labels: ['Condition', 'Importance & Significance', 'Information', 'Outreach'],
+        labels: [
+          'Condition',
+          'Importance & Significance',
+          'Information',
+          'Outreach',
+        ],
         datasets: [
           {
             label: 'Current Dots',
@@ -172,7 +177,12 @@ export default {
           },
         ],
       },
-      labels: ['Condition', 'Importance & Significance', 'Information', 'Outreach'],
+      labels: [
+        'Condition',
+        'Importance & Significance',
+        'Information',
+        'Outreach',
+      ],
       chart_options: {
         scales: {
           x: {
@@ -207,12 +217,12 @@ export default {
       // loadingDots: true,
       // waveFrame: null,
       // t: 0,
-    }
+    };
   },
   mounted() {
     // this.startWaveAnimation()
     // Fetch data
-    this.fetchData()
+    this.fetchData();
   },
   // beforeUnmount() {
   //   cancelAnimationFrame(this.waveFrame)
@@ -220,21 +230,26 @@ export default {
   methods: {
     // Navigate to path
     navigate(path) {
-      this.$router.push({ path: path })
+      this.$router.push({ path: path });
     },
     // Fetch data
     fetchData() {
-      console.log(this.chart_data)
+      console.log(this.chart_data);
       // Fetch data
       getStatsGeneric('home-stats').then((response) => {
-        this.stats = response
+        this.stats = response;
         if (this.stats.last_rescored) {
-          this.stats.last_rescored_formatted = new Date(this.stats.last_rescored)
+          this.stats.last_rescored_formatted = new Date(
+            this.stats.last_rescored,
+          )
             .toISOString()
-            .split('T')[0]
+            .split('T')[0];
         }
-        console.log('stats : ', this.stats)
-        if (this.stats.scored_in_last_year && this.stats.scored_in_last_year.length > 0) {
+        console.log('stats : ', this.stats);
+        if (
+          this.stats.scored_in_last_year &&
+          this.stats.scored_in_last_year.length > 0
+        ) {
           this.pie_one = {
             labels: ['Scored in last year', 'Not scored in last year'],
             datasets: [
@@ -248,17 +263,17 @@ export default {
                 backgroundColor: ['#FF6384', '#36A2EB'],
               },
             ],
-          }
+          };
         }
         // Stop animation and replace dots
-        this.loadingDots = false
-        cancelAnimationFrame(this.waveFrame)
+        this.loadingDots = false;
+        cancelAnimationFrame(this.waveFrame);
 
         // Replace wave data with real values (adjust below with real data)
-        const realValues = [2, 3, 4.5, 3]
-        this.chart_data.datasets[0].data = realValues.map((y, x) => ({ x, y }))
-        this.chart_data.datasets[0].label = 'Current Dots'
-      })
+        const realValues = [2, 3, 4.5, 3];
+        this.chart_data.datasets[0].data = realValues.map((y, x) => ({ x, y }));
+        this.chart_data.datasets[0].label = 'Current Dots';
+      });
     },
 
     // startWaveAnimation() {
@@ -278,7 +293,7 @@ export default {
     //   update()
     // },
   },
-}
+};
 </script>
 
 <style scoped>

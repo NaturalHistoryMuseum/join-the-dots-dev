@@ -24,34 +24,36 @@ export default {
   data() {
     return {
       // error: false,
-    }
+    };
   },
   emits: ['update:modelValue'],
   computed: {
     percentageValue: {
       get() {
-        return this.modelValue !== undefined ? parseFloat((this.modelValue * 100).toFixed(2)) : 0
+        return this.modelValue !== undefined
+          ? parseFloat((this.modelValue * 100).toFixed(2))
+          : 0;
       },
       set(val) {
-        const normalized = Number(val) / 100
-        this.$emit('update:modelValue', parseFloat(normalized.toFixed(5)))
+        const normalized = Number(val) / 100;
+        this.$emit('update:modelValue', parseFloat(normalized.toFixed(5)));
       },
     },
     computedClass() {
-      if (!this.error.length) return ''
-      const type = this.error[0].type
+      if (!this.error.length) return '';
+      const type = this.error[0].type;
       return {
         'has-error': type == 'error',
         'has-warning': type == 'warning',
-      }
+      };
     },
   },
   methods: {
     handleChange() {
-      this.submit(this.ranks, this.criterion_id)
+      this.submit(this.ranks, this.criterion_id);
     },
   },
-}
+};
 </script>
 
 <style>

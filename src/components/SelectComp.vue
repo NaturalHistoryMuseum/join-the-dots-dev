@@ -4,8 +4,15 @@
     :label="label"
     label-position="above"
     :help="help"
-    @change="(value) => onChangeFunc && onChangeFunc(value) & $emit('input', $event)"
-    :config="{ options, itemName: 'value', itemNamePlural: 'data', enableSearch: true }"
+    @change="
+      (value) => onChangeFunc && onChangeFunc(value) & $emit('input', $event)
+    "
+    :config="{
+      options,
+      itemName: 'value',
+      itemNamePlural: 'data',
+      enableSearch: true,
+    }"
     v-model="localValue"
   />
 </template>
@@ -23,17 +30,17 @@ export default {
   data() {
     return {
       localValue: this.value, // Create a local copy for v-model
-    }
+    };
   },
   watch: {
     // Watch for prop changes and update localValue accordingly
     value(newVal) {
-      this.localValue = newVal
+      this.localValue = newVal;
     },
     // Watch for localValue changes and emit updates to parent
     localValue(newVal) {
-      this.$emit('input', newVal) // Emit update to parent
+      this.$emit('input', newVal); // Emit update to parent
     },
   },
-}
+};
 </script>

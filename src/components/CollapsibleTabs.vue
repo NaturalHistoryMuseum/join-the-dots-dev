@@ -39,14 +39,17 @@
             is_collapsed ? 'icon-only' : '',
           ]"
           :style="{
-            backgroundColor: active_tab === unit.collection_unit_id ? '#f2bab0' : '#e0e0e0',
+            backgroundColor:
+              active_tab === unit.collection_unit_id ? '#f2bab0' : '#e0e0e0',
             width: is_collapsed ? collapsed_width : expanded_width,
           }"
         >
           <!-- If tab out - display name and whether its completed -->
           <span class="tab-title" v-if="!is_collapsed"
             >{{ unit.unit_name }}
-            <div v-if="checkUnitCompleted(unit)"><i class="bi bi-check-lg"></i></div>
+            <div v-if="checkUnitCompleted(unit)">
+              <i class="bi bi-check-lg"></i>
+            </div>
             <div v-else><i class="bi bi-x-lg"></i></div
           ></span>
         </button>
@@ -68,7 +71,7 @@
 </template>
 
 <script>
-import UnitScores from './UnitScores.vue'
+import UnitScores from './UnitScores.vue';
 
 export default {
   props: {
@@ -86,12 +89,12 @@ export default {
       expanded_width: '300px',
       collapsed_width: '50px',
       filter_completed: false,
-    }
+    };
   },
   methods: {
     // Function to toggle the sidebar
     toggleSidebar() {
-      this.is_collapsed = !this.is_collapsed
+      this.is_collapsed = !this.is_collapsed;
     },
     // Function to navigate to the unit
     navUnit(unitId) {
@@ -100,21 +103,21 @@ export default {
         query: {
           unit_id: unitId,
         },
-      })
+      });
     },
     // Function to check if all categories in a unit are completed
     checkUnitCompleted(unit) {
       // Get the json object from the unit
-      const categories_json = unit.category_tracking
+      const categories_json = unit.category_tracking;
       // Check if all categories are complete
       const completed = categories_json.every((category) => {
-        return category.complete == 1
-      })
-      return completed
+        return category.complete == 1;
+      });
+      return completed;
     },
   },
   watch: {},
-}
+};
 </script>
 
 <style scoped>

@@ -8,8 +8,11 @@
       :config="{ options: container_options }"
       @change="
         () => {
-          setCurrentContainer()
-          handleFieldChange('storage_container_id', unit_value.storage_container_id)
+          setCurrentContainer();
+          handleFieldChange(
+            'storage_container_id',
+            unit_value.storage_container_id,
+          );
         }
       "
     />
@@ -21,7 +24,11 @@
     </p>
   </div>
   <div class="col-md-4 field">
-    <zoa-input zoa-type="empty" label="Relative Humidity" class="comments-title" />
+    <zoa-input
+      zoa-type="empty"
+      label="Relative Humidity"
+      class="comments-title"
+    />
     <p class="view-field">
       {{ current_container.relative_humidity }}
     </p>
@@ -30,22 +37,30 @@
   <div class="col-md-4 field">
     <div class="required-tag">*</div>
     <zoa-input
-      :class="errors.find((err) => err.field == 'storage_room_id') ? 'error-field' : ''"
+      :class="
+        errors.find((err) => err.field == 'storage_room_id')
+          ? 'error-field'
+          : ''
+      "
       zoa-type="dropdown"
       label="Room Code"
       v-model="unit_value.storage_room_id"
       :config="{ options: room_options }"
       @change="
         () => {
-          setCurrentRoom()
-          handleFieldChange('storage_room_id', unit_value.storage_room_id)
+          setCurrentRoom();
+          handleFieldChange('storage_room_id', unit_value.storage_room_id);
         }
       "
     />
   </div>
 
   <div v-for="field in room_fields" :key="field" class="col-md-4 field">
-    <zoa-input zoa-type="empty" :label="fieldNameCalc(field)" class="comments-title" />
+    <zoa-input
+      zoa-type="empty"
+      :label="fieldNameCalc(field)"
+      class="comments-title"
+    />
     <p class="view-field">
       {{ unit_value.storage_room_id && current_room[field] }}
     </p>
@@ -73,8 +88,8 @@
 </template>
 
 <script>
-import { getGeneric } from '@/services/dataService'
-import fieldNameCalc from '@/utils/utils'
+import { getGeneric } from '@/services/dataService';
+import fieldNameCalc from '@/utils/utils';
 
 export default {
   name: 'StorageTab',
@@ -107,20 +122,20 @@ export default {
       room_data: [],
       container_options: [],
       current_container: {},
-    }
+    };
   },
   computed: {
     unit_value: {
       get() {
-        return this.unit
+        return this.unit;
       },
       set(value) {
-        this.$emit('updateUnit', value)
+        this.$emit('updateUnit', value);
       },
     },
   },
   mounted() {
-    this.fetchData()
+    this.fetchData();
   },
   methods: {
     fieldNameCalc,
@@ -131,18 +146,18 @@ export default {
           ...room,
           value: room.storage_room_id,
           label: room.room_code,
-        }))
-        this.room_data = response
-        this.setCurrentRoom()
-      })
+        }));
+        this.room_data = response;
+        this.setCurrentRoom();
+      });
       getGeneric(`container-data`).then((response) => {
         this.container_options = response.map((container) => ({
           ...container,
           value: container.storage_container_id,
           label: container.container_name,
-        }))
-        this.setCurrentContainer()
-      })
+        }));
+        this.setCurrentContainer();
+      });
     },
     setCurrentContainer() {
       if (this.unit.storage_container_id == null) {
@@ -151,20 +166,21 @@ export default {
           container_name: null,
           temperature: null,
           relative_humidity: null,
-        }
+        };
       } else {
         this.current_container = this.container_options.filter(
-          (container) => container.storage_container_id == this.unit.storage_container_id,
-        )[0]
+          (container) =>
+            container.storage_container_id == this.unit.storage_container_id,
+        )[0];
       }
     },
     setCurrentRoom() {
       this.current_room = this.room_data.filter(
         (room) => room.storage_room_id == this.unit.storage_room_id,
-      )[0]
+      )[0];
     },
   },
-}
+};
 </script>
 
 <style></style>

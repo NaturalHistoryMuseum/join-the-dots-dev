@@ -23,7 +23,7 @@ export default {
     message_type: String,
   },
   methods: {},
-}
+};
 </script>
 
 <style>

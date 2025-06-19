@@ -7,14 +7,17 @@
   </div>
   <!-- Display save message if it has been saved -->
   <SmallMessages
-    v-if="checkEdited(editedRanks[criterion_id]) && checkErrors(criterion_id).length == 0"
+    v-if="
+      checkEdited(editedRanks[criterion_id]) &&
+      checkErrors(criterion_id).length == 0
+    "
     message_text="Change Saved"
     message_type="success"
   />
 </template>
 
 <script>
-import SmallMessages from './SmallMessages.vue'
+import SmallMessages from './SmallMessages.vue';
 
 export default {
   name: 'RanksWarnings',
@@ -29,7 +32,7 @@ export default {
     SmallMessages,
   },
   methods: {},
-}
+};
 </script>
 
 <style></style>

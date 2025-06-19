@@ -4,18 +4,26 @@
     <button
       class="accordion"
       :style="{
-        borderRadius: expanded_accordion == accordion_id ? '10px 10px 0px 0px' : '10px',
-        backgroundColor: expanded_accordion == accordion_id ? '#f3f3f3' : 'white',
+        borderRadius:
+          expanded_accordion == accordion_id ? '10px 10px 0px 0px' : '10px',
+        backgroundColor:
+          expanded_accordion == accordion_id ? '#f3f3f3' : 'white',
         color: expanded_accordion == accordion_id ? 'black' : 'black',
       }"
       @click="toggleAccordion(accordion_id)"
     >
       <!-- Accordion header -->
       <h6 class="accordion-header">{{ header }}</h6>
-      <h6 class="accordion-complete" v-if="rescore">{{ complete ? 'Complete' : 'Incomplete' }}</h6>
-      <zoa-button v-if="rescore" size="sm" class="accordion-btn" @click.stop="changeCatComplete">{{
-        complete ? 'Edit' : 'Mark Complete'
-      }}</zoa-button>
+      <h6 class="accordion-complete" v-if="rescore">
+        {{ complete ? 'Complete' : 'Incomplete' }}
+      </h6>
+      <zoa-button
+        v-if="rescore"
+        size="sm"
+        class="accordion-btn"
+        @click.stop="changeCatComplete"
+        >{{ complete ? 'Edit' : 'Mark Complete' }}</zoa-button
+      >
       <!-- Arrow button -->
       <div v-if="expanded_accordion == accordion_id" class="accordion-arrow">
         <i class="bi bi-chevron-up accordion-icon"></i>
@@ -49,7 +57,7 @@ export default {
     changeCatComplete: Function,
   },
   methods: {},
-}
+};
 </script>
 
 <style scoped>

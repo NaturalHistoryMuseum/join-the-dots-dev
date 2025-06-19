@@ -15,7 +15,10 @@
           <SelectComp
             :options="[
               { value: 'vw_unit_rescore_form', label: 'Rescore View' },
-              { value: 'vw_collections_hierarchy', label: 'Collections Hierarchy' },
+              {
+                value: 'vw_collections_hierarchy',
+                label: 'Collections Hierarchy',
+              },
             ]"
             label="View"
             :onChangeFunc="handleViewSelect"
@@ -53,9 +56,9 @@
 </template>
 
 <script>
-import SelectComp from '@/components/SelectComp.vue'
-import { downloadCSV, downloadLtCjson } from '@/services/dataService'
-import { useLoadingStore } from '@/stores/loadingStore'
+import SelectComp from '@/components/SelectComp.vue';
+import { downloadCSV, downloadLtCjson } from '@/services/dataService';
+import { useLoadingStore } from '@/stores/loadingStore';
 
 export default {
   components: {
@@ -65,39 +68,39 @@ export default {
     return {
       viewVal: '',
       sectionVal: '',
-    }
+    };
   },
   methods: {
     async downloadScoreView() {
-      const loadingStore = useLoadingStore()
+      const loadingStore = useLoadingStore();
       try {
-        loadingStore.startLoading()
-        await downloadCSV(this.viewVal)
+        loadingStore.startLoading();
+        await downloadCSV(this.viewVal);
       } catch (error) {
-        console.error('Error downloading CSV:', error)
+        console.error('Error downloading CSV:', error);
       } finally {
-        loadingStore.stopLoading()
+        loadingStore.stopLoading();
       }
     },
     handleViewSelect(value) {
-      this.viewVal = value
+      this.viewVal = value;
     },
     handleSectionSelect(value) {
-      this.sectionVal = value
+      this.sectionVal = value;
     },
     async downloadLtcExport() {
-      const loadingStore = useLoadingStore()
+      const loadingStore = useLoadingStore();
       try {
-        loadingStore.startLoading()
-        await downloadLtCjson()
+        loadingStore.startLoading();
+        await downloadLtCjson();
       } catch (error) {
-        console.error('Error downloading LtC export:', error)
+        console.error('Error downloading LtC export:', error);
       } finally {
-        loadingStore.stopLoading()
+        loadingStore.stopLoading();
       }
     },
   },
-}
+};
 </script>
 
 <style scoped></style>

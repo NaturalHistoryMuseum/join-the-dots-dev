@@ -31,7 +31,7 @@ export default {
   computed: {
     step_value: {
       get() {
-        return this.current_step
+        return this.current_step;
       },
       // ADD TO ALLOW PARENT TO UPDATE CURRENT_STEP
       // set(val) {
@@ -39,7 +39,7 @@ export default {
       // },
     },
   },
-}
+};
 </script>
 
 <style scoped>

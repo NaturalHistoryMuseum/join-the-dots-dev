@@ -1,8 +1,8 @@
-import axios from 'axios'
-import { currentUser, loadUser } from '../services/authService'
+import axios from 'axios';
+import { currentUser, loadUser } from '../services/authService';
 
 // FOR LOCAL TESTING
-const API_URL = 'http://localhost:5000/api/user'
+const API_URL = 'http://localhost:5000/api/user';
 // FOR K8S
 // const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user'
 
@@ -11,12 +11,12 @@ export async function getGenericUser(route) {
     const resp = await axios
       .get(`${API_URL}/${route}`, { withCredentials: true })
       .then((response) => {
-        return response.data
-      })
-    return resp
+        return response.data;
+      });
+    return resp;
   } catch (error) {
-    console.error('Error getting user data:', error)
-    throw error
+    console.error('Error getting user data:', error);
+    throw error;
   }
 }
 
@@ -25,31 +25,31 @@ export async function postGenericUser(route, data, reloadUser = false) {
     const resp = await axios
       .post(`${API_URL}/${route}`, data, { withCredentials: true })
       .then((response) => {
-        return response.data
-      })
+        return response.data;
+      });
     if (reloadUser) {
-      await loadUser(true)
+      await loadUser(true);
     }
-    return resp
+    return resp;
   } catch (error) {
-    console.error('Error posting user data:', error)
-    throw error
+    console.error('Error posting user data:', error);
+    throw error;
   }
 }
 
 export async function getUser() {
-  const storedUser = localStorage.getItem('user')
+  const storedUser = localStorage.getItem('user');
   if (storedUser) {
     // Use stored user data if available
-    const user = JSON.parse(storedUser)
+    const user = JSON.parse(storedUser);
     const user_details = await axios
       .get(`${API_URL}/user/${user.azure_id}`, { withCredentials: true })
       .then((response) => {
-        return response.data
-      })
-    return user_details
+        return response.data;
+      });
+    return user_details;
   }
-  return
+  return;
 }
 
 export async function editRole(role) {
@@ -65,14 +65,14 @@ export async function editRole(role) {
           { headers: { 'Content-Type': 'application/json' } },
         )
         .then((response) => {
-          return response.data
-        })
+          return response.data;
+        });
       // Reload user to get new role
-      await loadUser(true)
-      return response
+      await loadUser(true);
+      return response;
     } catch (error) {
-      console.error('Error updating role:', error)
-      throw error
+      console.error('Error updating role:', error);
+      throw error;
     }
   }
 }
@@ -90,14 +90,14 @@ export async function assignUnits(units) {
           { headers: { 'Content-Type': 'application/json' } },
         )
         .then((response) => {
-          return response.data
-        })
+          return response.data;
+        });
       // Reload user to get new role
-      await loadUser(true)
-      return response
+      await loadUser(true);
+      return response;
     } catch (error) {
-      console.error('Error assigning units:', error)
-      throw error
+      console.error('Error assigning units:', error);
+      throw error;
     }
   }
 }

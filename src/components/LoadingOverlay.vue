@@ -12,11 +12,11 @@
 </template>
 
 <script setup>
-import { useLoadingStore } from '@/stores/loadingStore'
+import { useLoadingStore } from '@/stores/loadingStore';
 
-const loadingStore = useLoadingStore()
+const loadingStore = useLoadingStore();
 // const loading_gif = '/src/assets/running-dinosaur.gif'
-const loading_gif = '/src/assets/dino-running.gif'
+const loading_gif = '/src/assets/dino-running.gif';
 </script>
 
 <style scoped>
