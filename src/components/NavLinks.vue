@@ -19,35 +19,51 @@
 </template>
 
 <script>
-import { useRoute } from 'vue-router'
-import { currentUser } from '../services/authService'
+import { useRoute } from 'vue-router';
+import { currentUser } from '../services/authService';
 
 export default {
   name: 'NavLinks',
   setup() {
-    const route = useRoute()
+    const route = useRoute();
     const nav_links = [
-      { name: 'Home', path: '/', access_groups: ['admin', 'viewer', 'editor', 'manager'] },
-      { name: 'About', path: '/about', access_groups: ['admin', 'viewer', 'editor', 'manager'] },
+      {
+        name: 'Home',
+        path: '/',
+        access_groups: ['admin', 'viewer', 'editor', 'manager'],
+      },
+      {
+        name: 'About',
+        path: '/about',
+        access_groups: ['admin', 'viewer', 'editor', 'manager'],
+      },
       {
         name: 'Reports',
         path: '/reports',
         access_groups: ['admin', 'viewer', 'editor', 'manager'],
       },
-      { name: 'View Units', path: '/view-units', access_groups: ['admin', 'editor', 'manager'] },
-      { name: 'Rescore', path: '/manage-rescore', access_groups: ['admin', 'editor', 'manager'] },
+      {
+        name: 'View Units',
+        path: '/view-units',
+        access_groups: ['admin', 'editor', 'manager'],
+      },
+      {
+        name: 'Rescore',
+        path: '/manage-rescore',
+        access_groups: ['admin', 'editor', 'manager'],
+      },
       { name: 'Admin', path: '/admin', access_groups: ['admin'] },
-    ]
+    ];
 
-    const isActiveRoute = (path) => route.path === path
+    const isActiveRoute = (path) => route.path === path;
 
     return {
       nav_links,
       isActiveRoute,
       currentUser,
-    }
+    };
   },
-}
+};
 </script>
 
 <style scoped>

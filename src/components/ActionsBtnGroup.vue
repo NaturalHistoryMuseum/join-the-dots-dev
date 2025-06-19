@@ -27,22 +27,22 @@ export default {
   data() {
     return {
       show_actions: false,
-    }
+    };
   },
   methods: {
     // Function to toggle the visibility of the actions button group
     toggleActions() {
-      this.show_actions = !this.show_actions
+      this.show_actions = !this.show_actions;
     },
   },
   watch: {
     force_show(newVal) {
       if (newVal) {
-        this.show_actions = true
+        this.show_actions = true;
       }
     },
   },
-}
+};
 </script>
 
 <style scoped>

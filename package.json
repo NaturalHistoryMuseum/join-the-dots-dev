@@ -1,14 +1,14 @@
 {
-  "name": "vue-project",
-  "version": "0.0.0",
+  "name": "@nhm-data/join-the-dots",
+  "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "lint": "eslint ./src --fix --no-warn-ignored",
+    "format": "prettier --write ./src"
   },
   "dependencies": {
     "@nhm-data/zoa": "^0.12.1",
@@ -17,24 +17,26 @@
     "bootstrap-icons": "^1.11.3",
     "bootstrap-vue-3": "^0.5.1",
     "chart.js": "^4.4.9",
+    "eslint-config-prettier": "^10.1.5",
     "jwt-decode": "^4.0.0",
     "pinia": "^2.3.1",
     "powerbi-client": "^2.23.1",
     "powerbi-client-vue-js": "^1.1.1",
+    "prettier-plugin-organize-imports": "^4.1.0",
     "vue": "^3.5.13",
     "vue-chartjs": "^5.3.2",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vue-tsc": "^2.2.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vitejs/plugin-vue-jsx": "^4.1.1",
-    "@vue/eslint-config-prettier": "^10.1.0",
     "eslint": "^9.14.0",
     "eslint-plugin-vue": "^9.30.0",
     "less": "^4.2.1",
     "prettier": "^3.3.3",
     "vite": "^6.0.1",
-    "vite-plugin-vue-devtools": "^7.6.5"
+    "vite-plugin-vue-devtools": "^7.7.7"
   }
 }

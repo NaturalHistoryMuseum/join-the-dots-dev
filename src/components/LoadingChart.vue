@@ -4,23 +4,29 @@
 
 <script setup>
 import {
+  CategoryScale,
   Chart as ChartJS,
+  Legend,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
+} from 'chart.js';
+import { onMounted, ref } from 'vue';
+import { Scatter } from 'vue-chartjs';
+
+ChartJS.register(
   Title,
   Tooltip,
   Legend,
   LinearScale,
   PointElement,
   CategoryScale,
-} from 'chart.js'
-import { Scatter } from 'vue-chartjs'
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+);
 
-ChartJS.register(Title, Tooltip, Legend, LinearScale, PointElement, CategoryScale)
-
-const chartRef = ref(null)
-const labels = ['A', 'B', 'C', 'D']
-const loading = ref(true)
+const chartRef = ref(null);
+const labels = ['A', 'B', 'C', 'D'];
+const loading = ref(true);
 const chartData = ref({
   labels,
   datasets: [
@@ -32,7 +38,7 @@ const chartData = ref({
       showLine: false,
     },
   ],
-})
+});
 
 const options = {
   scales: {
@@ -51,26 +57,27 @@ const options = {
   },
   animation: false, // Important: turn off built-in animation
   responsive: true,
-}
+};
 
-let animationId
-let t = 0
+// eslint-disable-next-line no-unused-vars
+let animationId;
+let t = 0;
 
 function animateWaveDots() {
   const waveData = labels.map((_, i) => ({
     x: i,
     y: 2.5 + Math.sin(t + i * 0.5) * 1.5, // Wave motion centered at 2.5
-  }))
-  console.log(waveData)
-  chartData.value.datasets[0].data = waveData
-  t += 0.05
+  }));
+  console.log(waveData);
+  chartData.value.datasets[0].data = waveData;
+  t += 0.05;
   if (loading.value) {
-    animationId = requestAnimationFrame(animateWaveDots)
+    animationId = requestAnimationFrame(animateWaveDots);
   }
 }
 
 onMounted(async () => {
-  animateWaveDots()
+  animateWaveDots();
 
   // Simulate data fetching (replace with your real Axios call)
   // const response = await axios.get('/api/your-data') // Replace with your real API
@@ -83,5 +90,5 @@ onMounted(async () => {
   // // Update chart with real data
   // chartData.value.datasets[0].data = realValues.map((y, x) => ({ x, y }))
   // chartData.value.datasets[0].label = 'Real Data'
-})
+});
 </script>

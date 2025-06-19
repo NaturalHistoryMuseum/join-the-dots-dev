@@ -9,10 +9,10 @@
 <script>
 export default {
   data() {
-    return {}
+    return {};
   },
   setup() {},
-}
+};
 </script>
 
 <style scoped></style>

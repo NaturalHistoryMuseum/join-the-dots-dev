@@ -24,10 +24,10 @@ export default {
     changeTabFunc: Function,
   },
   data() {
-    return {}
+    return {};
   },
   computed: {},
-}
+};
 </script>
 
 <style scoped>

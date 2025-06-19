@@ -1,5 +1,5 @@
 <script setup>
-import NavLinks from '../components/NavLinks.vue'
+import NavLinks from '../components/NavLinks.vue';
 </script>
 
 <template>
@@ -9,7 +9,9 @@ import NavLinks from '../components/NavLinks.vue'
       <button @click="navigateHome" class="icon-btn">
         <img alt="NHM logo" class="logo" src="@/assets/nhm_white_logo.png" />
       </button>
-      <button @click="navigateHome" class="icon-btn"><h1 class="title">Join the Dots</h1></button>
+      <button @click="navigateHome" class="icon-btn">
+        <h1 class="title">Join the Dots</h1>
+      </button>
       <!-- Login / Account Buttons -->
       <div class="account-header">
         <div v-if="currentUser">
@@ -35,14 +37,14 @@ import NavLinks from '../components/NavLinks.vue'
 </template>
 
 <script>
-import { login, logout, currentUser } from '../services/authService'
+import { currentUser, login, logout } from '../services/authService';
 
 export default {
   data() {
-    return {}
+    return {};
   },
   setup() {
-    return { currentUser }
+    return { currentUser };
   },
   async mounted() {},
   methods: {
@@ -50,20 +52,20 @@ export default {
     login,
     // Logout function
     logoutUser() {
-      logout()
+      logout();
       // Navigate to login page
-      this.$router.push('/login')
+      this.$router.push('/login');
     },
     navigateAccount() {
       // Navigate to account page
-      this.$router.push('/account')
+      this.$router.push('/account');
     },
     navigateHome() {
       // Navigate to home page
-      this.$router.push('/')
+      this.$router.push('/');
     },
   },
-}
+};
 </script>
 
 <style>

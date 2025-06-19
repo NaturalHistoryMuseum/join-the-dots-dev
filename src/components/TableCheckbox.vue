@@ -59,52 +59,56 @@ export default {
   data() {
     return {
       selected_unit_ids: [], // Array to hold selected unit IDs
-    }
+    };
   },
   methods: {
     toggleSelectAll(newValue) {
       // Only update currently visible (filtered + paginated) rows
       this.units.forEach((unit) => {
-        unit.selected = newValue
-      })
-      this.updateSelectedUnits()
+        unit.selected = newValue;
+      });
+      this.updateSelectedUnits();
     },
     updateSelectedUnits() {
       this.selected_unit_ids = this.units
         .filter((unit) => unit.selected)
-        .map((unit) => unit.collection_unit_id)
+        .map((unit) => unit.collection_unit_id);
     },
     handleCheckboxChange(newValue, rowItem) {
       // Update the selected property directly
-      rowItem.selected = newValue
+      rowItem.selected = newValue;
 
       if (newValue) {
         //Add the item to the selected_unit_ids array
-        this.selected_unit_ids.push(rowItem.collection_unit_id)
+        this.selected_unit_ids.push(rowItem.collection_unit_id);
       } else {
         //Remove the item from the selected_unit_ids array
-        const indexOfVal = this.selected_unit_ids.indexOf(rowItem.collection_unit_id)
-        this.selected_unit_ids.splice(indexOfVal, 1)
+        const indexOfVal = this.selected_unit_ids.indexOf(
+          rowItem.collection_unit_id,
+        );
+        this.selected_unit_ids.splice(indexOfVal, 1);
       }
     },
     // Reset selection state for all units
     resetSelection() {
       this.units.forEach((unit) => {
-        unit.selected = false
-      })
-      this.updateSelectedUnits()
+        unit.selected = false;
+      });
+      this.updateSelectedUnits();
     },
   },
   computed: {
     // Handle the select all checkbox
     selectAll: {
       get() {
-        return this.units.length > 0 && this.units.every((unit) => unit.selected)
+        return (
+          this.units.length > 0 && this.units.every((unit) => unit.selected)
+        );
       },
       set(newValue) {
-        this.toggleSelectAll(newValue)
+        this.toggleSelectAll(newValue);
       },
     },
   },
-}
+};
 </script>

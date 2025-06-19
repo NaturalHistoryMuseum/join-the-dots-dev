@@ -4,13 +4,13 @@
     :kind="success ? 'success' : 'warning'"
     @opened="
       () => {
-        resetModal()
-        this.$refs.tableCheckbox.resetSelection()
+        resetModal();
+        this.$refs.tableCheckbox.resetSelection();
       }
     "
     @closed="
       () => {
-        resetModal()
+        resetModal();
       }
     "
   >
@@ -38,9 +38,13 @@
         <div v-show="current_step === 2" class="modal-step-content">
           <p class="text-center">Edit the scores for the selected units.</p>
           <div class="nav-container">
-            <zoa-button class="" @click="current_step = current_step - 1">Back</zoa-button>
+            <zoa-button class="" @click="current_step = current_step - 1"
+              >Back</zoa-button
+            >
             <!-- Display the scores for this unit and enable editing for rescore -->
-            <zoa-button class="" @click="current_step = current_step + 1">Review Scores</zoa-button>
+            <zoa-button class="" @click="current_step = current_step + 1"
+              >Review Scores</zoa-button
+            >
           </div>
           <UnitScores
             v-if="rank_json.length > 0"
@@ -55,7 +59,9 @@
             <div v-if="edited_unit">
               <p class="text-center">Confirm the changes you made.</p>
               <div class="nav-container">
-                <zoa-button class="" @click="current_step = current_step - 1">Back</zoa-button>
+                <zoa-button class="" @click="current_step = current_step - 1"
+                  >Back</zoa-button
+                >
                 <!-- Display the scores for this unit and enable editing for rescore -->
               </div>
               <div class="save-changes-container">
@@ -66,12 +72,23 @@
                   label-position="left"
                   v-model="confirm_changes"
                 />
-                <zoa-button v-if="confirm_changes" label="Save Changes" @click="handleBulkUpload" />
+                <zoa-button
+                  v-if="confirm_changes"
+                  label="Save Changes"
+                  @click="handleBulkUpload"
+                />
               </div>
               <p>These are your changes:</p>
-              <div v-if="edited_unit.metric_json && edited_unit.metric_json.length > 0">
+              <div
+                v-if="
+                  edited_unit.metric_json && edited_unit.metric_json.length > 0
+                "
+              >
                 <h4>Metrics</h4>
-                <div v-for="(metric, index) in edited_unit.metric_json" :key="index">
+                <div
+                  v-for="(metric, index) in edited_unit.metric_json"
+                  :key="index"
+                >
                   <div class="changed-container metric">
                     <div class="changed-item">
                       <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
@@ -88,9 +105,16 @@
                 <h4>Unit Comment</h4>
                 <p>{{ edited_unit.unit_comment }}</p>
               </div>
-              <div v-if="edited_unit.ranks_json && edited_unit.ranks_json.length > 0">
+              <div
+                v-if="
+                  edited_unit.ranks_json && edited_unit.ranks_json.length > 0
+                "
+              >
                 <h4>Scores</h4>
-                <div v-for="(criterion, index) in edited_unit.ranks_json" :key="index">
+                <div
+                  v-for="(criterion, index) in edited_unit.ranks_json"
+                  :key="index"
+                >
                   <h5>{{ criterion[0].criterion_name }}</h5>
                   <div class="changed-container">
                     <div
@@ -121,11 +145,11 @@
 </template>
 
 <script>
-import TableCheckbox from './TableCheckbox.vue'
-import StepperComp from './StepperComp.vue'
-import UnitScores from './UnitScores.vue'
-import fieldNameCalc from '@/utils/utils'
-import { submitDataGeneric } from '@/services/dataService'
+import { submitDataGeneric } from '@/services/dataService';
+import fieldNameCalc from '@/utils/utils';
+import StepperComp from './StepperComp.vue';
+import TableCheckbox from './TableCheckbox.vue';
+import UnitScores from './UnitScores.vue';
 
 export default {
   name: 'BulkEditScoreModal',
@@ -138,9 +162,9 @@ export default {
     units: Array,
   },
   async mounted() {
-    const data = await import('../utils/ranks_json_temp.json')
-    this.rank_json = data.default
-    this.resetModal()
+    const data = await import('../utils/ranks_json_temp.json');
+    this.rank_json = data.default;
+    this.resetModal();
   },
   data() {
     return {
@@ -182,40 +206,40 @@ export default {
       success: false,
       success_message: '',
       loading: false,
-    }
+    };
   },
   methods: {
     fieldNameCalc,
     handleBulkUnitUpdate(updatedUnit) {
       // Merge the updated ranks into the corresponding unit in your parent data
-      this.edited_unit = updatedUnit
+      this.edited_unit = updatedUnit;
     },
     handleStepChange(step) {
-      this.current_step = step
+      this.current_step = step;
     },
     // Reset the current step and selection when the modal is opened
     resetModal() {
-      this.current_step = 1
-      this.edited_unit = []
-      this.confirm_changes = false
-      this.success = false
-      this.success_message = ''
-      this.loading = false
+      this.current_step = 1;
+      this.edited_unit = [];
+      this.confirm_changes = false;
+      this.success = false;
+      this.success_message = '';
+      this.loading = false;
       // Reset the score data
-      this.unit.ranks_json = JSON.parse(JSON.stringify(this.rank_json))
+      this.unit.ranks_json = JSON.parse(JSON.stringify(this.rank_json));
     },
     async handleBulkUpload() {
-      this.loading = true
+      this.loading = true;
       const response = await submitDataGeneric('bulk-upload-rescore', {
         units: this.units.filter((unit) => unit.selected),
         rescore_data: this.edited_unit,
-      })
-      this.loading = false
-      this.success = response.success_count > 0
-      this.success_message = `Changes successfully made for ${response.success_count} / ${response.total_units}! ${response.success_count < response.total_units ? 'Please check changes and try again' : ''}`
+      });
+      this.loading = false;
+      this.success = response.success_count > 0;
+      this.success_message = `Changes successfully made for ${response.success_count} / ${response.total_units}! ${response.success_count < response.total_units ? 'Please check changes and try again' : ''}`;
     },
   },
-}
+};
 </script>
 
 <style>

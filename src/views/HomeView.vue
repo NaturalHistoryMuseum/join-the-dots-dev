@@ -45,27 +45,43 @@
         <i class="bi bi-clipboard-check card-icon"></i>
         <h2>Rescore</h2>
         <p>Perform a re-scoring on your assigned sections.</p>
-        <zoa-button label="Rescore" @click="navigate('/manage-rescore')" class="card-btn" />
+        <zoa-button
+          label="Rescore"
+          @click="navigate('/manage-rescore')"
+          class="card-btn"
+        />
       </div>
       <div v-if="currentUser.level == 1" class="home-card col-md-4">
         <i class="bi bi-file-earmark card-icon"></i>
         <h2>About</h2>
         <p>Understand the JtD process further</p>
-        <zoa-button label="Rescore" @click="navigate('/about')" class="card-btn" />
+        <zoa-button
+          label="Rescore"
+          @click="navigate('/about')"
+          class="card-btn"
+        />
       </div>
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
         <h2>View Units</h2>
         <p>Explore all units in your section and make changes to them.</p>
-        <zoa-button label="View units" @click="navigate('/view-units')" class="card-btn" />
+        <zoa-button
+          label="View units"
+          @click="navigate('/view-units')"
+          class="card-btn"
+        />
       </div>
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
         <h2>Reports</h2>
         <p>Generate reports on your section's performance.</p>
-        <zoa-button label="Reports" @click="navigate('/reports')" class="card-btn" />
+        <zoa-button
+          label="Reports"
+          @click="navigate('/reports')"
+          class="card-btn"
+        />
       </div>
     </b-row>
   </div>
@@ -74,26 +90,26 @@
 </template>
 
 <script>
-import HomeStats from '@/components/HomeStats.vue'
-import { currentUser } from '../services/authService'
+import HomeStats from '@/components/HomeStats.vue';
+import { currentUser } from '../services/authService';
 
 export default {
   setup() {
-    return { currentUser }
+    return { currentUser };
   },
   components: { HomeStats },
   data() {
-    return {}
+    return {};
   },
   mounted() {},
 
   methods: {
     // Navigate to path
     navigate(path) {
-      this.$router.push({ path: path })
+      this.$router.push({ path: path });
     },
   },
-}
+};
 </script>
 
 <style>

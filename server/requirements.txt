@@ -1,8 +1,0 @@
-flask
-flask_cors
-mysql-connector-python
-requests
-msal
-flask_dance
-dotenv
-PyJWT

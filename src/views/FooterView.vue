@@ -3,11 +3,20 @@
     <div class="footer-header">
       <!-- Logo and footer-title -->
       <button @click="navigateHome" class="icon-container">
-        <img alt="NHM logo" class="footer-logo" src="@/assets/nhm_white_logo.png" />
+        <img
+          alt="NHM logo"
+          class="footer-logo"
+          src="@/assets/nhm_white_logo.png"
+        />
       </button>
       <div class="footer-title">
-        <p>This is a development/testing environment, no data changes will affect JtD data.</p>
-        <p>If you have any issues please reach out to: andrew.roberts@nhm.ac.uk</p>
+        <p>
+          This is a development/testing environment, no data changes will affect
+          JtD data.
+        </p>
+        <p>
+          If you have any issues please reach out to: andrew.roberts@nhm.ac.uk
+        </p>
       </div>
     </div>
   </footer>
@@ -16,7 +25,7 @@
 <script>
 export default {
   name: 'FooterView',
-}
+};
 </script>
 
 <style>

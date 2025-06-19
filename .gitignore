@@ -38,3 +38,6 @@ coverage
 __pycache__/
 server/__pycache__/
 server/routes/__pycache__/
+
+# Python build files
+*.egg-info

@@ -1,15 +1,15 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import ViewUnit from '../views/ViewUnit.vue'
-import ReportsView from '../views/ReportsView.vue'
-import AccountView from '../views/AccountView.vue'
-import AboutView from '../views/AboutView.vue'
-import RescoreView from '../views/RescoreView.vue'
-import { currentUser, loadUser } from '../services/authService'
-import ViewUnits from '../views/ViewUnits.vue'
-import ManageRescoreView from '@/views/ManageRescoreView.vue'
-import LoginView from '../views/LoginView.vue'
-import AdminView from '@/views/AdminView.vue'
+import AdminView from '@/views/AdminView.vue';
+import ManageRescoreView from '@/views/ManageRescoreView.vue';
+import { createRouter, createWebHistory } from 'vue-router';
+import { currentUser, loadUser } from '../services/authService';
+import AboutView from '../views/AboutView.vue';
+import AccountView from '../views/AccountView.vue';
+import HomeView from '../views/HomeView.vue';
+import LoginView from '../views/LoginView.vue';
+import ReportsView from '../views/ReportsView.vue';
+import RescoreView from '../views/RescoreView.vue';
+import ViewUnit from '../views/ViewUnit.vue';
+import ViewUnits from '../views/ViewUnits.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,9 +21,9 @@ const router = createRouter({
       meta: { requiresAuth: false },
       beforeEnter: (to, from, next) => {
         if (currentUser.value) {
-          next('/')
+          next('/');
         } else {
-          next()
+          next();
         }
       },
     },
@@ -69,7 +69,7 @@ const router = createRouter({
       component: RescoreView,
       meta: { requiresAuth: true },
       beforeEnter: (to, from, next) => {
-        checkAuth(2, from, next)
+        checkAuth(2, from, next);
       },
     },
     {
@@ -78,7 +78,7 @@ const router = createRouter({
       component: ManageRescoreView,
       meta: { requiresAuth: true },
       beforeEnter: (to, from, next) => {
-        checkAuth(2, from, next)
+        checkAuth(2, from, next);
       },
     },
     {
@@ -87,25 +87,25 @@ const router = createRouter({
       component: AdminView,
       meta: { requiresAuth: true },
       beforeEnter: (to, from, next) => {
-        checkAuth(4, from, next)
+        checkAuth(4, from, next);
       },
     },
   ],
-})
+});
 
 // Global route guard
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !currentUser.value) {
-    next('/login')
+    next('/login');
   } else {
-    next()
+    next();
   }
-})
+});
 
 async function checkAuth(level, from, next) {
   // Ensure user data is loaded
   if (currentUser.value === null) {
-    await loadUser()
+    await loadUser();
   }
   // Check access
   if (!currentUser.value || currentUser.value.level < level) {
@@ -116,11 +116,11 @@ async function checkAuth(level, from, next) {
     //   // Navigate home if unauthorised
     //   next('/')
     // }
-    next('/')
+    next('/');
   } else {
     // Proceed if authorised
-    next()
+    next();
   }
 }
 
-export default router
+export default router;

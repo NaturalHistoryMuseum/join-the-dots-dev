@@ -16,7 +16,7 @@ CREATE TABLE `rescore_session_units` (
 );
 CREATE TABLE unit_category_draft (
     category_draft_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    rescore_session_units_id INT NOT null, 
+    rescore_session_units_id INT NOT null,
     category_id INT NOT NULL,
     complete tinyint not null,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -35,10 +35,10 @@ export default {
   },
   methods: {
     handleSave() {
-      this.submit(this.ranks, this.criterion_id)
+      this.submit(this.ranks, this.criterion_id);
     },
   },
-}
+};
 </script>
 
 <style scoped>

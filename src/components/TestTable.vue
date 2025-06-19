@@ -43,8 +43,8 @@
         label="Rows per page"
         @change="
           (value) => {
-            resetPage()
-            changePerPage(value)
+            resetPage();
+            changePerPage(value);
           }
         "
       />
@@ -66,8 +66,8 @@
             <zoa-button
               @click="
                 () => {
-                  clearFilters()
-                  resetPage()
+                  clearFilters();
+                  resetPage();
                 }
               "
               >Reset Filters</zoa-button
@@ -84,7 +84,11 @@
             v-for="(tab, index) in filter_tabs"
             :key="index"
             @click="active_tab = index"
-            :class="['tab', active_tab === index ? 'active' : '', is_collapsed ? 'icon-only' : '']"
+            :class="[
+              'tab',
+              active_tab === index ? 'active' : '',
+              is_collapsed ? 'icon-only' : '',
+            ]"
             :style="{
               backgroundColor: active_tab === index ? '#f2bab0' : '#e0e0e0',
               width: is_collapsed ? collapsed_width : expanded_width,
@@ -236,12 +240,16 @@
         </template>
 
         <!-- Custom rendering for the name column -->
-        <template #cell(name)="row"> {{ row.value.first }} {{ row.value.last }} </template>
+        <template #cell(name)="row">
+          {{ row.value.first }} {{ row.value.last }}
+        </template>
 
         <!-- Actions column -->
         <template #cell(actions)="row">
           <div class="row-actions">
-            <zoa-button @click="viewUnit(row.item)" class="view-btn"> View Unit </zoa-button>
+            <zoa-button @click="viewUnit(row.item)" class="view-btn">
+              View Unit
+            </zoa-button>
             <zoa-button class="delete-btn">Delete Unit</zoa-button>
           </div>
         </template>
@@ -251,14 +259,14 @@
 </template>
 
 <script>
-import { getGeneric } from '@/services/dataService'
-import { currentUser } from '../services/authService'
-import ActionsBtnGroup from './ActionsBtnGroup.vue'
+import { getGeneric } from '@/services/dataService';
+import { currentUser } from '../services/authService';
+import ActionsBtnGroup from './ActionsBtnGroup.vue';
 
 export default {
   components: { ActionsBtnGroup },
   setup() {
-    return { currentUser }
+    return { currentUser };
   },
   data() {
     return {
@@ -298,18 +306,18 @@ export default {
       expanded_width: '200px',
       collapsed_width: '50px',
       filter_assigned: true,
-    }
+    };
   },
   mounted() {
-    this.fetchData()
+    this.fetchData();
   },
   computed: {
     rows() {
-      return this.filteredUnits.length
+      return this.filteredUnits.length;
     },
     sections() {
       //Use map to get unique sections
-      const uniqueSections = new Map()
+      const uniqueSections = new Map();
 
       this.units.forEach((unit) => {
         if (!uniqueSections.has(unit.section_name)) {
@@ -319,15 +327,15 @@ export default {
                 ? unit.section_name.substring(0, 20) + '...'
                 : unit.section_name,
             value: unit.section_name,
-          })
+          });
         }
-      })
+      });
       // Covert to array
-      return Array.from(uniqueSections.values())
+      return Array.from(uniqueSections.values());
     },
     divisions() {
       //Use map to get unique sections
-      const uniqueDivision = new Map()
+      const uniqueDivision = new Map();
 
       this.units.forEach((unit) => {
         if (!uniqueDivision.has(unit.division_name)) {
@@ -337,11 +345,11 @@ export default {
                 ? unit.division_name.substring(0, 20) + '...'
                 : unit.division_name,
             value: unit.division_name,
-          })
+          });
         }
-      })
+      });
       // Covert to array
-      return Array.from(uniqueDivision.values())
+      return Array.from(uniqueDivision.values());
     },
     filteredUnits() {
       // Filter the units based on the search queries and selected filters
@@ -349,10 +357,14 @@ export default {
         (unit) =>
           // Filter by the users assigned units
           (this.filter_assigned
-            ? JSON.parse(this.currentUser.assigned_units).includes(unit.collection_unit_id)
+            ? JSON.parse(this.currentUser.assigned_units).includes(
+                unit.collection_unit_id,
+              )
             : true) &&
           // Filter by unit name
-          unit.unit_name.toLowerCase().includes(this.search_name_query.toLowerCase()) &&
+          unit.unit_name
+            .toLowerCase()
+            .includes(this.search_name_query.toLowerCase()) &&
           // Filter by unit ID
           unit.collection_unit_id.toString().includes(this.search_id_query) &&
           // Filter by section
@@ -366,22 +378,27 @@ export default {
           // Filter by department
           (this.active_tab == 0
             ? true
-            : unit.department_name.includes(this.filter_tabs[this.active_tab].label)) &&
+            : unit.department_name.includes(
+                this.filter_tabs[this.active_tab].label,
+              )) &&
           // Filter by active/inactive status
           (this.filter_inactive ? true : unit.unit_active == 'yes'),
-      )
+      );
     },
     paginatedUnits() {
-      const start = (this.current_page - 1) * this.per_page
-      const end = start + this.per_page
-      return this.filteredUnits.slice(start, end) // Paginate only filtered data
+      const start = (this.current_page - 1) * this.per_page;
+      const end = start + this.per_page;
+      return this.filteredUnits.slice(start, end); // Paginate only filtered data
     },
     selectAll: {
       get() {
-        return this.paginatedUnits.length > 0 && this.paginatedUnits.every((unit) => unit.selected)
+        return (
+          this.paginatedUnits.length > 0 &&
+          this.paginatedUnits.every((unit) => unit.selected)
+        );
       },
       set(newValue) {
-        this.toggleSelectAll(newValue)
+        this.toggleSelectAll(newValue);
       },
     },
   },
@@ -393,8 +410,8 @@ export default {
         this.units = response.map((unit) => ({
           ...unit,
           selected: false,
-        }))
-      })
+        }));
+      });
     },
     // Function to navigate to the unit
     viewUnit(unit) {
@@ -403,59 +420,61 @@ export default {
         query: {
           unit_id: unit.collection_unit_id,
         },
-      })
+      });
     },
     handleCheckboxChange(newValue, rowItem) {
       // Update the selected property directly
-      rowItem.selected = newValue
+      rowItem.selected = newValue;
 
       if (newValue) {
         //Add the item to the selected_unit_ids array
-        this.selected_unit_ids.push(rowItem.collection_unit_id)
+        this.selected_unit_ids.push(rowItem.collection_unit_id);
       } else {
         //Remove the item from the selected_unit_ids array
-        const indexOfVal = this.selected_unit_ids.indexOf(rowItem.collection_unit_id)
-        this.selected_unit_ids.splice(indexOfVal, 1)
+        const indexOfVal = this.selected_unit_ids.indexOf(
+          rowItem.collection_unit_id,
+        );
+        this.selected_unit_ids.splice(indexOfVal, 1);
       }
     },
     toggleSelectAll(newValue) {
       // Only update currently visible (filtered + paginated) rows
       this.paginatedUnits.forEach((unit) => {
-        unit.selected = newValue
-      })
-      this.updateSelectedUnits()
+        unit.selected = newValue;
+      });
+      this.updateSelectedUnits();
     },
     // Reset the selected units
     updateSelectedUnits() {
       this.selected_unit_ids = this.units
         .filter((unit) => unit.selected)
-        .map((unit) => unit.collection_unit_id)
+        .map((unit) => unit.collection_unit_id);
     },
     // Function to toggle the visibility of the filters sidebar
     toggleSidebar() {
-      this.is_collapsed = !this.is_collapsed
+      this.is_collapsed = !this.is_collapsed;
     },
     // Function to reset all filters
     clearFilters() {
-      this.search_name_query = ''
-      this.search_id_query = ''
-      this.active_tab = 0
-      this.search_section = []
+      this.search_name_query = '';
+      this.search_id_query = '';
+      this.active_tab = 0;
+      this.search_section = [];
     },
     // Function to reset the current page back to the first page
     resetPage() {
-      this.current_page = 1
+      this.current_page = 1;
     },
     // Function to set the number of rows per page
     changePerPage(value) {
       if (value === null) {
-        this.per_page = 10
+        this.per_page = 10;
       } else {
-        this.per_page = parseInt(value)
+        this.per_page = parseInt(value);
       }
     },
   },
-}
+};
 </script>
 
 <style>

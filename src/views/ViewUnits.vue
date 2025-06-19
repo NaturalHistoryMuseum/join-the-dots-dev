@@ -1,5 +1,5 @@
 <script setup>
-import TestTable from '../components/TestTable.vue'
+import TestTable from '../components/TestTable.vue';
 </script>
 
 <template>
@@ -15,10 +15,10 @@ import TestTable from '../components/TestTable.vue'
 <script>
 export default {
   data() {
-    return {}
+    return {};
   },
   methods: {},
-}
+};
 </script>
 
 <style></style>

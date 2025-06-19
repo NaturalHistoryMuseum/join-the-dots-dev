@@ -16,7 +16,7 @@ package "Backend (Flask)" {
   [_init_.py]
   [config.py]
   [database.py]
-  
+
   package "Routes" {
     [data.py]
     [auth.py]

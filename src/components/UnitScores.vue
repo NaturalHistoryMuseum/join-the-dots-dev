@@ -2,15 +2,22 @@
   <div v-if="rescore && !bulk_edit" class="unit-header">
     <!-- Unit Tile and link to unit -->
     <div class="unit-link-container">
-      <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">{{ unit.unit_name }}</h4>
+      <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">
+        {{ unit.unit_name }}
+      </h4>
     </div>
     <!-- Button for managing whole units complete status -->
-    <zoa-button class="complete-btn" @click="changeCatComplete([0, 1, 2, 3, 4], 1)">
+    <zoa-button
+      class="complete-btn"
+      @click="changeCatComplete([0, 1, 2, 3, 4], 1)"
+    >
       Mark Unit Complete
     </zoa-button>
   </div>
   <!-- Date the whole unit was last edited -->
-  <div v-if="!bulk_edit" class="date-title">Last Edited: {{ overallDate() }}</div>
+  <div v-if="!bulk_edit" class="date-title">
+    Last Edited: {{ overallDate() }}
+  </div>
   <!-- Accordion for the Metrics and Comments -->
   <RescoreAccordionComp
     :accordion_id="0"
@@ -19,10 +26,14 @@
     header="Unit Measures / Unit Comment"
     :category_cols="category_cols"
     :rescore="rescore && !bulk_edit"
-    :complete="rescore && !bulk_edit ? checkCatComplete({ category_id: 0 }) : false"
+    :complete="
+      rescore && !bulk_edit ? checkCatComplete({ category_id: 0 }) : false
+    "
     :changeCatComplete="() => changeCatComplete([0])"
   >
-    <div v-if="!bulk_edit" class="date-title">Last Edited: {{ metricDate() }}</div>
+    <div v-if="!bulk_edit" class="date-title">
+      Last Edited: {{ metricDate() }}
+    </div>
     <!-- Metrics Section -->
     <div class="row">
       <!-- Loop through each metric -->
@@ -38,7 +49,11 @@
                 zoa-type="number"
                 :label="fieldNameCalc(metric.metric_name)"
                 v-model="metric.metric_value"
-                @change="submitMetricsChanges(metric.collection_unit_metric_definition_id)"
+                @change="
+                  submitMetricsChanges(
+                    metric.collection_unit_metric_definition_id,
+                  )
+                "
               />
             </div>
             <div class="col-md-6 mb-2">
@@ -46,7 +61,11 @@
                 zoa-type="dropdown"
                 label="Confidence"
                 label-position="above"
-                @change="submitMetricsChanges(metric.collection_unit_metric_definition_id)"
+                @change="
+                  submitMetricsChanges(
+                    metric.collection_unit_metric_definition_id,
+                  )
+                "
                 :config="{
                   options: confidence_options,
                   itemName: 'value',
@@ -67,7 +86,11 @@
       </div>
       <!-- Unit Comments -->
       <div class="col-md-6">
-        <zoa-input zoa-type="empty" label="Unit Comment" class="comments-title" />
+        <zoa-input
+          zoa-type="empty"
+          label="Unit Comment"
+          class="comments-title"
+        />
         <textarea
           class="text-area"
           rows="7"
@@ -97,10 +120,14 @@
     >
       <div class="">
         <!-- last edited date for this whole category -->
-        <div v-if="!bulk_edit" class="date-title">Last Edited: {{ groupCategoryDate(cat) }}</div>
+        <div v-if="!bulk_edit" class="date-title">
+          Last Edited: {{ groupCategoryDate(cat) }}
+        </div>
         <!-- Loop through each criterion in the category -->
         <div
-          v-for="crit in criterion.filter((criteria) => criteria.category_id == cat.category_id)"
+          v-for="crit in criterion.filter(
+            (criteria) => criteria.category_id == cat.category_id,
+          )"
           :key="crit.criterion_id"
         >
           <div class="criterion-row">
@@ -108,7 +135,9 @@
               <!-- Modal pop up for the criteria with its info -->
               <CriterionDefModal :crit="crit" :unit="unit" />
               <!-- Criterion Title -->
-              <h6 class="criterion-name">{{ crit.criterion_name.split('/').join(' / ') }}</h6>
+              <h6 class="criterion-name">
+                {{ crit.criterion_name.split('/').join(' / ') }}
+              </h6>
             </div>
             <!-- Loop through each rank in the criterion -->
             <div
@@ -142,9 +171,13 @@
           <div class="row">
             <!-- Show comments asigned to ranks in this criterion -->
             <div class="show-comments">
-              <div v-if="expanded_criterion_comment == crit.criterion_id" class="show-comments">
+              <div
+                v-if="expanded_criterion_comment == crit.criterion_id"
+                class="show-comments"
+              >
                 <div @click="showCriterionComments(crit.criterion_id)">
-                  <i class="bi bi-chevron-up"></i> {{ commentsTitle(crit.criterion_id) }}
+                  <i class="bi bi-chevron-up"></i>
+                  {{ commentsTitle(crit.criterion_id) }}
                 </div>
                 <!-- Show warnings / Messages -->
                 <RanksWarnings
@@ -158,7 +191,8 @@
               <div v-else class="show-comments">
                 <!-- Show comments asigned to ranks in this criterion -->
                 <div @click="showCriterionComments(crit.criterion_id)">
-                  <i class="bi bi-chevron-down"></i> {{ commentsTitle(crit.criterion_id) }}
+                  <i class="bi bi-chevron-down"></i>
+                  {{ commentsTitle(crit.criterion_id) }}
                 </div>
                 <!-- Show warnings / Messages -->
                 <RanksWarnings
@@ -172,7 +206,10 @@
             </div>
             <!-- Pop out of the comments -->
             <transition name="fade">
-              <div v-if="expanded_criterion_comment == crit.criterion_id" class="row comments-list">
+              <div
+                v-if="expanded_criterion_comment == crit.criterion_id"
+                class="row comments-list"
+              >
                 <div class="col-md-10">
                   <!-- Only show the ranks with comments assigned to them -->
                   <div
@@ -183,11 +220,16 @@
                   >
                     <!-- Display comment -->
                     <div class="">
-                      <p class="view-comment">Rank {{ rank.rank_value }} - {{ rank.comment }}</p>
+                      <p class="view-comment">
+                        Rank {{ rank.rank_value }} - {{ rank.comment }}
+                      </p>
                     </div>
                   </div>
                 </div>
-                <div class="col-md-2 edit-comments" v-if="rescore && !bulk_edit">
+                <div
+                  class="col-md-2 edit-comments"
+                  v-if="rescore && !bulk_edit"
+                >
                   <!-- Modal pop out to edit the comments for each rank in this criterion -->
                   <EditCommentsModal
                     v-if="rescore && !bulk_edit"
@@ -206,19 +248,19 @@
 </template>
 
 <script>
-import RescoreAccordionComp from './RescoreAccordionComp.vue'
-import CriterionDefModal from './CriterionDefModal.vue'
 import {
   completeCats,
   getGeneric,
   submitDataGeneric,
   submitDraftRrank,
-} from '@/services/dataService'
-import fieldNameCalc from '@/utils/utils'
-import EditCommentsModal from './EditCommentsModal.vue'
-import PercentageInput from './PercentageInput.vue'
-import RanksWarnings from './RanksWarnings.vue'
-import SmallMessages from './SmallMessages.vue'
+} from '@/services/dataService';
+import fieldNameCalc from '@/utils/utils';
+import CriterionDefModal from './CriterionDefModal.vue';
+import EditCommentsModal from './EditCommentsModal.vue';
+import PercentageInput from './PercentageInput.vue';
+import RanksWarnings from './RanksWarnings.vue';
+import RescoreAccordionComp from './RescoreAccordionComp.vue';
+import SmallMessages from './SmallMessages.vue';
 
 export default {
   name: 'UnitScores',
@@ -260,36 +302,36 @@ export default {
       ranks: this.unit.ranks_json,
       editedRanks: {},
       metric_definitions: [],
-    }
+    };
   },
   watch: {
     unit: {
       immediate: true,
       handler(newVal) {
-        this.local_unit = { ...newVal }
-        this.initializeEditedRanks(newVal)
-        this.fetchMetrics()
-        this.expanded_accordion = null
+        this.local_unit = { ...newVal };
+        this.initializeEditedRanks(newVal);
+        this.fetchMetrics();
+        this.expanded_accordion = null;
       },
       deep: true,
     },
   },
   mounted() {
-    this.fetchCriterionData()
-    this.fetchCategoryData()
+    this.fetchCriterionData();
+    this.fetchCategoryData();
     // this.fetchMetrics()
   },
   methods: {
     fieldNameCalc,
     fetchCriterionData() {
       getGeneric('criterion').then((response) => {
-        this.criterion = response
-      })
+        this.criterion = response;
+      });
     },
     fetchCategoryData() {
       getGeneric('category').then((response) => {
-        this.categories = response
-      })
+        this.categories = response;
+      });
     },
     fetchMetrics() {
       if (this.local_unit.metric_json) {
@@ -299,179 +341,198 @@ export default {
               (met) =>
                 metric.collection_unit_metric_definition_id ==
                 met.collection_unit_metric_definition_id,
-            ) || { metric_value: null, confidence_level: null }
+            ) || { metric_value: null, confidence_level: null };
             return {
               ...metric,
               metric_value: this_metric.metric_value,
               confidence_level: this_metric.confidence_level,
               is_draft: this_metric.is_draft || false,
-            }
-          })
-        })
+            };
+          });
+        });
       }
     },
     toggleAccordion(accord_id) {
       if (this.expanded_accordion === accord_id) {
-        this.expanded_accordion = null
+        this.expanded_accordion = null;
       } else {
-        this.expanded_accordion = accord_id
+        this.expanded_accordion = accord_id;
       }
     },
     navigateUnit(unit_id) {
-      this.$router.push({ path: '/view-unit', query: { unit_id: unit_id } })
+      this.$router.push({ path: '/view-unit', query: { unit_id: unit_id } });
     },
     groupCategoryDate(category) {
-      if (!this.unit) return null
-      const ranks_json = this.ranks
+      if (!this.unit) return null;
+      const ranks_json = this.ranks;
 
       const filteredCriterion = this.criterion.filter(
         (criterion) => criterion.category_id == category.category_id,
-      )
-      const criterionArr = filteredCriterion.map((criterion) => criterion.criterion_id)
+      );
+      const criterionArr = filteredCriterion.map(
+        (criterion) => criterion.criterion_id,
+      );
 
-      const ranks = ranks_json.filter((rank) => criterionArr.includes(rank.criterion_id))
-      let latestDate = null
+      const ranks = ranks_json.filter((rank) =>
+        criterionArr.includes(rank.criterion_id),
+      );
+      let latestDate = null;
       ranks.forEach((rank) => {
-        const date = new Date(rank.date_assessed)
+        const date = new Date(rank.date_assessed);
         if (!latestDate || date > latestDate) {
-          latestDate = date
+          latestDate = date;
         }
-      })
-      if (!latestDate) return null
-      let finalDate = latestDate.toISOString().split('T')[0]
-      return finalDate
+      });
+      if (!latestDate) return null;
+      let finalDate = latestDate.toISOString().split('T')[0];
+      return finalDate;
     },
     metricDate() {
-      if (!this.unit) return null
-      const comment_date = this.unit.unit_comment_date_added
-      const metric_json = this.unit.metric_json
-      let latestDate = null
+      if (!this.unit) return null;
+      const comment_date = this.unit.unit_comment_date_added;
+      const metric_json = this.unit.metric_json;
+      let latestDate = null;
       metric_json.forEach((metric) => {
-        const date = new Date(metric.date_from)
+        const date = new Date(metric.date_from);
         if (!latestDate || date > latestDate) {
-          latestDate = date
+          latestDate = date;
         }
-      })
+      });
       if (!latestDate || comment_date > latestDate) {
-        latestDate = comment_date
+        latestDate = comment_date;
       }
-      if (!latestDate) return null
-      const finalDate = latestDate.toISOString().split('T')[0]
-      return finalDate
+      if (!latestDate) return null;
+      const finalDate = latestDate.toISOString().split('T')[0];
+      return finalDate;
     },
     overallDate() {
-      if (!this.categories.length > 0) return
-      const metricDate = this.metricDate()
-      let latestDate = null
+      if (!this.categories.length > 0) return;
+      const metricDate = this.metricDate();
+      let latestDate = null;
       this.categories.forEach((cat) => {
-        const catDate = this.groupCategoryDate(cat)
+        const catDate = this.groupCategoryDate(cat);
         if (catDate && (!latestDate || catDate > latestDate)) {
-          latestDate = catDate
+          latestDate = catDate;
         }
-      })
+      });
       if (!latestDate || metricDate > latestDate) {
-        latestDate = metricDate
+        latestDate = metricDate;
       }
-      return latestDate
+      return latestDate;
     },
     showCriterionComments(criterion_id) {
       if (this.expanded_criterion_comment === criterion_id) {
-        this.expanded_criterion_comment = null
+        this.expanded_criterion_comment = null;
       } else {
-        this.expanded_criterion_comment = criterion_id
+        this.expanded_criterion_comment = criterion_id;
       }
     },
     commentsTitle(criterion_id) {
       if (this.editedRanks) {
         const ranks_comments = this.editedRanks[criterion_id].filter(
           (rank) =>
-            rank.criterion_id == criterion_id && rank.comment !== null && rank.comment.length > 0,
-        )
+            rank.criterion_id == criterion_id &&
+            rank.comment !== null &&
+            rank.comment.length > 0,
+        );
         if (ranks_comments.length == 0) {
-          return 'Add comments'
+          return 'Add comments';
         }
-        return `Show comments (${ranks_comments.length})`
+        return `Show comments (${ranks_comments.length})`;
       }
     },
     checkCatComplete(cat) {
-      const category_tracking = this.local_unit.category_tracking
+      const category_tracking = this.local_unit.category_tracking;
       const category = category_tracking.filter((category) => {
-        return category.category_id == cat.category_id
-      })
+        return category.category_id == cat.category_id;
+      });
       if (category.length > 0) {
-        return category[0].complete == 1
+        return category[0].complete == 1;
       }
     },
     changeCatComplete(category_ids_arr, new_val = null) {
-      let submit_change = false
-      let val = null
-      const category_tracking = this.unit.category_tracking
+      let submit_change = false;
+      let val = null;
+      const category_tracking = this.unit.category_tracking;
       category_tracking.forEach((category) => {
         if (category_ids_arr.includes(category.category_id)) {
           if (new_val != null) {
-            category.complete = new_val
-            val = new_val
+            category.complete = new_val;
+            val = new_val;
           } else {
-            category.complete = category.complete == 1 ? 0 : 1
-            val = category.complete
+            category.complete = category.complete == 1 ? 0 : 1;
+            val = category.complete;
           }
-          submit_change = true
+          submit_change = true;
         }
-      })
+      });
       if (submit_change) {
-        completeCats(this.unit.rescore_session_units_id, category_ids_arr, val).then(() => {
-          this.fetchUnitsData()
-        })
+        completeCats(
+          this.unit.rescore_session_units_id,
+          category_ids_arr,
+          val,
+        ).then(() => {
+          this.fetchUnitsData();
+        });
       }
-      this.local_unit.category_tracking = JSON.stringify(category_tracking)
+      this.local_unit.category_tracking = JSON.stringify(category_tracking);
     },
 
     submitMetricsChanges(collection_unit_metric_definition_id) {
       if (this.bulk_edit) {
         const currentMetric = this.metric_definitions.find(
           (metric) =>
-            metric.collection_unit_metric_definition_id == collection_unit_metric_definition_id,
+            metric.collection_unit_metric_definition_id ==
+            collection_unit_metric_definition_id,
+        );
+        if (
+          currentMetric.metric_value == null ||
+          currentMetric.confidence_level == null
         )
-        if (currentMetric.metric_value == null || currentMetric.confidence_level == null) return
+          return;
         this.metric_definitions.find(
           (metric) =>
-            metric.collection_unit_metric_definition_id == collection_unit_metric_definition_id,
-        ).is_draft = true
-        this.returnBulkEdit()
+            metric.collection_unit_metric_definition_id ==
+            collection_unit_metric_definition_id,
+        ).is_draft = true;
+        this.returnBulkEdit();
       } else {
         submitDataGeneric('submit-draft-metrics', {
           rescore_session_units_id: this.unit.rescore_session_units_id,
           collection_unit_id: this.unit.collection_unit_id,
           metric_json: this.metric_definitions.filter(
             (metric) =>
-              metric.collection_unit_metric_definition_id == collection_unit_metric_definition_id,
+              metric.collection_unit_metric_definition_id ==
+              collection_unit_metric_definition_id,
           ),
         }).then(() => {
           // Fetch the updated data after submitting the metrics changes
-          this.fetchUnitsData()
-        })
+          this.fetchUnitsData();
+        });
       }
     },
     returnBulkEdit() {
       this.$emit('newUnit', {
         ...this.local_unit,
-        metric_json: this.metric_definitions.filter((metric) => metric.is_draft),
+        metric_json: this.metric_definitions.filter(
+          (metric) => metric.is_draft,
+        ),
         ranks_json: this.getEditedRanksPerGroups(),
-      })
+      });
     },
 
     submitRankChanges(ranks, criterion_id) {
       if (this.bulk_edit) {
-        this.returnBulkEdit()
+        this.returnBulkEdit();
       } else {
         // Check if there are any errors before submitting
-        const errors = this.checkErrors(criterion_id)
+        const errors = this.checkErrors(criterion_id);
         if (errors.length > 0) {
           // If there are errors, do not submit
-          return
+          return;
         } else {
           // If no errors, proceed to submit the rank changes
-          const category_draft_id = this.getCatDraftId(criterion_id)
+          const category_draft_id = this.getCatDraftId(criterion_id);
           const rank_draft = {
             rescore_session_units_id: this.unit.rescore_session_units_id,
             collection_unit_id: this.unit.collection_unit_id,
@@ -482,102 +543,117 @@ export default {
               percentage: rank.percentage || 0,
               comment: rank.comment || null,
             })),
-          }
+          };
           submitDraftRrank(rank_draft).then(() => {
             // Fetch the updated data after submitting the rank changes
-            this.fetchUnitsData()
-          })
+            this.fetchUnitsData();
+          });
         }
       }
     },
     getEditedRanksPerGroups() {
       // Get only the ranks that have been edited
-      let new_ranks = []
+      let new_ranks = [];
       for (const value of Object.entries(this.editedRanks)) {
-        const criterion = value[1]
-        const percentage_total = criterion.reduce((sum, r) => sum + (r.percentage || 0), 0)
+        const criterion = value[1];
+        const percentage_total = criterion.reduce(
+          (sum, r) => sum + (r.percentage || 0),
+          0,
+        );
         if (percentage_total == 1) {
           let temp_ranks = criterion.map((rank) => ({
             ...rank,
-            criterion_name: this.criterion.find((c) => c.criterion_id === rank.criterion_id)
-              .criterion_name,
-            category_id: this.criterion.find((c) => c.criterion_id === rank.criterion_id)
-              .category_id,
-          }))
-          new_ranks.push(temp_ranks)
+            criterion_name: this.criterion.find(
+              (c) => c.criterion_id === rank.criterion_id,
+            ).criterion_name,
+            category_id: this.criterion.find(
+              (c) => c.criterion_id === rank.criterion_id,
+            ).category_id,
+          }));
+          new_ranks.push(temp_ranks);
         }
       }
-      return new_ranks
+      return new_ranks;
     },
     getCatDraftId(criterion_id) {
-      const category_tracking = this.unit.category_tracking
+      const category_tracking = this.unit.category_tracking;
       // Find the category for the criterion
       const category = category_tracking.find(
         (cat) =>
           cat.category_id ===
-          this.criterion.find((c) => c.criterion_id === criterion_id).category_id,
-      )
-      return category.category_draft_id
+          this.criterion.find((c) => c.criterion_id === criterion_id)
+            .category_id,
+      );
+      return category.category_draft_id;
     },
     // Function to check for errors in ranks
     checkErrors(criterion_id) {
-      const errors = []
+      const errors = [];
       // const ranks_filtered = this.getRanksByCriterion(criterion_id)
-      const ranks_filtered = this.editedRanks[criterion_id] || []
+      const ranks_filtered = this.editedRanks[criterion_id] || [];
       // Check if there are any ranks with errors
       if (ranks_filtered.some((r) => r.percentage < 0)) {
         errors.push({
           message: 'Percentage must be between 0 and 100',
           type: 'error',
-        })
+        });
       }
-      const percentage_total = ranks_filtered.reduce((sum, r) => sum + (r.percentage || 0), 0)
+      const percentage_total = ranks_filtered.reduce(
+        (sum, r) => sum + (r.percentage || 0),
+        0,
+      );
       // Check if the total percentage exceeds 100%
       if (percentage_total > 1) {
-        errors.push({ message: 'Total percentage exceeds 100%', type: 'error' })
+        errors.push({
+          message: 'Total percentage exceeds 100%',
+          type: 'error',
+        });
       } else if (percentage_total < 1) {
-        errors.push({ message: 'Total percentage is less than 100%', type: 'warning' })
+        errors.push({
+          message: 'Total percentage is less than 100%',
+          type: 'warning',
+        });
       }
-      return errors
+      return errors;
     },
     checkEdited(ranks) {
       // Check if any rank has been edited
-      return ranks.some((rank) => rank.is_draft)
+      return ranks.some((rank) => rank.is_draft);
     },
     initializeEditedRanks(unit) {
-      const ranks = unit.ranks_json
-      const grouped = {}
+      const ranks = unit.ranks_json;
+      const grouped = {};
       if (!ranks || ranks.length === 0) {
-        this.editedRanks = {}
-        return
+        this.editedRanks = {};
+        return;
       }
       if (ranks && !Array.isArray(ranks) && typeof ranks === 'object') {
-        this.editedRanks = ranks
-        return
+        this.editedRanks = ranks;
+        return;
       }
       ranks.forEach((rank) => {
-        if (!grouped[rank.criterion_id]) grouped[rank.criterion_id] = []
-        grouped[rank.criterion_id].push({ ...rank }) // make a copy
-      })
+        if (!grouped[rank.criterion_id]) grouped[rank.criterion_id] = [];
+        grouped[rank.criterion_id].push({ ...rank }); // make a copy
+      });
 
-      this.editedRanks = grouped
+      this.editedRanks = grouped;
     },
     handleCommentChange() {
       if (this.bulk_edit) {
-        this.returnBulkEdit()
+        this.returnBulkEdit();
       } else {
         submitDataGeneric('submit-draft-comment', {
           rescore_session_units_id: this.unit.rescore_session_units_id,
           unit_comment: this.local_unit.unit_comment,
         }).then(() => {
           // Fetch the updated data after submitting the comment changes
-          this.fetchUnitsData()
-        })
+          this.fetchUnitsData();
+        });
       }
     },
   },
   computed: {},
-}
+};
 </script>
 
 <style>

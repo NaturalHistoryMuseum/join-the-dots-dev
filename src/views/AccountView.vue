@@ -9,7 +9,10 @@
         <div class="indent">
           <p>Name: {{ currentUser.name }}</p>
           <p>Email: {{ currentUser.email }}</p>
-          <p>Role : {{ currentUser.role[0].toUpperCase() + currentUser.role.slice(1) }}</p>
+          <p>
+            Role :
+            {{ currentUser.role[0].toUpperCase() + currentUser.role.slice(1) }}
+          </p>
           <p>level : {{ currentUser.level }}</p>
           <p>User ID : {{ currentUser.user_id }}</p>
           <p>Assigned Units : {{ currentUser.assigned_units }}</p>
@@ -27,7 +30,11 @@
             />
           </div>
           <div class="col-md-4">
-            <zoa-button label="Save" kind="alt" @click="role ? editRole(role) : null" />
+            <zoa-button
+              label="Save"
+              kind="alt"
+              @click="role ? editRole(role) : null"
+            />
           </div>
         </div>
         <!-- Edit assigned units -->
@@ -46,7 +53,9 @@
             <zoa-button
               label="Save"
               kind="alt"
-              @click="assigned_units.length > 0 ? assignUnits(assigned_units) : null"
+              @click="
+                assigned_units.length > 0 ? assignUnits(assigned_units) : null
+              "
             />
           </div>
         </div>
@@ -79,14 +88,19 @@
 </template>
 
 <script>
-import { getGeneric } from '@/services/dataService'
-import { currentUser } from '../services/authService'
-import { editRole, getGenericUser, assignUnits, postGenericUser } from '@/services/userService'
+import { getGeneric } from '@/services/dataService';
+import {
+  assignUnits,
+  editRole,
+  getGenericUser,
+  postGenericUser,
+} from '@/services/userService';
+import { currentUser } from '../services/authService';
 
 export default {
   name: 'ViewUnit',
   setup() {
-    return { currentUser }
+    return { currentUser };
   },
   data() {
     return {
@@ -98,10 +112,10 @@ export default {
       units: [],
       division_id: '',
       division_options: [],
-    }
+    };
   },
   mounted() {
-    this.fetchData()
+    this.fetchData();
   },
   methods: {
     // At functions from userService
@@ -116,8 +130,8 @@ export default {
           value: role.role_id,
           label: role.role[0].toUpperCase() + role.role.slice(1),
           order: role.role_id,
-        }))
-      })
+        }));
+      });
       // Get all units
       getGeneric('unit-department').then((response) => {
         this.units = response.map((unit) => ({
@@ -125,20 +139,20 @@ export default {
           value: unit.collection_unit_id,
           label: unit.unit_name,
           order: unit.collection_unit_id,
-        }))
-      })
+        }));
+      });
       getGeneric('all-divisions').then((response) => {
         this.division_options = response.map((division) => ({
           ...division,
           value: division.division_id,
           label: division.division_name,
           order: division.division_id,
-        }))
-      })
+        }));
+      });
     },
     // Edit role function
     handleRoleChange(value) {
-      this.role = value
+      this.role = value;
     },
     // Save division function
     handleDivisionSave() {
@@ -148,10 +162,10 @@ export default {
           division_id: this.division_id,
         },
         true,
-      )
+      );
     },
   },
-}
+};
 </script>
 
 <style scoped>
