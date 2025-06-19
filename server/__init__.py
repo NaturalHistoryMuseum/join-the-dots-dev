@@ -1,16 +1,17 @@
+import os
+
+from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
+
 from server.config import Config
 from server.register_routes import register_routes
 from server.routes.auth import auth_bp
 
-import os
-from dotenv import load_dotenv
-
 load_dotenv()
 
-def create_app():
 
+def create_app():
     # Allow insecure transport for testing purposes (for SSO) - DO NOT USE IN PRODUCTION!!
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
