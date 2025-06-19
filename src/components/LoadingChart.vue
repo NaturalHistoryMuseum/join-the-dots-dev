@@ -14,7 +14,6 @@ import {
 } from 'chart.js'
 import { Scatter } from 'vue-chartjs'
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 
 ChartJS.register(Title, Tooltip, Legend, LinearScale, PointElement, CategoryScale)
 
@@ -53,6 +52,7 @@ const options = {
   responsive: true,
 }
 
+// eslint-disable-next-line no-unused-vars
 let animationId
 let t = 0
 
