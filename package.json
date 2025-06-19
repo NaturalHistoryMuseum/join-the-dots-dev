@@ -7,8 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --fix --no-warn-ignored",
-    "format": "prettier --write src/"
+    "lint": "eslint ./src --fix --no-warn-ignored",
+    "format": "prettier --write ./src"
   },
   "dependencies": {
     "@nhm-data/zoa": "^0.12.1",
