@@ -127,15 +127,15 @@ export default {
     return {
       active_tab: 0,
       is_collapsed: false,
-      expanded_width: '375px',
+      expanded_width: '325px',
       collapsed_width: '50px',
-      dropdown_char_limit: 40,
+      dropdown_char_limit: 38,
       search_name_query: '',
       search_id_query: '',
       search_section: [],
       search_division: [],
       filter_inactive: false,
-      filter_assigned: true,
+      filter_assigned: false,
       filter_tabs: [
         { id: 0, label: 'All' },
         { id: 1, label: 'Earth Sciences' },
@@ -158,7 +158,7 @@ export default {
     sections() {
       //Use map to get unique sections
       const uniqueSections = new Map();
-console.log('filteredunits', this.filteredUnits)
+
       this.filteredUnits.forEach((unit) => {
         if (!uniqueSections.has(unit.section_name)) {
           uniqueSections.set(unit.section_name, {

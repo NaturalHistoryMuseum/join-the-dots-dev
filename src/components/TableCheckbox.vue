@@ -12,7 +12,7 @@
       <!-- Rows per page dropdown -->
       <zoa-input
         zoa-type="dropdown"
-        :config="{ options: per_page_options, placeholder: '10' }"
+        :config="{ options: per_page_options, placeholder: 'Rows per page' }"
         label="Rows per page"
         @change="
           (value) => {
@@ -20,6 +20,7 @@
             changePerPage(value);
           }
         "
+        v-model="per_page"
       />
     </div>
     <div v-if="selected_unit_ids.length > 0" class="selected-units">
@@ -83,15 +84,18 @@ export default {
   data() {
     return {
       selected_unit_ids: [], // Array to hold selected unit IDs
-      per_page: 10,
+      per_page: 10, // Default rows per page
       per_page_options: [
-        // { order: 0, value: '10' },
+        { order: 0, value: '10' },
         { order: 1, value: '20' },
         { order: 2, value: '50' },
         { order: 3, value: '100' },
       ],
       current_page: 1,
     };
+  },
+  mounted(){
+    this.per_page = parseInt(localStorage.getItem('per_page_default')) || 10
   },
   methods: {
     toggleSelectAll(newValue) {
@@ -134,9 +138,11 @@ export default {
     },
     // Function to set the number of rows per page
     changePerPage(value) {
-      if (value === null) {
+      if (value == null) {
+        localStorage.setItem('per_page_default', 10);
         this.per_page = 10;
       } else {
+        localStorage.setItem('per_page_default', parseInt(value));
         this.per_page = parseInt(value);
       }
     },
@@ -177,7 +183,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 1rem 2rem;
+  padding: 1rem 2rem;
   width: 100%;
 }
 
