@@ -1,3 +1,5 @@
+<!-- Not currently used -->
+
 <template>
   <div class="content">
     <div class="actions-bar">

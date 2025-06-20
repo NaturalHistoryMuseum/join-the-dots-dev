@@ -428,7 +428,7 @@ export default {
       }
     },
     commentsTitle(criterion_id) {
-      if (this.editedRanks) {
+      if (this.editedRanks[criterion_id]) {
         const ranks_comments = this.editedRanks[criterion_id].filter(
           (rank) =>
             rank.criterion_id == criterion_id &&
@@ -617,6 +617,7 @@ export default {
       return errors;
     },
     checkEdited(ranks) {
+      if (ranks == undefined) return false;
       // Check if any rank has been edited
       return ranks.some((rank) => rank.is_draft);
     },

@@ -1,52 +1,76 @@
 <template>
-  <div v-if="selected_unit_ids.length > 0" class="selected-units">
-    <slot></slot>
-  </div>
-  <b-table
-    id="unit-table"
-    class="unit-table"
-    striped
-    hover
-    responsive
-    :items="units"
-    :fields="fields"
-  >
-    <!-- Header checkbox for selecting all rows -->
-    <template #head(select)="">
+  <div class="table-container">
+    <div class="table-options">
+      <!-- Pagination -->
+      <b-pagination
+        v-model="current_page"
+        :total-rows="rows"
+        :per-page="per_page"
+        aria-controls="unit-table"
+        class="customPagination"
+      ></b-pagination>
+      <!-- Rows per page dropdown -->
       <zoa-input
-        class="check"
-        zoa-type="checkbox"
-        label=""
-        label-position="right"
-        v-model="selectAll"
-        @change="(newValue) => toggleSelectAll(newValue)"
+        zoa-type="dropdown"
+        :config="{ options: per_page_options, placeholder: '10' }"
+        label="Rows per page"
+        @change="
+          (value) => {
+            resetPage();
+            changePerPage(value);
+          }
+        "
       />
-    </template>
-
-    <!-- Row checkbox -->
-    <template #cell(select)="row">
-      <zoa-input
-        class="check"
-        zoa-type="checkbox"
-        label-position="none"
-        @change="(newValue) => handleCheckboxChange(newValue, row.item)"
-        v-model="row.item.selected"
-      />
-    </template>
-
-    <!-- Forward slot if custom slot exists, fallback to default - exclude the checkbox column -->
-    <template
-      v-for="field in fields.filter((col) => col.key != 'select')"
-      v-slot:[`cell(${field.key})`]="row"
+    </div>
+    <div v-if="selected_unit_ids.length > 0" class="selected-units">
+      <slot></slot>
+    </div>
+    <b-table
+      id="unit-table"
+      class="unit-table"
+      striped
+      hover
+      responsive
+      :items="paginatedUnits"
+      :fields="fields"
     >
-      <template v-if="$slots[`cell(${field.key})`]">
-        <slot :name="`cell(${field.key})`" v-bind="row"></slot>
+      <!-- Header checkbox for selecting all rows -->
+      <template #head(select)="">
+        <zoa-input
+          class="check"
+          zoa-type="checkbox"
+          label=""
+          label-position="right"
+          v-model="selectAll"
+          @change="(newValue) => toggleSelectAll(newValue)"
+        />
       </template>
-      <template v-else>
-        {{ row.value }}
+
+      <!-- Row checkbox -->
+      <template #cell(select)="row">
+        <zoa-input
+          class="check"
+          zoa-type="checkbox"
+          label-position="none"
+          @change="(newValue) => handleCheckboxChange(newValue, row.item)"
+          v-model="row.item.selected"
+        />
       </template>
-    </template>
-  </b-table>
+
+      <!-- Forward slot if custom slot exists, fallback to default - exclude the checkbox column -->
+      <template
+        v-for="field in fields.filter((col) => col.key != 'select')"
+        v-slot:[`cell(${field.key})`]="row"
+      >
+        <template v-if="$slots[`cell(${field.key})`]">
+          <slot :name="`cell(${field.key})`" v-bind="row"></slot>
+        </template>
+        <template v-else>
+          {{ row.value }}
+        </template>
+      </template>
+    </b-table>
+  </div>
 </template>
 
 <script>
@@ -59,6 +83,14 @@ export default {
   data() {
     return {
       selected_unit_ids: [], // Array to hold selected unit IDs
+      per_page: 10,
+      per_page_options: [
+        // { order: 0, value: '10' },
+        { order: 1, value: '20' },
+        { order: 2, value: '50' },
+        { order: 3, value: '100' },
+      ],
+      current_page: 1,
     };
   },
   methods: {
@@ -96,6 +128,18 @@ export default {
       });
       this.updateSelectedUnits();
     },
+    // Function to reset the current page back to the first page
+    resetPage() {
+      this.current_page = 1;
+    },
+    // Function to set the number of rows per page
+    changePerPage(value) {
+      if (value === null) {
+        this.per_page = 10;
+      } else {
+        this.per_page = parseInt(value);
+      }
+    },
   },
   computed: {
     // Handle the select all checkbox
@@ -109,6 +153,40 @@ export default {
         this.toggleSelectAll(newValue);
       },
     },
+    paginatedUnits() {
+      const start = (this.current_page - 1) * this.per_page;
+      const end = start + this.per_page;
+      return this.units.slice(start, end); // Paginate only filtered data
+    },
+    rows() {
+      return this.units.length;
+    },
   },
 };
 </script>
+
+<style scoped>
+.table-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.table-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 2rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .table-options {
+    margin: 1rem 0;
+    flex-direction: column;
+    align-items: start;
+    gap: 1rem;
+  }
+}
+</style>
