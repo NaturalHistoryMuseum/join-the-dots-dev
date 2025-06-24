@@ -23,6 +23,7 @@
               :department_id="current_section.department_id"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Section -->
@@ -34,6 +35,7 @@
               :setCurrentSection="setCurrentSection"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Properties -->
@@ -42,6 +44,7 @@
               :unit="unit"
               :department_id="current_section.department_id"
               :handleFieldChange="handleFieldChange"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Storage -->
@@ -50,6 +53,7 @@
               :unit="unit"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Scores -->
@@ -77,6 +81,7 @@ import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
 import SectionTab from '@/components/unit sections/SectionTab.vue';
 import StorageTab from '@/components/unit sections/StorageTab.vue';
+import { currentUser } from '@/services/authService';
 
 export default {
   name: 'ViewUnit',
@@ -117,7 +122,11 @@ export default {
         'storage_room_id',
         'curatorial_unit_definition_id',
       ],
+      allow_edit: false,
     };
+  },
+  setup() {
+    return {currentUser};
   },
   created() {
     this.unit_id = this.$route.query.unit_id;
@@ -127,6 +136,8 @@ export default {
     async fetchData() {
       let unitData = await getGeneric(`full-unit/${this.unit_id}`);
       this.unit = unitData[0];
+      // Check if the unit is assigned to the current user
+      this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(this.unit.collection_unit_id)
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,
@@ -213,7 +224,15 @@ export default {
       }, 3000);
     },
   },
-  computed: {},
+  computed: {
+    // allowEdit() {
+    //   // Allow edit if the user is an admin or the unit is assigned to them
+    //   return (
+    //     this.currentUser.level > 3 ||
+    //     JSON.parse(this.currentUser.assigned_units).includes(this.unit.collection_unit_id)
+    //   )
+    // }
+  },
 };
 </script>
 

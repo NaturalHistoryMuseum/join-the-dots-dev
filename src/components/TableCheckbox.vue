@@ -176,7 +176,6 @@ export default {
             unit.collection_unit_id,
           ),
         );
-        console.log('assignedPaginatedUnits', assignedPaginatedUnits)
         return (
           assignedPaginatedUnits.length > 0 &&
           assignedPaginatedUnits.every((unit) => unit.selected)

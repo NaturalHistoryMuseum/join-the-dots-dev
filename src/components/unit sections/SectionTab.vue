@@ -15,7 +15,16 @@
           handleFieldChange('section_id', unit_value.section_id);
         }
       "
+      v-if="allow_edit"
     />
+    <div v-else>
+      <zoa-input
+        zoa-type="empty"
+        label="Section Name"
+        class="comments-title"
+      />
+      <p v-if="section_options.length > 0" class="view-field">{{ section_options.find(option => option.value == unit_value.section_id).label }}</p>
+    </div>
   </div>
   <div class="col-md-4 field">
     <zoa-input zoa-type="empty" label="Division Name" class="comments-title" />
@@ -41,6 +50,7 @@ export default {
     setCurrentSection: Function,
     handleFieldChange: Function,
     errors: Array,
+    allow_edit: Boolean,
   },
   data() {
     return {};

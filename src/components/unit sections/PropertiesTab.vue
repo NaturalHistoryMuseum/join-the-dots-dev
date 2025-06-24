@@ -19,7 +19,16 @@
                 );
               }
             "
+            v-if="allow_edit"
           />
+          <div v-else>
+            <zoa-input
+              zoa-type="empty"
+              label="Geological Time Period To"
+              class="comments-title"
+            />
+            <p v-if="geological_time_period_options.length > 0" class="view-field">{{ geological_time_period_options.find(option => option.value == unit_value.geological_time_period_to_id).label }}</p>
+          </div>
         </div>
         <div class="col-md-6 field">
           <zoa-input
@@ -49,7 +58,16 @@
                 );
               }
             "
+            v-if="allow_edit"
           />
+          <div v-else>
+            <zoa-input
+              zoa-type="empty"
+              label="Geological Time Period From"
+              class="comments-title"
+            />
+            <p v-if="geological_time_period_options.length > 0" class="view-field">{{ geological_time_period_options.find(option => option.value == unit_value.geological_time_period_from_id).label }}</p>
+          </div>
         </div>
         <div class="col-md-6 field">
           <zoa-input
@@ -79,7 +97,16 @@
             );
           }
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Geographic Origin Name"
+          class="comments-title"
+        />
+        <p v-if="geographic_origin_options.length > 0" class="view-field">{{ geographic_origin_options.find(option => option.value == unit_value.geographic_origin_id).label }}</p>
+      </div>
     </div>
     <div class="col-md-3 field">
       <zoa-input zoa-type="empty" label="Region Type" class="comments-title" />
@@ -94,7 +121,16 @@
         zoa-type="textbox"
         label="Informal Taxon"
         v-model="unit_value.infomal_taxon"
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Informal Taxon"
+          class="comments-title"
+        />
+        <p class="view-field">{{ unit_value.infomal_taxon }}</p>
+      </div>
     </div>
     <div class="col-md-3 field">
       <zoa-input
@@ -108,7 +144,16 @@
             handleFieldChange('taxon_id', unit_value.taxon_id);
           }
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Taxon Name"
+          class="comments-title"
+        />
+        <p v-if="taxon_options.length > 0" class="view-field">{{ taxon_options.find(option => option.value == unit_value.taxon_id).label }}</p>
+      </div>
     </div>
     <div class="col-md-3 field">
       <zoa-input zoa-type="empty" label="Taxon Rank" class="comments-title" />
@@ -144,6 +189,7 @@ export default {
     unit: Object,
     department_id: Number,
     handleFieldChange: Function,
+    allow_edit: Boolean,
   },
   data() {
     return {
