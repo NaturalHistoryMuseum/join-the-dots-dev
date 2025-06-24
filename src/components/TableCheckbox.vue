@@ -37,19 +37,24 @@
     >
       <!-- Header checkbox for selecting all rows -->
       <template #head(select)="">
-        <zoa-input
-          class="check"
-          zoa-type="checkbox"
-          label=""
-          label-position="right"
-          v-model="selectAll"
-          @change="(newValue) => toggleSelectAll(newValue)"
-        />
+        <template v-if="hasAssignedUnitsOnPage">
+          <zoa-input
+            class="check"
+            zoa-type="checkbox"
+            label=""
+            label-position="right"
+            v-model="selectAll"
+            @change="(newValue) => toggleSelectAll(newValue)"
+          />
+        </template>
       </template>
 
       <!-- Row checkbox -->
       <template #cell(select)="row">
         <zoa-input
+        v-if="JSON.parse(this.currentUser.assigned_units).includes(
+                row.item.collection_unit_id,
+              )"
           class="check"
           zoa-type="checkbox"
           label-position="none"
@@ -75,11 +80,17 @@
 </template>
 
 <script>
+import { currentUser } from '@/services/authService';
+
+
 export default {
   name: 'TableCheckbox',
   props: {
     units: Array,
     fields: Array,
+  },
+  setup(){
+    return {currentUser};
   },
   data() {
     return {
@@ -105,9 +116,12 @@ export default {
   },
   methods: {
     toggleSelectAll(newValue) {
-      // Only update currently visible (filtered + paginated) rows
+      // Only update currently visible (filtered + paginated + assinged to user) rows
+      const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
       this.paginatedUnits.forEach((unit) => {
-        unit.selected = newValue;
+        if (assignedUnitIds.includes(unit.collection_unit_id)) {
+          unit.selected = newValue;
+        }
       });
       this.updateSelectedUnits();
     },
@@ -157,9 +171,15 @@ export default {
     // Handle the select all checkbox
     selectAll: {
       get() {
+        const assignedPaginatedUnits = this.paginatedUnits.filter((unit) =>
+          JSON.parse(this.currentUser.assigned_units).includes(
+            unit.collection_unit_id,
+          ),
+        );
+        console.log('assignedPaginatedUnits', assignedPaginatedUnits)
         return (
-          this.paginatedUnits.length > 0 &&
-          this.paginatedUnits.every((unit) => unit.selected)
+          assignedPaginatedUnits.length > 0 &&
+          assignedPaginatedUnits.every((unit) => unit.selected)
         );
       },
       set(newValue) {
@@ -174,6 +194,12 @@ export default {
     rows() {
       return this.units.length;
     },
+    hasAssignedUnitsOnPage() {
+    const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
+    return this.paginatedUnits.some(unit =>
+      assignedUnitIds.includes(unit.collection_unit_id)
+    );
+  },
 
   },
 };

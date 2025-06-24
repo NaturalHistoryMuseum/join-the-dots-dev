@@ -115,7 +115,7 @@ export default {
   computed: {
     // Computed property to get the selected unit IDs
     selectedUnitIds() {
-      return this.units.filter(unit => unit.selected).map(unit => unit.collection_unit_id);
+      return this.filteredUnits.filter(unit => unit.selected).map(unit => unit.collection_unit_id);
     },
   }
 };
