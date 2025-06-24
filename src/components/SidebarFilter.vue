@@ -135,7 +135,7 @@ export default {
       search_section: [],
       search_division: [],
       filter_inactive: false,
-      filter_assigned: false,
+      filter_assigned: true,
       filter_tabs: [
         { id: 0, label: 'All' },
         { id: 1, label: 'Earth Sciences' },

@@ -1,18 +1,16 @@
 <template>
   <div class="main-page">
-    <ActionsBtnGroup >
-      <!-- Add a modal for all actions -->
-      <div v-for="action in actions" :key="action.action">
-        <UnitActionsModal :action="action" :selected_unit_ids="[0,1,2]" />
-      </div>
-    </ActionsBtnGroup>
     <div class="units-content">
       <div class="actions-bar">
-        <ActionsBtnGroup :force_show="selected_unit_ids.length > 0">
-          <zoa-button class="bulk-btn">Bulk Edit</zoa-button>
+        <ActionsBtnGroup :force_show="selectedUnitIds.length > 0">
+          <!-- <zoa-button class="bulk-btn">Bulk Edit</zoa-button>
           <zoa-button class="merge-btn">Combine Units</zoa-button>
           <zoa-button class="delete-btn">Delete Unit(s)</zoa-button>
-          <zoa-button class="split-btn">Split Unit(s)</zoa-button>
+          <zoa-button class="split-btn">Split Unit(s)</zoa-button> -->
+          <!-- Add a modal for all actions -->
+          <div v-for="action in actions" :key="action.action">
+            <UnitActionsModal :action="action" :selected_unit_ids="selectedUnitIds" />
+          </div>
         </ActionsBtnGroup>
       </div>
       <div class="content-container">
@@ -63,12 +61,11 @@ export default {
   data() {
     return {
       actions: [
-        { action: 'Delete', header: 'Delete Units' },
-        { action: 'Split', header: 'Split Units' },
-        { action: 'Combine', header: 'Combine Units' },
-        { action: 'Edit', header: 'Bulk Edit Units' },
+        { action: 'Delete', header: 'Delete Units', description: 'This will remove the selected units. This cannot be undone without contacting an admin.' },
+        { action: 'Split', header: 'Split Units', description: 'This will split the selected units into different units. This cannot be undone.' },
+        { action: 'Combine', header: 'Combine Units', description: 'This will combine the selected units into one new unit. This cannot be undone.' },
+        { action: 'Edit', header: 'Bulk Edit Units', description: 'This make changes to the selected units. This cannot be undone.' },
       ],
-      selected_unit_ids: [],
       units: [],
       fields: [
         { label: '', key: 'select', class: 'text-center' }, // Checkbox column
@@ -106,13 +103,21 @@ export default {
       });
     },
     handleFilteredUnits(filteredUnits) {
-      this.filteredUnits = filteredUnits;
-      // Reset pagination in TableCheckbox component
-      if (filteredUnits.length > 0) {
-        this.$refs.viewTable.resetPage();
+      // Only reset pagination if actual filter logic triggered
+      if (!this._internalChange) {
+        this.filteredUnits = JSON.parse(JSON.stringify(filteredUnits));
+        if (filteredUnits.length > 0) {
+          this.$refs.viewTable.resetPage();
+        }
       }
     }
   },
+  computed: {
+    // Computed property to get the selected unit IDs
+    selectedUnitIds() {
+      return this.units.filter(unit => unit.selected).map(unit => unit.collection_unit_id);
+    },
+  }
 };
 </script>
 

@@ -122,13 +122,11 @@ export default {
   created() {
     this.unit_id = this.$route.query.unit_id;
     this.fetchData();
-    console.log('call to get data');
   },
   methods: {
     async fetchData() {
       let unitData = await getGeneric(`full-unit/${this.unit_id}`);
       this.unit = unitData[0];
-      console.log('there is a unit: ', this.unit);
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,
@@ -163,10 +161,6 @@ export default {
     },
 
     async handleFieldChange(field_name, new_value) {
-      console.log('field_name', field_name);
-      console.log('new_value', new_value);
-      console.log('required - ', this.checkRequired(field_name));
-      console.log('is null - ', !new_value);
       if (this.checkRequired(field_name) && !new_value) {
         this.errors.push({
           field: field_name,

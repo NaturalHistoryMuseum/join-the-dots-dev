@@ -1,13 +1,16 @@
 <template>
   <zoa-modal class="modal-btn" :kind="success ? 'success' : 'warning'">
-    <template v-slot:button>{{ action.header }}</template>
+    <template v-slot:button >{{ action.header }}</template>
     <template v-slot:header> {{ action.header }} </template>
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col center gap-4">
       <div >{{ action.action }} the following units:</div>
       <div>
-        {{ selected_unit_ids }}
+        {{ selected_unit_ids.join(', ') }}
       </div>
-      <div >
+      <div class="action-desc">
+        <p>{{ action.description }}</p>
+      </div>
+      <div class="confrim-container">
         <zoa-input
           class="check"
           zoa-type="checkbox"
@@ -17,6 +20,7 @@
         />
         <zoa-button
           v-if="confirm_changes"
+          class="confirm-btn"
           label="Save Changes"
           @click="handleConformChanges"
         />
@@ -69,4 +73,22 @@ export default {
   margin: auto;
   z-index: 10;
 }
+
+.confirm-btn {
+  background-color: #fa3608 !important;
+}
+
+.action-desc {
+  margin-top: 1rem;
+}
+
+.confrim-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: auto;
+  margin-top: 1rem;
+}
+
 </style>

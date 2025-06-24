@@ -629,9 +629,8 @@ export default {
   border-radius: 10px;
 }
 
-.delete-btn {
+/* .delete-btn {
   background-color: #ff5957;
-  /* color: white; */
 }
 
 .merge-btn {
@@ -646,8 +645,7 @@ export default {
 
 .split-btn {
   background-color: #ffe600;
-  /* color: white; */
-}
+} */
 
 .row-actions {
   display: flex;

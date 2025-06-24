@@ -96,11 +96,17 @@ export default {
   },
   mounted(){
     this.per_page = parseInt(localStorage.getItem('per_page_default')) || 10
+    this.current_page = parseInt(localStorage.getItem('current_page')) || 1;
+  },
+  watch: {
+    current_page(newPage) {
+      localStorage.setItem('current_page', newPage);
+    }
   },
   methods: {
     toggleSelectAll(newValue) {
       // Only update currently visible (filtered + paginated) rows
-      this.units.forEach((unit) => {
+      this.paginatedUnits.forEach((unit) => {
         unit.selected = newValue;
       });
       this.updateSelectedUnits();
@@ -152,7 +158,8 @@ export default {
     selectAll: {
       get() {
         return (
-          this.units.length > 0 && this.units.every((unit) => unit.selected)
+          this.paginatedUnits.length > 0 &&
+          this.paginatedUnits.every((unit) => unit.selected)
         );
       },
       set(newValue) {
@@ -167,6 +174,7 @@ export default {
     rows() {
       return this.units.length;
     },
+
   },
 };
 </script>
