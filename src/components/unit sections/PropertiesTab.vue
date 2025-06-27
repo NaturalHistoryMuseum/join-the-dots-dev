@@ -313,8 +313,6 @@ export default {
       }
     },
     filterTaxonOptions() {
-      console.log(this.taxon_all_options);
-      console.log(this.unit);
       this.taxon_options = this.taxon_all_options.filter(
         (taxon) => taxon.department_id == this.department_id,
       );

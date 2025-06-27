@@ -105,7 +105,6 @@ export default {
     },
 
     async createRescore() {
-      console.log('this selected units id', this.selectedUnitIds);
       // Create rescore session with selected units
       markRescoreOpen(this.selectedUnitIds).then((response) => {
         this.open_rescore = response.rescore_session_id;

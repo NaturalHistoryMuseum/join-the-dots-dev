@@ -308,10 +308,12 @@ export default {
     unit: {
       immediate: true,
       handler(newVal) {
+        const currentAccordion = this.expanded_accordion;
         this.local_unit = { ...newVal };
         this.initializeEditedRanks(newVal);
         this.fetchMetrics();
-        this.expanded_accordion = null;
+        // Keep accordion open on unit change
+        this.expanded_accordion = currentAccordion;
       },
       deep: true,
     },

@@ -9,7 +9,7 @@
           <zoa-button class="split-btn">Split Unit(s)</zoa-button> -->
           <!-- Add a modal for all actions -->
           <div v-for="action in actions" :key="action.action">
-            <UnitActionsModal :action="action" :selected_unit_ids="selectedUnitIds" />
+            <UnitActionsModal :action="action" :selected_unit_ids="selectedUnitIds" @update:refreshData="fetchData"/>
           </div>
         </ActionsBtnGroup>
       </div>
@@ -62,9 +62,9 @@ export default {
     return {
       actions: [
         { action: 'Delete', header: 'Delete Units', description: 'This will remove the selected units. This cannot be undone without contacting an admin.' },
-        { action: 'Split', header: 'Split Units', description: 'This will split the selected units into different units. This cannot be undone.' },
-        { action: 'Combine', header: 'Combine Units', description: 'This will combine the selected units into one new unit. This cannot be undone.' },
-        { action: 'Edit', header: 'Bulk Edit Units', description: 'This make changes to the selected units. This cannot be undone.' },
+        { action: 'Split', header: 'Split Units', description: 'This will split the selected units into different units. This cannot be undone. (not working yet)' },
+        { action: 'Combine', header: 'Combine Units', description: 'This will combine the selected units into one new unit. This cannot be undone. (not working yet)' },
+        { action: 'Edit', header: 'Bulk Edit Units', description: 'This make changes to the selected units. This cannot be undone. (not working yet)' },
       ],
       units: [],
       fields: [

@@ -41,15 +41,15 @@
         <h3>Assigned Units</h3>
         <div class="indent">
           <p>Units Assigned: {{ assigned_units }}</p>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <zoa-input
               zoa-type="multiselect"
               label="Units Assigned"
-              :options="{ options: units, placeholder, enableSearch: true }"
+              :config="{ options: units, placeholder, enableSearch: true }"
               v-model="assigned_units"
             />
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <zoa-button
               label="Save"
               kind="alt"
@@ -135,11 +135,11 @@ export default {
       // Get all units
       getGeneric('unit-department').then((response) => {
         this.units = response.map((unit) => ({
-          ...unit,
           value: unit.collection_unit_id,
           label: unit.unit_name,
           order: unit.collection_unit_id,
         }));
+        console.log(this.units)
       });
       getGeneric('all-divisions').then((response) => {
         this.division_options = response.map((division) => ({

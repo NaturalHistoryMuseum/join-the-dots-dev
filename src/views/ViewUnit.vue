@@ -12,8 +12,19 @@
   </div>
   <div class="main-page">
     <div class="main-header">
-      <h1>View Unit</h1>
-      <p>Unit ID: {{ unit_id }}</p>
+      <div class="row">
+        <div class="col-md-4">
+          <h1>View Unit</h1>
+          <p>Unit ID: {{ unit_id }}</p>
+        </div>
+        <div class="col-md-8">
+          <ActionsBtnGroup>
+            <div v-for="action in actions" :key="action.action">
+              <UnitActionsModal :action="action" :selected_unit_ids="[this.unit.collection_unit_id]" @update:refreshData="fetchData" />
+            </div>
+          </ActionsBtnGroup>
+        </div>
+      </div>
       <TopTabs :tabs="tabs" :active_tab="active_tab" :changeTabFunc="changeTab">
         <div v-if="unit && unit_id">
           <!-- Unit Details -->
@@ -82,6 +93,8 @@ import ScoresTab from '@/components/unit sections/ScoresTab.vue';
 import SectionTab from '@/components/unit sections/SectionTab.vue';
 import StorageTab from '@/components/unit sections/StorageTab.vue';
 import { currentUser } from '@/services/authService';
+import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
+import UnitActionsModal from '@/components/UnitActionsModal.vue';
 
 export default {
   name: 'ViewUnit',
@@ -94,6 +107,7 @@ export default {
     SectionTab,
     DetailsTab,
     SmallMessages,
+    ActionsBtnGroup,UnitActionsModal,
   },
   data() {
     return {
@@ -123,6 +137,10 @@ export default {
         'curatorial_unit_definition_id',
       ],
       allow_edit: false,
+      actions: [
+        { action: 'Delete', header: 'Delete Units', description: 'This will remove the selected units. This cannot be undone without contacting an admin.' },
+        { action: 'Split', header: 'Split Units', description: 'This will split the selected units into different units. This cannot be undone. (not working yet)' },
+      ],
     };
   },
   setup() {

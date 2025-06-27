@@ -56,13 +56,13 @@
           label-position="right"
           v-model="filter_assigned"
         />
-        <zoa-input
+        <!-- <zoa-input
           zoa-type="checkbox"
           class="filter"
           label="Show Inactive"
           label-position="right"
           v-model="filter_inactive"
-        />
+        /> -->
         <zoa-input
           zoa-type="textbox"
           class="filter"
