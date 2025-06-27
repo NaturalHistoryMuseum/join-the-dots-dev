@@ -139,7 +139,6 @@ export default {
           label: unit.unit_name,
           order: unit.collection_unit_id,
         }));
-        console.log(this.units)
       });
       getGeneric('all-divisions').then((response) => {
         this.division_options = response.map((division) => ({
