@@ -1,4 +1,4 @@
-flaskAdd commentMore actions
+flask
 flask_cors
 mysql-connector-python
 requests
