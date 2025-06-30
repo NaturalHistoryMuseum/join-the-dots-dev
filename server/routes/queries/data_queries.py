@@ -339,9 +339,9 @@ UNIT_SCORES = """
                         left join `{database_name}`.`person` `pe` on
                             ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
                         left join `{database_name}`.`curatorial_unit_definition` `cud` on
-                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
+                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`))))
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
---                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+--                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
                             (`cu`.`unit_active` = 'yes') AND cu.collection_unit_id = %i
                         order by
@@ -627,9 +627,9 @@ RESCORE_UNITS = """
                         left join `{database_name}`.`person` `pe` on
                             ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
                         left join `{database_name}`.`curatorial_unit_definition` `cud` on
-                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
+                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`))))
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
---                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+--                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
                             (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = %i
                         order by
