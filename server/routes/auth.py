@@ -26,10 +26,10 @@ def fetch_data(query, params=None):
 
 # Azure AD Config
 # FOR K8S
-CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
-CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
-TENANT_ID = os.environ.get("AZURE_TENANT_ID")
-REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
+CLIENT_ID = os.environ.get('AZURE_CLIENT_ID')
+CLIENT_SECRET = os.environ.get('AZURE_CLIENT_SECRET')
+TENANT_ID = os.environ.get('AZURE_TENANT_ID')
+REDIRECT_URI = os.environ.get('AZURE_REDIRECT_URI')
 # FOR LOCAL TESTING
 # CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
 # CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')

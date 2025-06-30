@@ -52,9 +52,11 @@
       <!-- Row checkbox -->
       <template #cell(select)="row">
         <zoa-input
-        v-if="JSON.parse(this.currentUser.assigned_units).includes(
-                row.item.collection_unit_id,
-              )"
+          v-if="
+            JSON.parse(this.currentUser.assigned_units).includes(
+              row.item.collection_unit_id,
+            )
+          "
           class="check"
           zoa-type="checkbox"
           label-position="none"
@@ -82,15 +84,14 @@
 <script>
 import { currentUser } from '@/services/authService';
 
-
 export default {
   name: 'TableCheckbox',
   props: {
     units: Array,
     fields: Array,
   },
-  setup(){
-    return {currentUser};
+  setup() {
+    return { currentUser };
   },
   data() {
     return {
@@ -105,14 +106,14 @@ export default {
       current_page: 1,
     };
   },
-  mounted(){
-    this.per_page = parseInt(localStorage.getItem('per_page_default')) || 10
+  mounted() {
+    this.per_page = parseInt(localStorage.getItem('per_page_default')) || 10;
     this.current_page = parseInt(localStorage.getItem('current_page')) || 1;
   },
   watch: {
     current_page(newPage) {
       localStorage.setItem('current_page', newPage);
-    }
+    },
   },
   methods: {
     toggleSelectAll(newValue) {
@@ -194,12 +195,11 @@ export default {
       return this.units.length;
     },
     hasAssignedUnitsOnPage() {
-    const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
-    return this.paginatedUnits.some(unit =>
-      assignedUnitIds.includes(unit.collection_unit_id)
-    );
-  },
-
+      const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
+      return this.paginatedUnits.some((unit) =>
+        assignedUnitIds.includes(unit.collection_unit_id),
+      );
+    },
   },
 };
 </script>

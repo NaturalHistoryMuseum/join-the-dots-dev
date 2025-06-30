@@ -18,16 +18,29 @@
             <zoa-button kind="primary">Other Action</zoa-button>
             <zoa-button kind="alt">Third Action</zoa-button></ActionsBtnGroup
           >
-          <zoa-button v-if="!success" @click="rescore_review=!rescore_review">{{ rescore_review ? 'Edit scores' : 'Review and commit changes' }}</zoa-button>
+          <zoa-button
+            v-if="!success"
+            @click="rescore_review = !rescore_review"
+            >{{
+              rescore_review ? 'Edit scores' : 'Review and commit changes'
+            }}</zoa-button
+          >
         </div>
       </div>
     </div>
 
     <!-- Add Collapsible Tabs to show units -->
-    <CollapsibleTabs :units="units" :fetchUnitsData="fetchUnitsData" v-if="!rescore_review && !success" />
+    <CollapsibleTabs
+      :units="units"
+      :fetchUnitsData="fetchUnitsData"
+      v-if="!rescore_review && !success"
+    />
     <div v-if="rescore_review && !success">
       <h2 class="text-center">Review Rescore Changes</h2>
-      <p>Please review all of the changes below and confirm before submitting them. These changes cannot be undone.</p>
+      <p>
+        Please review all of the changes below and confirm before submitting
+        them. These changes cannot be undone.
+      </p>
       <div class="save-changes-container">
         <zoa-input
           class="check"
@@ -42,10 +55,11 @@
           @click="handleSaveChanges"
         />
       </div>
-      <ReviewUnitChanges :units="units"/>
+      <ReviewUnitChanges :units="units" />
     </div>
     <div v-if="success">
-      <zoa-flash kind="success"
+      <zoa-flash
+        kind="success"
         header="Rescore Completed"
         message="Your rescore has been successfully completed. Thank you!"
       />
@@ -130,14 +144,14 @@ export default {
       });
       return completed_count;
     },
-    async handleSaveChanges () {
+    async handleSaveChanges() {
       const response = await submitDataGeneric('rescore-complete', {
-        rescore_session_id: this.rescore_session_id
-      })
+        rescore_session_id: this.rescore_session_id,
+      });
       if (response.success) {
         this.success = true;
       }
-    }
+    },
   },
 };
 </script>
@@ -153,5 +167,4 @@ export default {
   flex-direction: column;
   padding: 0.5rem 2rem;
 } */
-
 </style>

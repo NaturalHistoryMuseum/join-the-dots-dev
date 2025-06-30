@@ -20,7 +20,11 @@
         <div class="col-md-8">
           <ActionsBtnGroup>
             <div v-for="action in actions" :key="action.action">
-              <UnitActionsModal :action="action" :selected_unit_ids="[this.unit.collection_unit_id]" @update:refreshData="fetchData" />
+              <UnitActionsModal
+                :action="action"
+                :selected_unit_ids="[this.unit.collection_unit_id]"
+                @update:refreshData="fetchData"
+              />
             </div>
           </ActionsBtnGroup>
         </div>
@@ -86,15 +90,15 @@ import TopTabs from '@/components/TopTabs.vue';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
 // import CommentsTab from '@/components/unit sections/CommentsTab.vue'
+import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
 import SmallMessages from '@/components/SmallMessages.vue';
 import DetailsTab from '@/components/unit sections/DetailsTab.vue';
 import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
 import SectionTab from '@/components/unit sections/SectionTab.vue';
 import StorageTab from '@/components/unit sections/StorageTab.vue';
-import { currentUser } from '@/services/authService';
-import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
 import UnitActionsModal from '@/components/UnitActionsModal.vue';
+import { currentUser } from '@/services/authService';
 
 export default {
   name: 'ViewUnit',
@@ -107,7 +111,8 @@ export default {
     SectionTab,
     DetailsTab,
     SmallMessages,
-    ActionsBtnGroup,UnitActionsModal,
+    ActionsBtnGroup,
+    UnitActionsModal,
   },
   data() {
     return {
@@ -138,13 +143,23 @@ export default {
       ],
       allow_edit: false,
       actions: [
-        { action: 'Delete', header: 'Delete Units', description: 'This will remove the selected units. This cannot be undone without contacting an admin.' },
-        { action: 'Split', header: 'Split Units', description: 'This will split the selected units into different units. This cannot be undone. (not working yet)' },
+        {
+          action: 'Delete',
+          header: 'Delete Units',
+          description:
+            'This will remove the selected units. This cannot be undone without contacting an admin.',
+        },
+        {
+          action: 'Split',
+          header: 'Split Units',
+          description:
+            'This will split the selected units into different units. This cannot be undone. (not working yet)',
+        },
       ],
     };
   },
   setup() {
-    return {currentUser};
+    return { currentUser };
   },
   created() {
     this.unit_id = this.$route.query.unit_id;
@@ -155,7 +170,9 @@ export default {
       let unitData = await getGeneric(`full-unit/${this.unit_id}`);
       this.unit = unitData[0];
       // Check if the unit is assigned to the current user
-      this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(this.unit.collection_unit_id)
+      this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(
+        this.unit.collection_unit_id,
+      );
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,

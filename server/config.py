@@ -13,7 +13,7 @@ class Config:
     # SECRET_KEY = os.getenv('SECRET_KEY')
 
     # FOR K8S
-    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SECRET_KEY = os.environ.get('SECRET_KEY')
 
     # Database Configuration
 
@@ -24,7 +24,7 @@ class Config:
     # MYSQL_DB = os.getenv('SECONDARY_DB_NAME')
 
     # FOR K8S
-    MYSQL_HOST = os.environ.get("MYSQL_HOST")
-    MYSQL_USER = os.environ.get("MYSQL_USER")
-    MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
-    MYSQL_DB = os.environ.get("MYSQL_DATABASE")
+    MYSQL_HOST = os.environ.get('MYSQL_HOST')
+    MYSQL_USER = os.environ.get('MYSQL_USER')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+    MYSQL_DB = os.environ.get('MYSQL_DATABASE')

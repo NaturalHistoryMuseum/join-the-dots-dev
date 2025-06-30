@@ -9,15 +9,22 @@
           <zoa-button class="split-btn">Split Unit(s)</zoa-button> -->
           <!-- Add a modal for all actions -->
           <div v-for="action in actions" :key="action.action">
-            <UnitActionsModal :action="action" :selected_unit_ids="selectedUnitIds" @update:refreshData="fetchData"/>
+            <UnitActionsModal
+              :action="action"
+              :selected_unit_ids="selectedUnitIds"
+              @update:refreshData="fetchData"
+            />
           </div>
         </ActionsBtnGroup>
       </div>
       <div class="content-container">
         <!-- Search bar -->
-        <SidebarFilter :units="units"  @update:filteredUnits="handleFilteredUnits"/>
+        <SidebarFilter
+          :units="units"
+          @update:filteredUnits="handleFilteredUnits"
+        />
         <!-- Table -->
-        <TableCheckbox ref="viewTable" :units="filteredUnits" :fields="fields" >
+        <TableCheckbox ref="viewTable" :units="filteredUnits" :fields="fields">
           <!-- Custom rendering for the name column -->
           <template #cell(name)="row">
             {{ row.value.first }} {{ row.value.last }}
@@ -44,11 +51,11 @@
 </template>
 
 <script>
-import { getGeneric } from '@/services/dataService';
-import SidebarFilter from '@/components/SidebarFilter.vue';
-import UnitActionsModal from '@/components/UnitActionsModal.vue';
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
+import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
+import UnitActionsModal from '@/components/UnitActionsModal.vue';
+import { getGeneric } from '@/services/dataService';
 
 export default {
   name: 'ViewUnits',
@@ -61,10 +68,30 @@ export default {
   data() {
     return {
       actions: [
-        { action: 'Delete', header: 'Delete Units', description: 'This will remove the selected units. This cannot be undone without contacting an admin.' },
-        { action: 'Split', header: 'Split Units', description: 'This will split the selected units into different units. This cannot be undone. (not working yet)' },
-        { action: 'Combine', header: 'Combine Units', description: 'This will combine the selected units into one new unit. This cannot be undone. (not working yet)' },
-        { action: 'Edit', header: 'Bulk Edit Units', description: 'This make changes to the selected units. This cannot be undone. (not working yet)' },
+        {
+          action: 'Delete',
+          header: 'Delete Units',
+          description:
+            'This will remove the selected units. This cannot be undone without contacting an admin.',
+        },
+        {
+          action: 'Split',
+          header: 'Split Units',
+          description:
+            'This will split the selected units into different units. This cannot be undone. (not working yet)',
+        },
+        {
+          action: 'Combine',
+          header: 'Combine Units',
+          description:
+            'This will combine the selected units into one new unit. This cannot be undone. (not working yet)',
+        },
+        {
+          action: 'Edit',
+          header: 'Bulk Edit Units',
+          description:
+            'This make changes to the selected units. This cannot be undone. (not working yet)',
+        },
       ],
       units: [],
       fields: [
@@ -110,14 +137,16 @@ export default {
           this.$refs.viewTable.resetPage();
         }
       }
-    }
+    },
   },
   computed: {
     // Computed property to get the selected unit IDs
     selectedUnitIds() {
-      return this.filteredUnits.filter(unit => unit.selected).map(unit => unit.collection_unit_id);
+      return this.filteredUnits
+        .filter((unit) => unit.selected)
+        .map((unit) => unit.collection_unit_id);
     },
-  }
+  },
 };
 </script>
 

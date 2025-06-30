@@ -14,11 +14,7 @@
         v-if="allow_edit"
       />
       <div v-else>
-        <zoa-input
-          zoa-type="empty"
-          label="Unit Name"
-          class="comments-title"
-        />
+        <zoa-input zoa-type="empty" label="Unit Name" class="comments-title" />
         <p class="view-field">{{ unit_value.unit_name }}</p>
       </div>
     </div>
@@ -94,11 +90,7 @@
         v-if="allow_edit"
       />
       <div v-else>
-        <zoa-input
-          zoa-type="empty"
-          label="Sort Order"
-          class="comments-title"
-        />
+        <zoa-input zoa-type="empty" label="Sort Order" class="comments-title" />
         <p class="view-field">{{ unit_value.sort_order }}</p>
       </div>
     </div>
@@ -304,7 +296,14 @@
           label="Curatorial Unit Definition"
           class="comments-title"
         />
-        <p v-if="curatorial_def_options.length > 0" class="view-field">{{ curatorial_def_options.find(option => option.value == unit_value.curatorial_unit_definition_id).label }}</p>
+        <p v-if="curatorial_def_options.length > 0" class="view-field">
+          {{
+            curatorial_def_options.find(
+              (option) =>
+                option.value == unit_value.curatorial_unit_definition_id,
+            ).label
+          }}
+        </p>
       </div>
     </div>
     <div class="col-md-4 field">
@@ -363,7 +362,14 @@
           label="Library and Archives Function"
           class="comments-title"
         />
-        <p v-if="lib_function_options.length > 0" class="view-field">{{ lib_function_options.find(option => option.value == unit_value.library_and_archives_function_id).label }}</p>
+        <p v-if="lib_function_options.length > 0" class="view-field">
+          {{
+            lib_function_options.find(
+              (option) =>
+                option.value == unit_value.library_and_archives_function_id,
+            ).label
+          }}
+        </p>
       </div>
     </div>
   </div>

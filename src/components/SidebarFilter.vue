@@ -1,5 +1,5 @@
 <template>
-<div
+  <div
     class="sidebar"
     :style="{
       width: is_collapsed ? collapsed_width : expanded_width,
@@ -142,8 +142,7 @@ export default {
         { id: 2, label: 'Life Sciences' },
         { id: 3, label: 'Library & Archives' },
       ],
-
-    }
+    };
   },
   watch: {
     filteredUnits: {
@@ -151,8 +150,8 @@ export default {
         this.$emit('update:filteredUnits', newVal);
       },
       immediate: true,
-      deep: true
-    }
+      deep: true,
+    },
   },
   computed: {
     sections() {
@@ -164,7 +163,8 @@ export default {
           uniqueSections.set(unit.section_name, {
             label:
               unit.section_name.length > this.dropdown_char_limit
-                ? unit.section_name.substring(0, this.dropdown_char_limit) + '...'
+                ? unit.section_name.substring(0, this.dropdown_char_limit) +
+                  '...'
                 : unit.section_name,
             value: unit.section_name,
           });
@@ -182,7 +182,8 @@ export default {
           uniqueDivision.set(unit.division_name, {
             label:
               unit.division_name.length > this.dropdown_char_limit
-                ? unit.division_name.substring(0, this.dropdown_char_limit) + '...'
+                ? unit.division_name.substring(0, this.dropdown_char_limit) +
+                  '...'
                 : unit.division_name,
             value: unit.division_name,
           });
@@ -238,10 +239,9 @@ export default {
       this.active_tab = 0;
       this.search_section = [];
     },
-  }
-}
+  },
+};
 </script>
-
 
 <style>
 .page-item.active .page-link {
@@ -327,5 +327,4 @@ export default {
 .filter {
   margin-top: 0.5rem;
 }
-
 </style>

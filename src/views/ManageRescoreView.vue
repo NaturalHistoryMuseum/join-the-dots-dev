@@ -147,7 +147,9 @@ export default {
   computed: {
     selectedUnitIds() {
       // Return the IDs of the selected units
-      return this.units.filter((unit) => unit.selected).map((unit) => unit.collection_unit_id);
+      return this.units
+        .filter((unit) => unit.selected)
+        .map((unit) => unit.collection_unit_id);
     },
   },
 };

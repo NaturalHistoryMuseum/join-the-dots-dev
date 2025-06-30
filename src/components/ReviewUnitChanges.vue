@@ -1,16 +1,23 @@
 <template>
   <div v-if="criterion.length > 0">
-    <div v-for="edited_unit in this.edited_units" :key="edited_unit.collection_unit_id" class="unit-changes-container">
+    <div
+      v-for="edited_unit in this.edited_units"
+      :key="edited_unit.collection_unit_id"
+      class="unit-changes-container"
+    >
       <h3>Unit Name: {{ edited_unit.unit_name }}</h3>
       <div
         v-if="
-          edited_unit.metric_json && edited_unit.metric_json.filter((metric) => metric.is_draft).length > 0
+          edited_unit.metric_json &&
+          edited_unit.metric_json.filter((metric) => metric.is_draft).length > 0
         "
         class="change-container"
       >
         <h4>Metrics</h4>
         <div
-          v-for="(metric, index) in edited_unit.metric_json.filter((metric) => metric.is_draft)"
+          v-for="(metric, index) in edited_unit.metric_json.filter(
+            (metric) => metric.is_draft,
+          )"
           :key="index"
           class="change-item"
         >
@@ -26,23 +33,37 @@
           </div>
         </div>
       </div>
-      <div v-if="edited_unit.unit_comment && edited_unit.unit_comment_is_draft" class="change-container">
+      <div
+        v-if="edited_unit.unit_comment && edited_unit.unit_comment_is_draft"
+        class="change-container"
+      >
         <h4>Unit Comment</h4>
         <p class="change-item">{{ edited_unit.unit_comment }}</p>
       </div>
       <div
-        v-if="
-          edited_unit.editedRanks && edited_unit.editedRanks
-        "
+        v-if="edited_unit.editedRanks && edited_unit.editedRanks"
         class="change-container"
       >
         <h4>Scores</h4>
         <div
           v-for="(crit, index) in edited_unit.editedRanks"
           :key="index"
-          class="change-item">
-          <div v-if="crit.some(rank => rank.is_draft)">
-            <h5>{{ criterion.find(criteria => crit[0].criterion_id == criteria.criterion_id).criterion_code }} - {{ criterion.find(criteria => crit[0].criterion_id == criteria.criterion_id).criterion_name }}</h5>
+          class="change-item"
+        >
+          <div v-if="crit.some((rank) => rank.is_draft)">
+            <h5>
+              {{
+                criterion.find(
+                  (criteria) => crit[0].criterion_id == criteria.criterion_id,
+                ).criterion_code
+              }}
+              -
+              {{
+                criterion.find(
+                  (criteria) => crit[0].criterion_id == criteria.criterion_id,
+                ).criterion_name
+              }}
+            </h5>
             <div class="changed-container">
               <div
                 v-for="(rank, rankIndex) in crit"
@@ -88,15 +109,13 @@ export default {
       });
     },
     addEditRanks() {
-      this.edited_units = this.units.map((unit) => (
-        {
-          ...unit,
-          editedRanks: this.initializeEditedRanks(unit)
-        }
-      ))
+      this.edited_units = this.units.map((unit) => ({
+        ...unit,
+        editedRanks: this.initializeEditedRanks(unit),
+      }));
     },
     initializeEditedRanks(unit) {
-      this.units.forEach
+      this.units.forEach;
       const ranks = unit.ranks_json;
       const grouped = {};
       if (!ranks || ranks.length === 0) {
@@ -114,7 +133,7 @@ export default {
 
       return grouped;
     },
-  }
+  },
 };
 </script>
 

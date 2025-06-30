@@ -11,12 +11,13 @@
       () => {
         resetModal();
       }
-    ">
-    <template v-slot:button >{{ action.header }}</template>
+    "
+  >
+    <template v-slot:button>{{ action.header }}</template>
     <template v-slot:header> {{ action.header }} </template>
     <div class="flex flex-col center gap-4">
-      <div v-if="selected_unit_ids.length > 0 && !success && !loading" >
-        <div >{{ action.action }} the following units:</div>
+      <div v-if="selected_unit_ids.length > 0 && !success && !loading">
+        <div>{{ action.action }} the following units:</div>
         <div>
           {{ selected_unit_ids.join(', ') }}
         </div>
@@ -74,8 +75,10 @@ export default {
         case 'delete':
           this.loading = true;
           console.log('Deleting units:', this.selected_unit_ids);
-          await submitDataGeneric('delete-units', {unit_ids: this.selected_unit_ids})
-          this.loading= false;
+          await submitDataGeneric('delete-units', {
+            unit_ids: this.selected_unit_ids,
+          });
+          this.loading = false;
           this.success = true;
           this.$emit('update:refreshData');
 
@@ -95,12 +98,11 @@ export default {
       }
       this.confirm_changes = false;
       // this.$emit('closeModal');
-
     },
-    resetModal(){
+    resetModal() {
       this.confirm_changes = false;
       this.success = false;
-    }
+    },
   },
 };
 </script>
@@ -128,5 +130,4 @@ export default {
   width: auto;
   margin-top: 1rem;
 }
-
 </style>
