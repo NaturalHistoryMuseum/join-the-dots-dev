@@ -2,9 +2,9 @@ import axios from 'axios';
 import { currentUser, loadUser } from '../services/authService';
 
 // FOR LOCAL TESTING
-const API_URL = 'http://localhost:5000/api/user';
+// const API_URL = 'http://localhost:5000/api/user';
 // FOR K8S
-// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user'
+const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user';
 
 export async function getGenericUser(route) {
   try {

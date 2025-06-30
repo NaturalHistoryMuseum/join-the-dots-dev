@@ -15,7 +15,22 @@
           );
         }
       "
+      v-if="allow_edit"
     />
+    <div v-else>
+      <zoa-input
+        zoa-type="empty"
+        label="Storage Container"
+        class="comments-title"
+      />
+      <p v-if="container_options.length > 0" class="view-field">
+        {{
+          container_options.find(
+            (option) => option.value == unit_value.storage_container_id,
+          ).label
+        }}
+      </p>
+    </div>
   </div>
   <div class="col-md-4 field">
     <zoa-input zoa-type="empty" label="Temperature" class="comments-title" />
@@ -52,7 +67,18 @@
           handleFieldChange('storage_room_id', unit_value.storage_room_id);
         }
       "
+      v-if="allow_edit"
     />
+    <div v-else>
+      <zoa-input zoa-type="empty" label="Room Code" class="comments-title" />
+      <p v-if="room_options.length > 0" class="view-field">
+        {{
+          room_options.find(
+            (option) => option.value == unit_value.storage_room_id,
+          ).label
+        }}
+      </p>
+    </div>
   </div>
 
   <div v-for="field in room_fields" :key="field" class="col-md-4 field">
@@ -97,6 +123,7 @@ export default {
     unit: Object,
     handleFieldChange: Function,
     errors: Array,
+    allow_edit: Boolean,
   },
   data() {
     return {

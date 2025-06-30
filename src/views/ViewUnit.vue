@@ -12,8 +12,23 @@
   </div>
   <div class="main-page">
     <div class="main-header">
-      <h1>View Unit</h1>
-      <p>Unit ID: {{ unit_id }}</p>
+      <div class="row">
+        <div class="col-md-4">
+          <h1>View Unit</h1>
+          <p>Unit ID: {{ unit_id }}</p>
+        </div>
+        <div class="col-md-8">
+          <ActionsBtnGroup>
+            <div v-for="action in actions" :key="action.action">
+              <UnitActionsModal
+                :action="action"
+                :selected_unit_ids="[this.unit.collection_unit_id]"
+                @update:refreshData="fetchData"
+              />
+            </div>
+          </ActionsBtnGroup>
+        </div>
+      </div>
       <TopTabs :tabs="tabs" :active_tab="active_tab" :changeTabFunc="changeTab">
         <div v-if="unit && unit_id">
           <!-- Unit Details -->
@@ -23,6 +38,7 @@
               :department_id="current_section.department_id"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Section -->
@@ -34,6 +50,7 @@
               :setCurrentSection="setCurrentSection"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Properties -->
@@ -42,6 +59,7 @@
               :unit="unit"
               :department_id="current_section.department_id"
               :handleFieldChange="handleFieldChange"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Storage -->
@@ -50,6 +68,7 @@
               :unit="unit"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
+              :allow_edit="allow_edit"
             />
           </div>
           <!-- Scores -->
@@ -71,12 +90,15 @@ import TopTabs from '@/components/TopTabs.vue';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
 // import CommentsTab from '@/components/unit sections/CommentsTab.vue'
+import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
 import SmallMessages from '@/components/SmallMessages.vue';
 import DetailsTab from '@/components/unit sections/DetailsTab.vue';
 import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
 import SectionTab from '@/components/unit sections/SectionTab.vue';
 import StorageTab from '@/components/unit sections/StorageTab.vue';
+import UnitActionsModal from '@/components/UnitActionsModal.vue';
+import { currentUser } from '@/services/authService';
 
 export default {
   name: 'ViewUnit',
@@ -89,6 +111,8 @@ export default {
     SectionTab,
     DetailsTab,
     SmallMessages,
+    ActionsBtnGroup,
+    UnitActionsModal,
   },
   data() {
     return {
@@ -117,18 +141,38 @@ export default {
         'storage_room_id',
         'curatorial_unit_definition_id',
       ],
+      allow_edit: false,
+      actions: [
+        {
+          action: 'Delete',
+          header: 'Delete Units',
+          description:
+            'This will remove the selected units. This cannot be undone without contacting an admin.',
+        },
+        {
+          action: 'Split',
+          header: 'Split Units',
+          description:
+            'This will split the selected units into different units. This cannot be undone. (not working yet)',
+        },
+      ],
     };
+  },
+  setup() {
+    return { currentUser };
   },
   created() {
     this.unit_id = this.$route.query.unit_id;
     this.fetchData();
-    console.log('call to get data');
   },
   methods: {
     async fetchData() {
       let unitData = await getGeneric(`full-unit/${this.unit_id}`);
       this.unit = unitData[0];
-      console.log('there is a unit: ', this.unit);
+      // Check if the unit is assigned to the current user
+      this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(
+        this.unit.collection_unit_id,
+      );
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,
@@ -163,10 +207,6 @@ export default {
     },
 
     async handleFieldChange(field_name, new_value) {
-      console.log('field_name', field_name);
-      console.log('new_value', new_value);
-      console.log('required - ', this.checkRequired(field_name));
-      console.log('is null - ', !new_value);
       if (this.checkRequired(field_name) && !new_value) {
         this.errors.push({
           field: field_name,
@@ -219,7 +259,15 @@ export default {
       }, 3000);
     },
   },
-  computed: {},
+  computed: {
+    // allowEdit() {
+    //   // Allow edit if the user is an admin or the unit is assigned to them
+    //   return (
+    //     this.currentUser.level > 3 ||
+    //     JSON.parse(this.currentUser.assigned_units).includes(this.unit.collection_unit_id)
+    //   )
+    // }
+  },
 };
 </script>
 

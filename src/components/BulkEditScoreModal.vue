@@ -134,7 +134,7 @@
               <p class="text-center">No changes made to the scores.</p>
             </div>
           </div>
-          <div v-if="loading">chill im loading mate</div>
+          <div v-if="loading">loading...</div>
           <div v-if="success">
             {{ success_message }}
           </div>

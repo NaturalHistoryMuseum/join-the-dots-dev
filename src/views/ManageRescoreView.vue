@@ -106,7 +106,7 @@ export default {
 
     async createRescore() {
       // Create rescore session with selected units
-      markRescoreOpen(this.selected_unit_ids).then((response) => {
+      markRescoreOpen(this.selectedUnitIds).then((response) => {
         this.open_rescore = response.rescore_session_id;
         this.navigateRescore(response.rescore_session_id);
       });
@@ -142,6 +142,14 @@ export default {
     // Format date to YYYY-MM-DD
     formatDate(date) {
       return date ? new Date(date).toISOString().split('T')[0] : 'No Data';
+    },
+  },
+  computed: {
+    selectedUnitIds() {
+      // Return the IDs of the selected units
+      return this.units
+        .filter((unit) => unit.selected)
+        .map((unit) => unit.collection_unit_id);
     },
   },
 };

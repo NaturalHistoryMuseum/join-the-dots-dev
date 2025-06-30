@@ -12,18 +12,58 @@
         </div>
         <!-- Actions button group -->
         <div class="col-md-8 actions">
-          <ActionsBtnGroup>
+          <ActionsBtnGroup v-if="!rescore_review">
             <BulkEditScoreModal :units="units" />
             <zoa-button kind="alt">See History</zoa-button>
             <zoa-button kind="primary">Other Action</zoa-button>
             <zoa-button kind="alt">Third Action</zoa-button></ActionsBtnGroup
+          >
+          <zoa-button
+            v-if="!success"
+            @click="rescore_review = !rescore_review"
+            >{{
+              rescore_review ? 'Edit scores' : 'Review and commit changes'
+            }}</zoa-button
           >
         </div>
       </div>
     </div>
 
     <!-- Add Collapsible Tabs to show units -->
-    <CollapsibleTabs :units="units" :fetchUnitsData="fetchUnitsData" />
+    <CollapsibleTabs
+      :units="units"
+      :fetchUnitsData="fetchUnitsData"
+      v-if="!rescore_review && !success"
+    />
+    <div v-if="rescore_review && !success">
+      <h2 class="text-center">Review Rescore Changes</h2>
+      <p>
+        Please review all of the changes below and confirm before submitting
+        them. These changes cannot be undone.
+      </p>
+      <div class="save-changes-container">
+        <zoa-input
+          class="check"
+          zoa-type="checkbox"
+          label="Confirm changes"
+          label-position="left"
+          v-model="confirm_changes"
+        />
+        <zoa-button
+          v-if="confirm_changes"
+          label="Save Changes and Close Rescore"
+          @click="handleSaveChanges"
+        />
+      </div>
+      <ReviewUnitChanges :units="units" />
+    </div>
+    <div v-if="success">
+      <zoa-flash
+        kind="success"
+        header="Rescore Completed"
+        message="Your rescore has been successfully completed. Thank you!"
+      />
+    </div>
   </div>
 </template>
 
@@ -31,9 +71,11 @@
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
 import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue';
 import CollapsibleTabs from '@/components/CollapsibleTabs.vue';
-import { getGeneric } from '@/services/dataService';
+import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+
+import ReviewUnitChanges from '@/components/ReviewUnitChanges.vue';
 
 export default {
   name: 'RescoreView',
@@ -41,6 +83,7 @@ export default {
     CollapsibleTabs,
     ActionsBtnGroup,
     BulkEditScoreModal,
+    ReviewUnitChanges,
   },
   setup() {
     const route = useRoute();
@@ -59,6 +102,9 @@ export default {
     return {
       units: [],
       show_actions: false,
+      rescore_review: false,
+      confirm_changes: false,
+      success: false,
     };
   },
   mounted() {
@@ -98,6 +144,14 @@ export default {
       });
       return completed_count;
     },
+    async handleSaveChanges() {
+      const response = await submitDataGeneric('rescore-complete', {
+        rescore_session_id: this.rescore_session_id,
+      });
+      if (response.success) {
+        this.success = true;
+      }
+    },
   },
 };
 </script>
@@ -113,24 +167,4 @@ export default {
   flex-direction: column;
   padding: 0.5rem 2rem;
 } */
-
-.flash-box {
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 10px;
-  border-color: #0dedf7;
-  padding: 0px !important;
-}
-.flash-header {
-  background-color: #e6fdfd;
-  border-radius: 10px 10px 0 0;
-  width: 100%;
-  padding: 0.5rem;
-  text-align: center;
-  font-weight: 600;
-}
-
-.flash-content {
-  padding: 1rem;
-}
 </style>
