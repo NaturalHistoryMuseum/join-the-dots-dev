@@ -3,8 +3,9 @@ import os
 import jwt
 import msal
 from flask import Blueprint, jsonify, request, session
+from flask import current_app as app
 
-# Test user database
+from server.config import Config
 from server.database import get_db_connection
 
 auth_bp = Blueprint('auth', __name__)
@@ -24,19 +25,7 @@ def fetch_data(query, params=None):
     return result
 
 
-# Azure AD Config
-# FOR K8S
-CLIENT_ID = os.environ.get('AZURE_CLIENT_ID')
-CLIENT_SECRET = os.environ.get('AZURE_CLIENT_SECRET')
-TENANT_ID = os.environ.get('AZURE_TENANT_ID')
-REDIRECT_URI = os.environ.get('AZURE_REDIRECT_URI')
-# FOR LOCAL TESTING
-# CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
-# CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
-# TENANT_ID = os.getenv('AZURE_TENANT_ID')
-# REDIRECT_URI = os.getenv('AZURE_REDIRECT_URI')
-
-AUTHORITY = f'https://login.microsoftonline.com/{TENANT_ID}'
+AUTHORITY = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
 
 SCOPES = []
 
@@ -45,7 +34,7 @@ JWT_SECRET = os.getenv('JWT_SECRET', 'super-secret-key')
 
 # Initialize MSAL
 msal_app = msal.ConfidentialClientApplication(
-    CLIENT_ID, authority=AUTHORITY, client_credential=CLIENT_SECRET
+    Config.CLIENT_ID, authority=AUTHORITY, client_credential={Config.CLIENT_SECRET}
 )
 
 
@@ -54,7 +43,9 @@ def login():
     """
     Redirects user to Microsoft Login page.
     """
-    auth_url = msal_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
+    auth_url = msal_app.get_authorization_request_url(
+        SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
+    )
     return jsonify({'auth_url': auth_url})
 
 
@@ -68,7 +59,7 @@ def auth_redirect():
         return jsonify({'error': 'No auth code provided'}), 400
 
     token_response = msal_app.acquire_token_by_authorization_code(
-        code, SCOPES, redirect_uri=REDIRECT_URI
+        code, SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
 
     if 'access_token' in token_response:

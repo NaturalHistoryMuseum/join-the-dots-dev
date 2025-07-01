@@ -1,17 +1,11 @@
-import os
-
 import requests
 from flask import Blueprint, jsonify
 
+from server.config import Config
+
 report_bp = Blueprint('report', __name__)
 
-CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
-CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
-TENANT_ID = os.getenv('AZURE_TENANT_ID')
-WORKSPACE_ID = os.getenv('WORKSPACE_ID')
-REPORT_ID = os.getenv('REPORT_ID')
-
-AUTH_URL = f'https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token'
+AUTH_URL = f'https://login.microsoftonline.com/{Config.TENANT_ID}/oauth2/v2.0/token'
 POWER_BI_API = 'https://api.powerbi.com/v1.0/myorg'
 
 
@@ -21,8 +15,8 @@ def get_access_token():
     """
     data = {
         'grant_type': 'client_credentials',
-        'client_id': CLIENT_ID,
-        'client_secret': CLIENT_SECRET,
+        'client_id': Config.CLIENT_ID,
+        'client_secret': Config.CLIENT_SECRET,
         'scope': 'https://analysis.windows.net/powerbi/api/.default',
         # "scope": "https://graph.microsoft.com/.default",
         # "resource": "https://analysis.windows.net/powerbi/api"
@@ -46,7 +40,9 @@ def get_embed_url():
     print('Access Token:', token)
     headers = {'Authorization': f'Bearer {token}'}
     print('Headers:', headers)
-    report_url = f'{POWER_BI_API}/groups/{WORKSPACE_ID}/reports/{REPORT_ID}'
+    report_url = (
+        f'{POWER_BI_API}/groups/{Config.WORKSPACE_ID}/reports/{Config.REPORT_ID}'
+    )
     print('Report URL:', report_url)
     # response = requests.get(report_url, headers=headers)
     # print("Response:", response.json())

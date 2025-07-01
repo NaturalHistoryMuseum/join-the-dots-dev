@@ -1,41 +1,8 @@
 from flask import Blueprint, jsonify, request, session
 
-from server.database import get_db_connection
+from server.utils import execute_query, fetch_data
 
 user_bp = Blueprint('user', __name__)
-
-
-def execute_query(query, params=None):
-    """
-    Helper function to execute a database query with commit.
-    """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(query, params or ())
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def fetch_data(query, params=None):
-    """
-    Helper function to execute a database query.
-    """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(query, params or ())
-    result = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return result
-
-
-# @user_bp.route('/all-users', methods=['GET'])
-# def get_all_users():
-#     data = fetch_data("""SELECT *
-#                       FROM jtd_live.users
-#                    """)
-#     return jsonify(data)
 
 
 @user_bp.route('/user/<azure_id>', methods=['GET'])
