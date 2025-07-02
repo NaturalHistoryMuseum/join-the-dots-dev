@@ -14,7 +14,7 @@
     <div class="main-header">
       <div class="row">
         <div class="col-md-4">
-          <h1>View Unit</h1>
+          <h1>View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
         <div class="col-md-8">
