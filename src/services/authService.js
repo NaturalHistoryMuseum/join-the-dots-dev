@@ -5,9 +5,9 @@ export const currentUser = ref(null);
 let userLoaded = false;
 
 // FOR LOCAL TESTING
-const API_URL = 'http://localhost:5000/api/auth';
+// const API_URL = 'http://localhost:5000/api/auth';
 // FOR K8S
-// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth';
+const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth';
 
 export async function login() {
   try {
