@@ -28,7 +28,10 @@
               class="comments-title"
             />
             <p
-              v-if="geological_time_period_options.length > 0"
+              v-if="
+                geological_time_period_options.length > 0 &&
+                unit_value.geological_time_period_to_id
+              "
               class="view-field"
             >
               {{
@@ -77,7 +80,10 @@
               class="comments-title"
             />
             <p
-              v-if="geological_time_period_options.length > 0"
+              v-if="
+                geological_time_period_options.length > 0 &&
+                unit_value.geological_time_period_from_id
+              "
               class="view-field"
             >
               {{
@@ -125,7 +131,13 @@
           label="Geographic Origin Name"
           class="comments-title"
         />
-        <p v-if="geographic_origin_options.length > 0" class="view-field">
+        <p
+          v-if="
+            geographic_origin_options.length > 0 &&
+            unit_value.geographic_origin_id
+          "
+          class="view-field"
+        >
           {{
             geographic_origin_options.find(
               (option) => option.value == unit_value.geographic_origin_id,
@@ -174,7 +186,10 @@
       />
       <div v-else>
         <zoa-input zoa-type="empty" label="Taxon Name" class="comments-title" />
-        <p v-if="taxon_options.length > 0" class="view-field">
+        <p
+          v-if="taxon_options.length > 0 && unit_value.taxon_id"
+          class="view-field"
+        >
           {{
             taxon_options.find((option) => option.value == unit_value.taxon_id)
               .label

@@ -53,6 +53,7 @@
       <template #cell(select)="row">
         <zoa-input
           v-if="
+            this.currentUser.assigned_units &&
             JSON.parse(this.currentUser.assigned_units).includes(
               row.item.collection_unit_id,
             )
@@ -195,7 +196,9 @@ export default {
       return this.units.length;
     },
     hasAssignedUnitsOnPage() {
+      if (!this.currentUser.assigned_units) return false;
       const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
+
       return this.paginatedUnits.some((unit) =>
         assignedUnitIds.includes(unit.collection_unit_id),
       );

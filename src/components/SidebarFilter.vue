@@ -135,7 +135,7 @@ export default {
       search_section: [],
       search_division: [],
       filter_inactive: false,
-      filter_assigned: true,
+      filter_assigned: currentUser.assigned_units ? true : false,
       filter_tabs: [
         { id: 0, label: 'All' },
         { id: 1, label: 'Earth Sciences' },
@@ -198,7 +198,8 @@ export default {
         (unit) =>
           // Filter by the users assigned units
           (this.filter_assigned
-            ? JSON.parse(this.currentUser.assigned_units).includes(
+            ? this.currentUser.assigned_units &&
+              JSON.parse(this.currentUser.assigned_units).includes(
                 unit.collection_unit_id,
               )
             : true) &&
