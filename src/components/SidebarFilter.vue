@@ -135,7 +135,7 @@ export default {
       search_section: [],
       search_division: [],
       filter_inactive: false,
-      filter_assigned: currentUser.assigned_units ? true : false,
+      filter_assigned: this.currentUser.assigned_units ? true : false,
       filter_tabs: [
         { id: 0, label: 'All' },
         { id: 1, label: 'Earth Sciences' },
@@ -157,8 +157,9 @@ export default {
     sections() {
       //Use map to get unique sections
       const uniqueSections = new Map();
-
-      this.filteredUnits.forEach((unit) => {
+      // CONCEPT TO MAP JUST THE sections OF THE FILTERED UNITS - DOESNT WORK BECUASE YOU CANT SELECT MULTIPLE sections
+      // this.filteredUnits.forEach((unit) => {
+      this.units.forEach((unit) => {
         if (!uniqueSections.has(unit.section_name)) {
           uniqueSections.set(unit.section_name, {
             label:
@@ -174,10 +175,11 @@ export default {
       return Array.from(uniqueSections.values());
     },
     divisions() {
-      //Use map to get unique sections
+      //Use map to get unique divisions
       const uniqueDivision = new Map();
-
-      this.filteredUnits.forEach((unit) => {
+      // CONCEPT TO MAP JUST THE DIVISIONS OF THE FILTERED UNITS - DOESNT WORK BECUASE YOU CANT SELECT MULTIPLE DIVISIONS
+      // this.filteredUnits.forEach((unit) => {
+      this.units.forEach((unit) => {
         if (!uniqueDivision.has(unit.division_name)) {
           uniqueDivision.set(unit.division_name, {
             label:

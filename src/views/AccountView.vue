@@ -37,28 +37,6 @@
             />
           </div>
         </div>
-        <!-- Edit assigned units -->
-        <h3>Assigned Units</h3>
-        <div class="indent">
-          <p>Units Assigned: {{ assigned_units }}</p>
-          <div class="col-md-6">
-            <zoa-input
-              zoa-type="multiselect"
-              label="Units Assigned"
-              :config="{ options: units, placeholder, enableSearch: true }"
-              v-model="assigned_units"
-            />
-          </div>
-          <div class="col-md-6">
-            <zoa-button
-              label="Save"
-              kind="alt"
-              @click="
-                assigned_units.length > 0 ? assignUnits(assigned_units) : null
-              "
-            />
-          </div>
-        </div>
         <!-- Edit division -->
         <h3>Division</h3>
         <div class="indent">
@@ -76,6 +54,32 @@
               label="Save"
               kind="alt"
               @click="division_id ? handleDivisionSave() : null"
+            />
+          </div>
+        </div>
+        <!-- Edit assigned units -->
+        <h3>Assigned Units</h3>
+        <div class="indent">
+          <p>Units Assigned: {{ assigned_units }}</p>
+          <div class="col-md-6">
+            <zoa-input
+              zoa-type="multiselect"
+              label="Units Assigned"
+              :config="{
+                options: filteredUnits,
+                placeholder,
+                enableSearch: true,
+              }"
+              v-model="assigned_units"
+            />
+          </div>
+          <div class="col-md-6">
+            <zoa-button
+              label="Save"
+              kind="alt"
+              @click="
+                assigned_units.length > 0 ? assignUnits(assigned_units) : null
+              "
             />
           </div>
         </div>
@@ -138,6 +142,7 @@ export default {
           value: unit.collection_unit_id,
           label: unit.unit_name,
           order: unit.collection_unit_id,
+          division_id: unit.division_id,
         }));
       });
       getGeneric('all-divisions').then((response) => {
@@ -161,6 +166,13 @@ export default {
           division_id: this.division_id,
         },
         true,
+      );
+    },
+  },
+  computed: {
+    filteredUnits() {
+      return this.units.filter(
+        (unit) => unit.division_id == this.currentUser.division_id,
       );
     },
   },

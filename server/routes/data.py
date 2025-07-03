@@ -696,7 +696,7 @@ def submit_field():
 
 @data_bp.route('/unit-department', methods=['GET'])
 def get_units_and_departments():
-    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active
+    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
