@@ -52,7 +52,7 @@
         <zoa-input
           zoa-type="checkbox"
           class="filter"
-          label="Show Only Assigned"
+          label="Show Assigned Me"
           label-position="right"
           v-model="filter_assigned"
         />
@@ -82,20 +82,6 @@
         <zoa-input
           :zoa-type="'multiselect'"
           class="filter"
-          label="Search: Section"
-          label-position="above"
-          :config="{
-            options: sections,
-            itemName: 'section',
-            itemNamePlural: 'sections',
-            enableSearch: true,
-            itemHeight: 50,
-          }"
-          v-model="search_section"
-        />
-        <zoa-input
-          :zoa-type="'multiselect'"
-          class="filter"
           label="Search: Division"
           label-position="above"
           :config="{
@@ -106,6 +92,20 @@
             itemHeight: 50,
           }"
           v-model="search_division"
+        />
+        <zoa-input
+          :zoa-type="'multiselect'"
+          class="filter"
+          label="Search: Section"
+          label-position="above"
+          :config="{
+            options: sections,
+            itemName: 'section',
+            itemNamePlural: 'sections',
+            enableSearch: true,
+            itemHeight: 50,
+          }"
+          v-model="search_section"
         />
       </div>
     </div>
@@ -328,6 +328,6 @@ export default {
 }
 
 .filter {
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 </style>

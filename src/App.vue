@@ -1,8 +1,13 @@
 <script setup>
-import { RouterView } from 'vue-router';
+import { RouterView, useRouter } from 'vue-router';
 import LoadingOverlay from './components/LoadingOverlay.vue';
 import FooterView from './views/FooterView.vue';
 import HeaderView from './views/HeaderView.vue';
+const router = useRouter();
+
+function handleBackPage() {
+  router.go(-1);
+}
 </script>
 
 <template>
@@ -10,6 +15,12 @@ import HeaderView from './views/HeaderView.vue';
   <HeaderView class="header" />
 
   <div class="content">
+    <div class="nav-buttons">
+      <zoa-button @click="handleBackPage">
+        <i class="bi bi-arrow-left"></i>
+        Back
+      </zoa-button>
+    </div>
     <RouterView />
   </div>
   <FooterView class="footer" />
@@ -28,5 +39,11 @@ import HeaderView from './views/HeaderView.vue';
   text-align: center;
   min-height: 70vh;
   margin-bottom: 1rem;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: flex-start;
+  margin-left: 1rem;
 }
 </style>

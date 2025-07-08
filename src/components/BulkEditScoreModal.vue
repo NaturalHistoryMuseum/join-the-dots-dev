@@ -36,7 +36,10 @@
           </TableCheckbox>
         </div>
         <div v-show="current_step === 2" class="modal-step-content">
-          <p class="text-center">Edit the scores for the selected units.</p>
+          <p class="text-center">
+            Edit the scores for the selected units. Only edited criteria will be
+            changed.
+          </p>
           <div class="nav-container">
             <zoa-button class="" @click="current_step = current_step - 1"
               >Back</zoa-button

@@ -49,7 +49,7 @@ export default {
       },
       {
         name: 'Rescore',
-        path: '/manage-rescore',
+        path: '/rescore',
         access_groups: ['admin', 'editor', 'manager'],
       },
       { name: 'Admin', path: '/admin', access_groups: ['admin'] },
