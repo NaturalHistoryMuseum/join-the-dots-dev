@@ -9,6 +9,28 @@ const API_URL = 'http://localhost:5000/api/auth';
 // FOR K8S
 // const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth';
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+export const api = axios.create({
+  baseURL: API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add a request interceptor to inject CSRF token into header
+api.interceptors.request.use((config) => {
+  const csrfToken = getCookie('csrf_token');
+  if (csrfToken) {
+    config.headers['X-CSRF-TOKEN'] = csrfToken;
+  }
+  return config;
+});
 export async function login() {
   try {
     // Get the auth URL from the server
@@ -21,22 +43,21 @@ export async function login() {
       // Poll to check when login completes - every second
       const pollInterval = setInterval(async () => {
         try {
-          const userResponse = await axios.get(`${API_URL}/auth/status`, {
+          const userResponse = await api.get('/auth/status', {
             withCredentials: true,
           });
-
-          if (userResponse.data.token) {
+          // Check if user was returned
+          if (userResponse.data.user) {
             // Stop polling
             clearInterval(pollInterval);
             // Close the pop-up
             authWindow.close();
             // Store user globally
             currentUser.value = userResponse.data.user;
-            // Store JWT token in localStorage
-            localStorage.setItem('jwt', userResponse.data.token);
-
-            // Contains the JWT token and user info
-            return userResponse.data.user;
+            this.$router.push({
+              path: '/',
+            });
+            return;
           }
         } catch (err) {
           console.error('Polling error:', err);

@@ -35,15 +35,11 @@ def get_embed_url():
     """
     Fetch Power BI Embed URL.
     """
-    print('Get Embed URL')
     token = get_access_token()
-    print('Access Token:', token)
     headers = {'Authorization': f'Bearer {token}'}
-    print('Headers:', headers)
     report_url = (
         f'{POWER_BI_API}/groups/{Config.WORKSPACE_ID}/reports/{Config.REPORT_ID}'
     )
-    print('Report URL:', report_url)
     # response = requests.get(report_url, headers=headers)
     # print("Response:", response.json())
     # embed_url = response.json().get("embedUrl")
@@ -52,8 +48,6 @@ def get_embed_url():
 
     try:
         response = requests.get(report_url, headers=headers)
-        print('HTTP Status Code:', response.status_code)  # Debugging
-        print('Raw API Response:', response.text)  # Debugging
 
         # Check for empty response
         if response.text.strip() == '':
@@ -62,7 +56,6 @@ def get_embed_url():
         data = response.json()
         return jsonify({'embedUrl': data.get('embedUrl'), 'accessToken': token})
     except requests.exceptions.RequestException as e:
-        print('Request Error:', str(e))  # Debugging
         return jsonify(
             {'error': 'Request to Power BI API failed', 'details': str(e)}
         ), 500

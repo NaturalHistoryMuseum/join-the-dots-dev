@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_jwt_extended import JWTManager
 
 from server.config import Config
 from server.extensions import cors
@@ -19,5 +20,7 @@ def create_app():
 
     # Register blueprints (modular routes)
     register_routes(app)
+
+    jwt = JWTManager(app)
 
     return app

@@ -20,3 +20,9 @@ class Config:
     CLIENT_SECRET = os.environ.get('AZURE_CLIENT_SECRET')
     TENANT_ID = os.environ.get('AZURE_TENANT_ID')
     REDIRECT_URI = os.environ.get('AZURE_REDIRECT_URI')
+
+    # JWT Configuration
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET')
+    JWT_TOKEN_LOCATION = ['cookies']
+    JWT_ACCESS_COOKIE_NAME = 'access_token'
+    JWT_COOKIE_CSRF_PROTECT = True

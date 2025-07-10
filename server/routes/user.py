@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from server.utils import execute_query, fetch_data
 
@@ -6,20 +7,22 @@ user_bp = Blueprint('user', __name__)
 
 
 @user_bp.route('/user/<azure_id>', methods=['GET'])
+@jwt_required()
 def get_user(azure_id):
     data = fetch_data(
         """SELECT *
-                      FROM jtd_live.users
-                      WHERE azure_id = %s
+            FROM jtd_live.users
+            WHERE azure_id = %s
                    """
         % str(azure_id)
     )
     if data == []:
-        print('No user found')
+        return jsonify({'message': 'no user found'})
     return jsonify(data)
 
 
 @user_bp.route('/add-user', methods=['POST'])
+@jwt_required()
 def add_user():
     data = request.get_json()
 
@@ -47,6 +50,7 @@ def add_user():
 
 
 @user_bp.route('/edit-user-role', methods=['PUT'])
+@jwt_required()
 def edit_user_role():
     data = request.get_json()
     role_id = data.get('role_id')
@@ -76,6 +80,7 @@ def edit_user_role():
 
 
 @user_bp.route('/assign-units', methods=['POST'])
+@jwt_required()
 def edit_assign_units():
     data = request.get_json()
     user_id = data.get('user_id')
@@ -116,6 +121,7 @@ def edit_assign_units():
 
 
 @user_bp.route('/all-roles', methods=['GET'])
+@jwt_required()
 def get_all_roles():
     data = fetch_data("""SELECT r.*
                    FROM jtd_live.roles r
@@ -124,13 +130,12 @@ def get_all_roles():
 
 
 @user_bp.route('/update-division', methods=['POST'])
+@jwt_required()
 def edit_user_division():
     data = request.get_json()
     division_id = data.get('division_id')
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     data = execute_query(
         """UPDATE jtd_live.users u

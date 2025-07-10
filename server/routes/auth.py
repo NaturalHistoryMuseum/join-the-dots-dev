@@ -1,9 +1,10 @@
-import os
+# import jwt
+import secrets
 
-import jwt
 import msal
-from flask import Blueprint, jsonify, request, session
+from flask import Blueprint, jsonify, make_response, request, session
 from flask import current_app as app
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from server.config import Config
 from server.database import get_db_connection
@@ -28,9 +29,6 @@ def fetch_data(query, params=None):
 AUTHORITY = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
 
 SCOPES = []
-
-# JWT Secret Key
-JWT_SECRET = os.getenv('JWT_SECRET', 'super-secret-key')
 
 # Initialize MSAL
 msal_app = msal.ConfidentialClientApplication(
@@ -59,7 +57,7 @@ def auth_redirect():
         return jsonify({'error': 'No auth code provided'}), 400
 
     token_response = msal_app.acquire_token_by_authorization_code(
-        code, SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
+        code, scopes=SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
 
     if 'access_token' in token_response:
@@ -104,62 +102,66 @@ def auth_redirect():
         session['user'] = user
         session.modified = True
         # Generate JWT token
-        jwt_payload = {
-            'user_id': user['user_id'],
-            'name': user['name'],
-            'email': user['email'],
-            'role_id': user['role_id'],
-            'role': user['role'],
-            'division_id': user['division_id'],
-            'level': user['level'],
-        }
-        jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm='HS256')
 
-        session['jwt_token'] = jwt_token  # Store in session for later retrieval
+        # Create access token with user identity and extra claims
+        jwt_token = create_access_token(
+            identity=str(user['user_id']),
+            additional_claims={
+                'name': user['name'],
+                'email': user['email'],
+                'role_id': user['role_id'],
+                'role': user['role'],
+                'division_id': user['division_id'],
+                'level': user['level'],
+            },
+        )
+        # Store in session for later retrieval
+        session['jwt_token'] = jwt_token
 
-        return jsonify({'message': 'Login successful'}), 200
+        # Generate CSRF token
+        csrf_token = secrets.token_urlsafe(32)
+
+        response = make_response(jsonify({'message': 'Login successful'}))
+        # Set jwt token as access token in cookies
+        response.set_cookie(
+            'access_token', jwt_token, httponly=True, secure=True, samesite='Lax'
+        )
+        # Set csrf token in cookies
+        response.set_cookie(
+            'csrf_token', csrf_token, httponly=False, secure=False, samesite='Lax'
+        )
+        return response
 
     return jsonify({'error': 'Authentication failed'}), 401
 
 
 @auth_bp.route('/auth/status')
+@jwt_required()
 def auth_status():
     """
     Check if the user has logged in and return their JWT token.
     """
-    # Get JWT token from session or request headers
-    token = session.get('jwt_token') or request.headers.get('Authorization')
-    # If no token is found, return an error
-    if not token:
-        return jsonify({'error': 'Not authenticated'}), 401
-    # If token is in header remove 'Bearer' prefix
-    if token.startswith('Bearer '):
-        token = token.split(' ')[1]
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
-    decode_token = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-
-    user_id = decode_token.get('user_id')
     # Get current user details
     user_details = fetch_data(
         """SELECT u.*, r.role, r.`level`,
-                        (
-                            SELECT JSON_ARRAYAGG( au.collection_unit_id )
-                            FROM jtd_live.assigned_units au
-                            where au.user_id = u.user_id
-                        ) AS assigned_units
-                      FROM jtd_live.users u
-                      LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
-                      WHERE user_id = %s""",
+            (
+                SELECT JSON_ARRAYAGG( au.collection_unit_id )
+                FROM jtd_live.assigned_units au
+                where au.user_id = u.user_id
+            ) AS assigned_units
+            FROM jtd_live.users u
+            LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
+            WHERE user_id = %s;""",
         (user_id,),
     )
     # If no user is found, return an error
     if not user_details:
         return jsonify({'error': 'User not found'}), 404
     # Return token and user details
-    return jsonify({'token': token, 'user': user_details[0]}), 200
-
-    # if "jwt_token" in session:
-    #     return jsonify({"token": session["jwt_token"], "user": session["user"]}), 200
+    return jsonify({'user': user_details[0]}), 200
 
 
 @auth_bp.route('/logout')
@@ -168,4 +170,7 @@ def logout():
     Logs the user out by clearing the session.
     """
     session.clear()
-    return jsonify({'message': 'Logged out'})
+    response = jsonify({'msg': 'Logout successful'})
+    # Remove the access tokens from the cookies
+    response.delete_cookie('access_token')
+    return response

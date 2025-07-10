@@ -2,7 +2,8 @@ import json
 from collections import defaultdict
 from datetime import datetime
 
-from flask import Blueprint, Response, jsonify, request, session, stream_with_context
+from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from server.database import get_db_connection
 from server.routes.queries.data_queries import *
@@ -14,19 +15,19 @@ data_bp = Blueprint('data', __name__)
 
 
 @data_bp.route('/unit-scores/<unitId>', methods=['GET'])
+@jwt_required()
 def get_unit_scores(unitId):
     data = fetch_data(UNIT_SCORES % int(unitId))
     return jsonify(data)
 
 
 @data_bp.route('/mark-rescore-open', methods=['POST'])
+@jwt_required()
 def get_mark_rescore_open():
     data = request.get_json()
     units = data.get('units')
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     if not units:
         return jsonify({'error': 'Units are required'}), 400
@@ -75,15 +76,14 @@ def get_mark_rescore_open():
 
 
 @data_bp.route('/rescore-complete', methods=['POST'])
+@jwt_required()
 def submit_rescore_complete():
     data = request.get_json()
     rescore_session_id = data.get('rescore_session_id')
     if not rescore_session_id:
         return jsonify({'error': 'rescore_session_id is required'}), 400
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     try:
         connection = get_db_connection()
@@ -236,7 +236,6 @@ def submit_rescore_complete():
 
             criterion_key = (row['collection_unit_id'], row['criterion_id'])
             assessment_criterion_id = inserted_ids[criterion_key]
-            print('Assessment criterion ID:', assessment_criterion_id)
             cursor.execute(
                 f"""
                 INSERT INTO {database_name}.unit_assessment_rank (
@@ -293,11 +292,10 @@ def submit_rescore_complete():
 
 
 @data_bp.route('/open-rescore', methods=['GET'])
+@jwt_required()
 def get_open_rescore():
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
     data = fetch_data(
         """SELECT *
                         FROM {database_name}.rescore_session
@@ -309,39 +307,14 @@ def get_open_rescore():
 
 
 @data_bp.route('/rescore-units/<rescore_session_id>', methods=['GET'])
+@jwt_required()
 def get_rescore_units(rescore_session_id):
     data = fetch_data(RESCORE_UNITS % int(rescore_session_id))
     return jsonify(data)
 
 
-# @data_bp.route('/rescore-draft-units/<rescore_session_id>', methods=['GET'])
-# def get_rescore_draft_units(rescore_session_id):
-#     data = fetch_data("""
-#                     select rsu.rescore_session_units_id,  ucd.category_draft_id, rsu.collection_unit_id,
-#                     (
-#                         SELECT JSON_ARRAYAGG(
-#                             JSON_OBJECT(
-#                                 'category_draft_id', urd.category_draft_id,
-#                                 'rank_draft_id', urd.rank_draft_id,
-#                                 'criterion_id', urd.criterion_id,
-#                                 'rank_id', urd.rank_id,
-#                                 'percentage', urd.percentage,
-#                                 'comment', urd.comment,
-#                                 'created_at', urd.created_at,
-#                                 'updated_at', urd.updated_at
-#                             )
-#                         ) as json
-#                         from {database_name}.unit_rank_draft urd
-#                         where ucd.category_draft_id = urd.category_draft_id
-#                     ) as rank_changes
-#                     from {database_name}.rescore_session_units rsu
-#                     join {database_name}.unit_category_draft ucd ON rsu.rescore_session_units_id = ucd.rescore_session_units_id
-#                     where rsu.rescore_session_id = %s;
-#                     """ % int(rescore_session_id))
-#     return jsonify(data)
-
-
 @data_bp.route('/submit-draft-rank', methods=['POST'])
+@jwt_required()
 def submit_draft_rank():
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
@@ -352,10 +325,8 @@ def submit_draft_rank():
 
     if not category_draft_id:
         return jsonify({'error': 'category_draft_id is required'}), 400
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not criterion_id:
@@ -386,7 +357,6 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
             # Check if the rank already exists in the database and update it if it does
             for db_rank in data:
                 if db_rank['rank_id'] == sumbit_rank['rank_id']:
-                    print('Rank already exists in db, updating')
                     execute_query(
                         """UPDATE {database_name}.unit_rank_draft
                                 SET percentage = %s, comment = %s, updated_at = NOW()
@@ -398,7 +368,6 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
 
             # If the rank does not exist, insert it
             if not in_db:
-                print('Rank does not exist in db, inserting')
                 execute_query(
                     """INSERT INTO {database_name}.unit_rank_draft (category_draft_id, criterion_id, rank_id, percentage, comment)
                             VALUES (%s, %s, %s, %s, %s);
@@ -412,6 +381,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
 
 
 @data_bp.route('/submit-draft-metrics', methods=['POST'])
+@jwt_required()
 def submit_draft_metrics():
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
@@ -425,10 +395,6 @@ def submit_draft_metrics():
     if not metric_json:
         return jsonify({'error': 'metric_json are required'}), 400
 
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
     handle_draft_metrics(rescore_session_units_id, metric_json)
     return jsonify({'message': 'Draft metrics submitted successfully'}), 201
 
@@ -486,6 +452,7 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
 
 
 @data_bp.route('/submit-draft-comment', methods=['POST'])
+@jwt_required()
 def submit_draft_comment():
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
@@ -531,6 +498,7 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
 
 
 @data_bp.route('/bulk-upload-rescore', methods=['POST'])
+@jwt_required()
 def bulk_upload_rescore():
     data = request.get_json()
     units = data.get('units')
@@ -588,6 +556,7 @@ def bulk_upload_rescore():
 
 
 @data_bp.route('/end-rescore/<rescore_session_id>', methods=['POST'])
+@jwt_required()
 def update_end_rescore(rescore_session_id):
     date = datetime.now()
     data = execute_query(
@@ -604,15 +573,14 @@ def update_end_rescore(rescore_session_id):
 
 
 @data_bp.route('/complete-category', methods=['POST'])
+@jwt_required()
 def update_complete_category():
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     category_ids_arr = data.get('category_ids_arr')
     new_val = data.get('new_val')
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
@@ -663,6 +631,7 @@ def column_exists(field_name, new_value):
 
 
 @data_bp.route('/submit-field', methods=['POST'])
+@jwt_required()
 def submit_field():
     data = request.get_json()
     field_name = data.get('field_name')
@@ -695,7 +664,9 @@ def submit_field():
 
 
 @data_bp.route('/unit-department', methods=['GET'])
+@jwt_required()
 def get_units_and_departments():
+    print('current user id', get_jwt_identity())
     data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
@@ -706,6 +677,7 @@ def get_units_and_departments():
 
 
 @data_bp.route('/unit/<unit_id>', methods=['GET'])
+@jwt_required()
 def get_unit(unit_id):
     data = fetch_data(
         """SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.*
@@ -721,6 +693,7 @@ def get_unit(unit_id):
 
 
 @data_bp.route('/full-unit/<unit_id>', methods=['GET'])
+@jwt_required()
 def get_full_unit(unit_id):
     data = fetch_data(
         """SELECT  cu.*, concat(p.first_name, ' ', p.last_name) AS responsible_curator,
@@ -736,6 +709,7 @@ def get_full_unit(unit_id):
 
 
 @data_bp.route('/criterion', methods=['GET'])
+@jwt_required()
 def get_criterion():
     data = fetch_data("""SELECT cat.*, crit.criterion_id, crit.criterion_name, crit.criterion_code, crit.definition
                    FROM {database_name}.criterion crit
@@ -745,6 +719,7 @@ def get_criterion():
 
 
 @data_bp.route('/category', methods=['GET'])
+@jwt_required()
 def get_category():
     data = fetch_data("""SELECT cat.*
                    FROM {database_name}.category cat;
@@ -753,6 +728,7 @@ def get_category():
 
 
 @data_bp.route('/metric-definitions', methods=['GET'])
+@jwt_required()
 def get_metric_definitions():
     data = fetch_data("""SELECT *
                    FROM {database_name}.collection_unit_metric_definition;
@@ -761,6 +737,7 @@ def get_metric_definitions():
 
 
 @data_bp.route('/all-sections', methods=['GET'])
+@jwt_required()
 def get_all_sections():
     data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name
                    FROM {database_name}.section sect
@@ -771,6 +748,7 @@ def get_all_sections():
 
 
 @data_bp.route('/all-geographic-origin', methods=['GET'])
+@jwt_required()
 def get_all_geographic_origin():
     data = fetch_data("""SELECT *
                    FROM {database_name}.geographic_origin;
@@ -779,6 +757,7 @@ def get_all_geographic_origin():
 
 
 @data_bp.route('/all-geological-time-period', methods=['GET'])
+@jwt_required()
 def get_all_geological_time_period():
     data = fetch_data("""SELECT *
                    FROM {database_name}.geological_time_period;
@@ -787,6 +766,7 @@ def get_all_geological_time_period():
 
 
 @data_bp.route('/all-divisions', methods=['GET'])
+@jwt_required()
 def get_all_divisions():
     data = fetch_data("""SELECT divis.*
                    FROM {database_name}.division divis;
@@ -795,6 +775,7 @@ def get_all_divisions():
 
 
 @data_bp.route('/all-departments', methods=['GET'])
+@jwt_required()
 def get_all_departments():
     data = fetch_data("""SELECT *
                    FROM {database_name}.department ;
@@ -803,6 +784,7 @@ def get_all_departments():
 
 
 @data_bp.route('/container-data', methods=['GET'])
+@jwt_required()
 def get_all_containers():
     data = fetch_data("""SELECT *
                    FROM {database_name}.storage_container ;
@@ -811,6 +793,7 @@ def get_all_containers():
 
 
 @data_bp.route('/all-taxon', methods=['GET'])
+@jwt_required()
 def get_all_taxon():
     data = fetch_data("""SELECT *
                    FROM {database_name}.taxon ;
@@ -819,6 +802,7 @@ def get_all_taxon():
 
 
 @data_bp.route('/all-curtorial-definition', methods=['GET'])
+@jwt_required()
 def get_all_curtorial_definition():
     data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*
                     FROM {database_name}.curatorial_unit_definition cud
@@ -830,6 +814,7 @@ def get_all_curtorial_definition():
 
 
 @data_bp.route('/room-data', methods=['GET'])
+@jwt_required()
 def get_all_rooms():
     data = fetch_data("""SELECT sr.*, f.*, b.*, s.*
                         FROM {database_name}.storage_room sr
@@ -841,6 +826,7 @@ def get_all_rooms():
 
 
 @data_bp.route('/all-lib-function', methods=['GET'])
+@jwt_required()
 def get_all_lib_function():
     data = fetch_data("""SELECT *
                         FROM {database_name}.library_and_archives_function;
@@ -849,11 +835,10 @@ def get_all_lib_function():
 
 
 @data_bp.route('/units-by-user', methods=['GET'])
+@jwt_required()
 def get_units_by_user():
-    user = session.get('user')
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
     data = fetch_data(
         """SELECT cu.*, (
                             SELECT MAX(DATE(rs.completed_at))
@@ -874,6 +859,7 @@ def get_units_by_user():
 
 
 @data_bp.route('/export-view/<view>', methods=['GET'])
+@jwt_required()
 def get_view(view):
     try:
         # Connect to db
@@ -939,6 +925,7 @@ def generate_json():
 
 
 @data_bp.route('/export-ltc-json', methods=['GET'])
+@jwt_required()
 def get_ltc_json():
     return Response(
         stream_with_context(generate_json()),
@@ -951,14 +938,12 @@ def get_ltc_json():
 
 
 @data_bp.route('/delete-units', methods=['POST'])
+@jwt_required()
 def delete_units():
     data = request.get_json()
     unit_ids = data.get('unit_ids')
-    user = session.get('user')
-
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-    user_id = user['user_id']
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     if not unit_ids:
         return jsonify({'error': 'unit_ids is required'}), 400

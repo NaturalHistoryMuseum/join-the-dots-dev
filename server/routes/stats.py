@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from flask import Blueprint, jsonify, session
+from flask_jwt_extended import jwt_required
 
 from server.routes.queries.data_queries import *
 from server.utils import database_name, fetch_data
@@ -11,12 +10,12 @@ database_name = 'jtd_live'
 
 
 @stats_bp.route('/home-stats', methods=['GET'])
+@jwt_required()
 def get_home_stats():
     user = session.get('user')
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
     user_level = user['level']
-    print('got user', datetime.now())
     match user_level:
         case 1:
             category_percent_query = """
@@ -81,10 +80,8 @@ GROUP BY a.description, a.criterion_name, ct.criterion_total
 ORDER BY a.description, a.criterion_name;
 
  """
-            print('wrote table query', datetime.now())
 
             category_percent = fetch_data(category_percent_query)
-            print('completed table query', datetime.now())
 
             total_units_query = """SELECT COUNT(cu.collection_unit_id)
                         FROM {database_name}.collection_unit cu
@@ -92,7 +89,6 @@ ORDER BY a.description, a.criterion_name;
             total_units = fetch_data(total_units_query)[0][
                 'COUNT(cu.collection_unit_id)'
             ]
-            print('wrote total units query', datetime.now())
 
             data = {'category_percent': category_percent, 'total_units': total_units}
         case 2:
