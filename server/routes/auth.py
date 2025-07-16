@@ -4,7 +4,12 @@ import secrets
 import msal
 from flask import Blueprint, jsonify, make_response, request, session
 from flask import current_app as app
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+)
 
 from server.config import Config
 from server.database import get_db_connection
@@ -115,27 +120,34 @@ def auth_redirect():
                 'level': user['level'],
             },
         )
+        # Create refresh token
+        refresh_token = create_refresh_token(identity=str(user['user_id']))
         # Store in session for later retrieval
         session['jwt_token'] = jwt_token
 
         # Generate CSRF token
         csrf_token = secrets.token_urlsafe(32)
+        csrf_refresh_token = secrets.token_urlsafe(32)
 
         response = make_response(jsonify({'message': 'Login successful'}))
         # Set jwt token as access token in cookies
         response.set_cookie(
             'access_token', jwt_token, httponly=True, secure=True, samesite='Lax'
         )
+        response.set_cookie(
+            'refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax'
+        )
         # Set csrf token in cookies
         response.set_cookie(
             'csrf_token', csrf_token, httponly=False, secure=False, samesite='Lax'
         )
+        response.set_cookie('csrf_refresh_token', csrf_refresh_token, httponly=False)
         return response
 
     return jsonify({'error': 'Authentication failed'}), 401
 
 
-@auth_bp.route('/auth/status')
+@auth_bp.route('/status')
 @jwt_required()
 def auth_status():
     """
@@ -173,4 +185,36 @@ def logout():
     response = jsonify({'msg': 'Logout successful'})
     # Remove the access tokens from the cookies
     response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
+    response.delete_cookie('csrf_token')
     return response
+
+
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    user_id = get_jwt_identity()
+    new_access_token = create_access_token(identity=user_id)
+    response = jsonify({'msg': 'Token refreshed'})
+    response.set_cookie(
+        'access_token', new_access_token, httponly=True, secure=True, samesite='Lax'
+    )
+    return response
+
+
+# @auth_bp.after_request
+# def refresh_expiring_jwts(response):
+#     try:
+#         exp_timestamp = get_jwt()["exp"]
+#         now = datetime.now(timezone.utc)
+#         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+#         if target_timestamp > exp_timestamp:
+
+#             user_id = get_jwt_identity()
+#             new_access_token = create_access_token(identity=user_id)
+#             response = jsonify({"msg": "Token refreshed"})
+#             response.set_cookie("access_token", new_access_token, httponly=True, secure=True, samesite='Lax')
+#         return response
+#     except (RuntimeError, KeyError):
+#         # Case where there is not a valid JWT. Just return the original response
+#         return response

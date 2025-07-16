@@ -1,9 +1,14 @@
 import json
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, Response, jsonify, request, stream_with_context
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt,
+    get_jwt_identity,
+    jwt_required,
+)
 
 from server.database import get_db_connection
 from server.routes.queries.data_queries import *
@@ -12,6 +17,42 @@ from server.utils import database_name, execute_query, fetch_data
 data_bp = Blueprint('data', __name__)
 
 # Rescore routes
+
+
+@data_bp.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()['exp']
+        print(exp_timestamp)
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        print(target_timestamp)
+        if target_timestamp > exp_timestamp:
+            print('token was about to expire')
+            user_id = get_jwt_identity()
+            new_access_token = create_access_token(identity=user_id)
+            print('new token :', new_access_token)
+            # response = jsonify(str(response))
+            # data = response.data
+            response_data = response.get_data(as_text=True)
+            data = json.loads(response_data)
+            new_response = jsonify(data)
+            new_response.status_code = response.status_code
+            new_response.headers.extend(response.headers)
+            new_response.set_cookie(
+                'access_token',
+                new_access_token,
+                httponly=True,
+                secure=True,
+                samesite='Lax',
+            )
+        else:
+            print('the jwt token is not about to expire')
+        return new_response
+
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original response
+        return response
 
 
 @data_bp.route('/unit-scores/<unitId>', methods=['GET'])
