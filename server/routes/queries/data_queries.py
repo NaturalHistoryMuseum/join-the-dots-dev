@@ -277,7 +277,8 @@ UNIT_SCORES = """
                             			'metric_name', cumd.metric_name,
                             			'metric_definition', cumd.metric_definition,
                             			'metric_units', cumd.metric_units,
-                            			'metric_datatype', cumd.metric_datatype
+                            			'metric_datatype', cumd.metric_datatype,
+	                                    'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
                         			)
                             	) AS metric_json
                             	FROM {database_name}.collection_unit_metric cum
@@ -386,7 +387,7 @@ RESCORE_UNITS = """
 --                             			'metric_definition', cumd.metric_definition,
 --                             			'metric_units', cumd.metric_units,
 --                             			'metric_datatype', cumd.metric_datatype,
---                                         'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
+--                                      'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
 --                         			)
 --                             	) AS metric_json
 --                             	FROM {database_name}.collection_unit_metric cum

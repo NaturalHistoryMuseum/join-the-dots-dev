@@ -46,6 +46,7 @@
           <div class="row">
             <div class="col-md-6">
               <zoa-input
+                v-if="rescore"
                 zoa-type="number"
                 :label="fieldNameCalc(metric.metric_name)"
                 v-model="metric.metric_value"
@@ -54,10 +55,21 @@
                     metric.collection_unit_metric_definition_id,
                   )
                 "
+                :config="{ min: 0 }"
               />
+              <div v-else>
+                <!-- Display the metric name and value -->
+                <zoa-input
+                  zoa-type="empty"
+                  :label="fieldNameCalc(metric.metric_name)"
+                  class="comments-title"
+                />
+                <p class="view-field">{{ metric.metric_value }}</p>
+              </div>
             </div>
             <div class="col-md-6 mb-2">
               <zoa-input
+                v-if="rescore"
                 zoa-type="dropdown"
                 label="Confidence"
                 label-position="above"
@@ -74,6 +86,15 @@
                 }"
                 v-model="metric.confidence_level"
               />
+              <div v-else>
+                <!-- Display the confidence value -->
+                <zoa-input
+                  zoa-type="empty"
+                  label="Confidence"
+                  class="comments-title"
+                />
+                <p class="view-field">{{ metric.confidence_level }}</p>
+              </div>
             </div>
           </div>
           <!-- Show saved message if metric came from drafts -->
@@ -92,11 +113,15 @@
           class="comments-title"
         />
         <textarea
+          v-if="rescore"
           class="text-area"
           rows="7"
           v-model="local_unit.unit_comment"
           @change="handleCommentChange"
         ></textarea>
+        <div v-else>
+          <p class="view-field">{{ local_unit.unit_comment }}</p>
+        </div>
         <!-- Saved message if comment is in drafts -->
         <SmallMessages
           message_text="Change Saved"
@@ -158,8 +183,15 @@
               />
               <div v-else>
                 <!-- Display the rank value and percentage -->
-                <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
-                <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
+                <zoa-input
+                  zoa-type="empty"
+                  :label="`Rank ${rank.rank_value} (%)`"
+                  class="comments-title"
+                />
+                <p class="view-field">
+                  <!-- Only show where there are scores -->
+                  {{ rank.percentage ? rank.percentage * 100 : '' }}
+                </p>
               </div>
             </div>
             <!-- {{
@@ -339,11 +371,17 @@ export default {
       if (this.local_unit.metric_json) {
         getGeneric('metric-definitions').then((response) => {
           this.metric_definitions = response.map((metric) => {
+            console.log(
+              'i am looking at this metric_definition : ',
+              metric.collection_unit_metric_definition_id,
+            );
             const this_metric = this.local_unit.metric_json.find(
               (met) =>
                 metric.collection_unit_metric_definition_id ==
                 met.collection_unit_metric_definition_id,
             ) || { metric_value: null, confidence_level: null };
+            console.log('this metric: ', this_metric);
+            console.log('local unit metrics: ', this.local_unit.metric_json);
             return {
               ...metric,
               metric_value: this_metric.metric_value,
@@ -489,6 +527,7 @@ export default {
         );
         if (
           currentMetric.metric_value == null ||
+          currentMetric.metric_value < 0 ||
           currentMetric.confidence_level == null
         )
           return;

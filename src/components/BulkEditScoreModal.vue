@@ -36,10 +36,6 @@
           </TableCheckbox>
         </div>
         <div v-show="current_step === 2" class="modal-step-content">
-          <p class="text-center">
-            Edit the scores for the selected units. Only edited criteria will be
-            changed.
-          </p>
           <div class="nav-container">
             <zoa-button class="" @click="current_step = current_step - 1"
               >Back</zoa-button
@@ -49,6 +45,10 @@
               >Review Scores</zoa-button
             >
           </div>
+          <p class="text-center">
+            Edit the scores for the selected units. Only edited criteria will be
+            changed.
+          </p>
           <UnitScores
             v-if="rank_json.length > 0"
             :unit="unit"
@@ -60,13 +60,13 @@
         <div v-show="current_step === 3" class="modal-step-content">
           <div v-if="!loading && !success">
             <div v-if="edited_unit">
-              <p class="text-center">Confirm the changes you made.</p>
               <div class="nav-container">
                 <zoa-button class="" @click="current_step = current_step - 1"
                   >Back</zoa-button
                 >
                 <!-- Display the scores for this unit and enable editing for rescore -->
               </div>
+              <p class="text-center">Confirm the changes you made.</p>
               <div class="save-changes-container">
                 <zoa-input
                   class="check"
@@ -81,55 +81,77 @@
                   @click="handleBulkUpload"
                 />
               </div>
-              <p>These are your changes:</p>
+
               <div
                 v-if="
-                  edited_unit.metric_json && edited_unit.metric_json.length > 0
+                  // edited_unit.metric_json && edited_unit.metric_json.length > 0
+                  true
                 "
+                class="row"
               >
-                <h4>Metrics</h4>
-                <div
-                  v-for="(metric, index) in edited_unit.metric_json"
-                  :key="index"
-                >
-                  <div class="changed-container metric">
-                    <div class="changed-item">
-                      <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
-                      <p>{{ metric.metric_value }}</p>
+                <div class="col-md-8">
+                  <p>These are your changes:</p>
+                  <h4>Metrics</h4>
+                  <div
+                    v-for="(metric, index) in edited_unit.metric_json"
+                    :key="index"
+                  >
+                    <div class="changed-container metric">
+                      <div class="changed-item">
+                        <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
+                        <p>{{ metric.metric_value }}</p>
+                      </div>
+                      <div class="changed-item">
+                        <p>Confidence:</p>
+                        <p>{{ metric.confidence_level }}</p>
+                      </div>
                     </div>
-                    <div class="changed-item">
-                      <p>Confidence:</p>
-                      <p>{{ metric.confidence_level }}</p>
+                  </div>
+
+                  <div v-if="edited_unit.unit_comment">
+                    <h4>Unit Comment</h4>
+                    <p>{{ edited_unit.unit_comment }}</p>
+                  </div>
+                  <div
+                    v-if="
+                      edited_unit.ranks_json &&
+                      edited_unit.ranks_json.length > 0
+                    "
+                  >
+                    <h4>Scores</h4>
+                    <div
+                      v-for="(criterion, index) in edited_unit.ranks_json"
+                      :key="index"
+                    >
+                      <h5>{{ criterion[0].criterion_name }}</h5>
+                      <div class="changed-container">
+                        <div
+                          v-for="(rank, rankIndex) in criterion"
+                          :key="rankIndex"
+                          class="changed-item"
+                        >
+                          <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
+                          <p>
+                            {{ rank.percentage ? rank.percentage * 100 : '0' }}
+                          </p>
+                          <!-- Rank {{ rank.rank_value }}: {{ rank.percentage * 100 }}% -->
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div v-if="edited_unit.unit_comment">
-                <h4>Unit Comment</h4>
-                <p>{{ edited_unit.unit_comment }}</p>
-              </div>
-              <div
-                v-if="
-                  edited_unit.ranks_json && edited_unit.ranks_json.length > 0
-                "
-              >
-                <h4>Scores</h4>
-                <div
-                  v-for="(criterion, index) in edited_unit.ranks_json"
-                  :key="index"
-                >
-                  <h5>{{ criterion[0].criterion_name }}</h5>
-                  <div class="changed-container">
+                <div class="col-md-4 endited-units">
+                  <p>These are the units you are about to edit:</p>
+                  <ul class="units-list">
                     <div
-                      v-for="(rank, rankIndex) in criterion"
-                      :key="rankIndex"
-                      class="changed-item"
+                      v-for="unit in units.filter((unit) => unit.selected)"
+                      :key="unit.collection_unit_id"
                     >
-                      <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
-                      <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
-                      <!-- Rank {{ rank.rank_value }}: {{ rank.percentage * 100 }}% -->
+                      <li>
+                        {{ unit.collection_unit_id + ' - ' + unit.unit_name }}
+                      </li>
                     </div>
-                  </div>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -278,7 +300,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  /* margin-bottom: 1rem; */
 }
 
 .save-changes-container {
@@ -286,6 +308,10 @@ export default {
   flex-direction: column;
   align-items: center;
   margin-top: 1rem;
+  margin-bottom: 2rem;
   gap: 1rem;
+}
+.endited-units {
+  border-left: 2px solid black;
 }
 </style>
