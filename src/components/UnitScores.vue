@@ -161,6 +161,7 @@
               <CriterionDefModal :crit="crit" :unit="unit" />
               <!-- Criterion Title -->
               <h6 class="criterion-name">
+                {{ crit.criterion_code }} -
                 {{ crit.criterion_name.split('/').join(' / ') }}
               </h6>
             </div>
