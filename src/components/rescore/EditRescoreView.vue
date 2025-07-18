@@ -12,11 +12,10 @@
         <!-- Actions button group -->
         <div class="col-md-8 actions">
           <ActionsBtnGroup v-if="!rescore_review">
-            <BulkEditScoreModal :units="units" />
-            <zoa-button kind="alt">See History</zoa-button>
-            <zoa-button kind="primary">Other Action</zoa-button>
-            <zoa-button kind="alt">Third Action</zoa-button></ActionsBtnGroup
-          >
+            <BulkEditScoreModal :units="units" v-if="units.length > 1" />
+            <zoa-button kind="alt">Undo Change</zoa-button>
+            <zoa-button kind="primary">Revert All Changes</zoa-button>
+          </ActionsBtnGroup>
         </div>
       </div>
     </div>

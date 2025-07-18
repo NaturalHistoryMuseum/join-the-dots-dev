@@ -372,17 +372,11 @@ export default {
       if (this.local_unit.metric_json) {
         getGeneric('metric-definitions').then((response) => {
           this.metric_definitions = response.map((metric) => {
-            console.log(
-              'i am looking at this metric_definition : ',
-              metric.collection_unit_metric_definition_id,
-            );
             const this_metric = this.local_unit.metric_json.find(
               (met) =>
                 metric.collection_unit_metric_definition_id ==
                 met.collection_unit_metric_definition_id,
             ) || { metric_value: null, confidence_level: null };
-            console.log('this metric: ', this_metric);
-            console.log('local unit metrics: ', this.local_unit.metric_json);
             return {
               ...metric,
               metric_value: this_metric.metric_value,
