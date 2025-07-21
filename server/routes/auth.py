@@ -126,9 +126,8 @@ def auth_redirect():
         session['jwt_token'] = jwt_token
 
         # Generate CSRF token
-        csrf_token = secrets.token_urlsafe(32)
-        csrf_refresh_token = secrets.token_urlsafe(32)
-
+        csrf_access_token = secrets.token_urlsafe(32)
+        print('csrf_access_token: ', csrf_access_token)
         response = make_response(jsonify({'message': 'Login successful'}))
         # Set jwt token as access token in cookies
         response.set_cookie(
@@ -139,9 +138,12 @@ def auth_redirect():
         )
         # Set csrf token in cookies
         response.set_cookie(
-            'csrf_token', csrf_token, httponly=False, secure=False, samesite='Lax'
+            'csrf_access_token',
+            csrf_access_token,
+            httponly=False,
+            secure=True,
+            samesite='Lax',
         )
-        response.set_cookie('csrf_refresh_token', csrf_refresh_token, httponly=False)
         return response
 
     return jsonify({'error': 'Authentication failed'}), 401
@@ -186,7 +188,7 @@ def logout():
     # Remove the access tokens from the cookies
     response.delete_cookie('access_token')
     response.delete_cookie('refresh_token')
-    response.delete_cookie('csrf_token')
+    response.delete_cookie('csrf_access_token')
     return response
 
 

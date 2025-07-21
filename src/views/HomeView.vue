@@ -5,7 +5,7 @@
       <div v-if="currentUser">
         <p>Welcome, {{ currentUser.name }}</p>
       </div>
-
+      <zoa-button label="Test tokesns" @click="getTokenDebug" />
       <HomeStats />
     </div>
     <div class="boader-header">
@@ -68,6 +68,7 @@
 
 <script>
 import HomeStats from '@/components/HomeStats.vue';
+import { getTokenDebug } from '@/services/dataService';
 import { currentUser } from '../services/authService';
 
 export default {
@@ -85,6 +86,7 @@ export default {
     navigate(path) {
       this.$router.push({ path: path });
     },
+    getTokenDebug,
   },
 };
 </script>

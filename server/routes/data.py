@@ -5,9 +5,11 @@ from datetime import datetime, timedelta, timezone
 from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_jwt_extended import (
     create_access_token,
+    get_csrf_token,
     get_jwt,
     get_jwt_identity,
     jwt_required,
+    set_access_cookies,
 )
 
 from server.database import get_db_connection
@@ -16,45 +18,54 @@ from server.utils import database_name, execute_query, fetch_data
 
 data_bp = Blueprint('data', __name__)
 
-# Rescore routes
+
+@data_bp.route('/debug', methods=['POST'])
+@jwt_required()
+def debug_csrf():
+    return {
+        'cookie_csrf': request.cookies.get('csrf_access_token'),
+        'header_csrf': request.headers.get('X-CSRF-TOKEN'),
+        'jwt_csrf': get_csrf_token(get_jwt()),
+    }
 
 
 @data_bp.after_request
 def refresh_expiring_jwts(response):
     try:
         exp_timestamp = get_jwt()['exp']
-        print(exp_timestamp)
         now = datetime.now(timezone.utc)
-        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
-        print(target_timestamp)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=10))
+        # if the token is about to expire in 10 mins, create a new one
         if target_timestamp > exp_timestamp:
-            print('token was about to expire')
             user_id = get_jwt_identity()
+            # Generate a new access token
             new_access_token = create_access_token(identity=user_id)
-            print('new token :', new_access_token)
-            # response = jsonify(str(response))
-            # data = response.data
-            response_data = response.get_data(as_text=True)
-            data = json.loads(response_data)
-            new_response = jsonify(data)
-            new_response.status_code = response.status_code
-            new_response.headers.extend(response.headers)
-            new_response.set_cookie(
-                'access_token',
-                new_access_token,
-                httponly=True,
-                secure=True,
-                samesite='Lax',
-            )
+            # Create new response from the original one
+            # response_data = response.get_data(as_text=True)
+            # data = json.loads(response_data)
+            # new_response = jsonify(data)
+            # new_response.status_code = response.status_code
+            # new_response.headers.extend(response.headers)
+            # # Add the new access token to the cookies of the request
+            # new_response.set_cookie(
+            #     'access_token',
+            #     new_access_token,
+            #     httponly=True,
+            #     secure=True,
+            #     samesite='Lax',
+            # )
+            set_access_cookies(response, new_access_token)
+            return response
+        # Return if token is not about to expire
         else:
-            print('the jwt token is not about to expire')
-        return new_response
+            return response
 
     except (RuntimeError, KeyError):
         # Case where there is not a valid JWT. Just return the original response
         return response
 
 
+# Rescore routes
 @data_bp.route('/unit-scores/<unitId>', methods=['GET'])
 @jwt_required()
 def get_unit_scores(unitId):
