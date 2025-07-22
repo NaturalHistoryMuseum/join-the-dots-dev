@@ -15,7 +15,12 @@ def create_app():
 
     app = Flask(__name__)
     # Allows cross-origin requests from your Vue frontend
-    cors.init_app(app, supports_credentials=True)
+    cors.init_app(
+        app,
+        supports_credentials=True,
+        expose_headers=['X-CSRF-TOKEN'],
+        allow_headers=['Content-Type', 'X-CSRF-TOKEN'],
+    )
     app.config.from_object(Config)
 
     # Register blueprints (modular routes)

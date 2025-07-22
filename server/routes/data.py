@@ -3,17 +3,25 @@ from collections import defaultdict
 from datetime import datetime
 
 from flask import Blueprint, Response, jsonify, request, stream_with_context
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import (
+    get_jwt_identity,
+    jwt_required,
+)
 
 from server.database import get_db_connection
 from server.routes.queries.data_queries import *
-from server.utils import database_name, execute_query, fetch_data
+from server.utils import database_name, execute_query, fetch_data, refreshJWTToken
 
 data_bp = Blueprint('data', __name__)
 
+
+# After a request, refresh the JWT token if it is about to expire
+@data_bp.after_request
+def refresh_expiring_jwts(response):
+    return refreshJWTToken(response)
+
+
 # Rescore routes
-
-
 @data_bp.route('/unit-scores/<unitId>', methods=['GET'])
 @jwt_required()
 def get_unit_scores(unitId):
