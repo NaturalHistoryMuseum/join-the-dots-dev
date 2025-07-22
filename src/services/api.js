@@ -14,6 +14,8 @@ export const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  xsrfCookieName: 'csrf_access_token',
+  xsrfHeaderName: 'X-CSRF-TOKEN',
 });
 
 // Add a request interceptor to inject CSRF token into header
