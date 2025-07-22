@@ -2,11 +2,15 @@ from flask import Blueprint, jsonify, session
 from flask_jwt_extended import jwt_required
 
 from server.routes.queries.data_queries import *
-from server.utils import database_name, fetch_data
+from server.utils import fetch_data, refreshJWTToken
 
 stats_bp = Blueprint('stats', __name__)
 
-database_name = 'jtd_live'
+
+# After a request, refresh the JWT token if it is about to expire
+@stats_bp.after_request
+def refresh_expiring_jwts(response):
+    return refreshJWTToken(response)
 
 
 @stats_bp.route('/home-stats', methods=['GET'])

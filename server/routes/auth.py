@@ -9,6 +9,8 @@ from flask_jwt_extended import (
     create_refresh_token,
     get_jwt_identity,
     jwt_required,
+    set_access_cookies,
+    set_refresh_cookies,
 )
 
 from server.config import Config
@@ -130,20 +132,24 @@ def auth_redirect():
         print('csrf_access_token: ', csrf_access_token)
         response = make_response(jsonify({'message': 'Login successful'}))
         # Set jwt token as access token in cookies
-        response.set_cookie(
-            'access_token', jwt_token, httponly=True, secure=True, samesite='Lax'
-        )
-        response.set_cookie(
-            'refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax'
-        )
-        # Set csrf token in cookies
-        response.set_cookie(
-            'csrf_access_token',
-            csrf_access_token,
-            httponly=False,
-            secure=True,
-            samesite='Lax',
-        )
+        # response.set_cookie(
+        #     'access_token', jwt_token, httponly=True, secure=True, samesite='Lax'
+        # )
+        # response.set_cookie(
+        #     'refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax'
+        # )
+        # # Set csrf token in cookies
+        # response.set_cookie(
+        #     'csrf_access_token',
+        #     csrf_access_token,
+        #     httponly=False,
+        #     secure=True,
+        #     samesite='Lax',
+        # )
+
+        set_access_cookies(response, jwt_token)
+        set_refresh_cookies(response, refresh_token)
+
         return response
 
     return jsonify({'error': 'Authentication failed'}), 401

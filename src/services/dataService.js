@@ -1,5 +1,4 @@
 import api from './api';
-import { getCookie } from './cookies';
 
 // FOR LOCAL TESTING
 const API_URL = 'http://localhost:5000/api/data';
@@ -125,33 +124,12 @@ export async function submitDataGeneric(route, data_json) {
     const response = await api.post(`data/${route}`, data_json, {
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRF-TOKEN': getCookie('csrf_access_token'),
       },
       withCredentials: true,
     });
     return response.data;
   } catch (error) {
     console.error('Error submitting data:', error);
-    throw error;
-  }
-}
-
-export async function getTokenDebug() {
-  try {
-    const response = await api.post(
-      'data/debug',
-      {},
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': getCookie('csrf_access_token'),
-        },
-        withCredentials: true,
-      },
-    );
-    console.log('debug resp : ', response.data);
-  } catch (error) {
-    console.error('Error debuggging data:', error);
     throw error;
   }
 }

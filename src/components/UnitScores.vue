@@ -530,7 +530,7 @@ export default {
         try {
           // Check if there are any errors before submitting
           const errors = this.checkErrors(criterion_id);
-          if (errors.length > 0) {
+          if (errors.length > 0 && !errors.some((e) => e.allow_submit)) {
             // If there are errors, do not submit
             return;
           } else {
@@ -641,6 +641,7 @@ export default {
               errors.push({
                 message: 'Change not saved!',
                 type: 'error',
+                allow_submit: true,
               });
               // Stop if difference found
               break;

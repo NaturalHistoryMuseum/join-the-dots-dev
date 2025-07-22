@@ -1,3 +1,12 @@
+from datetime import datetime, timedelta, timezone
+
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt,
+    get_jwt_identity,
+    set_access_cookies,
+)
+
 from server.database import get_db_connection
 
 database_name = 'jtd_live'
@@ -30,3 +39,27 @@ def execute_query(query, params=None):
     connection.commit()
     cursor.close()
     connection.close()
+
+
+def refreshJWTToken(response):
+    """
+    Refresh the JWT token in the response if it is about to expire.
+    """
+    try:
+        exp_timestamp = get_jwt()['exp']
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=10))
+        # if the token is about to expire in 10 mins, create a new one
+        if target_timestamp > exp_timestamp:
+            user_id = get_jwt_identity()
+            # Generate a new access token
+            new_access_token = create_access_token(identity=user_id)
+            set_access_cookies(response, new_access_token)
+            return response
+        # Return if token is not about to expire
+        else:
+            return response
+
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original response
+        return response
