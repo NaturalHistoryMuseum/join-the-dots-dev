@@ -129,24 +129,8 @@ def auth_redirect():
 
         # Generate CSRF token
         csrf_access_token = secrets.token_urlsafe(32)
-        print('csrf_access_token: ', csrf_access_token)
         response = make_response(jsonify({'message': 'Login successful'}))
         # Set jwt token as access token in cookies
-        # response.set_cookie(
-        #     'access_token', jwt_token, httponly=True, secure=True, samesite='Lax'
-        # )
-        # response.set_cookie(
-        #     'refresh_token', refresh_token, httponly=True, secure=True, samesite='Lax'
-        # )
-        # # Set csrf token in cookies
-        # response.set_cookie(
-        #     'csrf_access_token',
-        #     csrf_access_token,
-        #     httponly=False,
-        #     secure=True,
-        #     samesite='Lax',
-        # )
-
         set_access_cookies(response, jwt_token)
         set_refresh_cookies(response, refresh_token)
 
