@@ -2,7 +2,7 @@
   <!-- Actions button group -->
   <div class="actions">
     <div class="actions-group">
-      <zoa-button @click="toggleActions()" class="open-btn">
+      <zoa-button @click="toggleActions()" class="open-btn" kind="alt">
         Actions
         <div v-if="show_actions">
           <i class="bi bi-chevron-right accordion-icon"></i>

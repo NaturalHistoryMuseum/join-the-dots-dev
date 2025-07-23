@@ -1,6 +1,8 @@
 <template>
   <zoa-modal class="modal-btn">
-    <template v-slot:button><i class="bi bi-info-circle"></i></template>
+    <template v-slot:button>
+      <i class="bi bi-info-circle help-icon"></i>
+    </template>
     <template v-slot:header> Definitions </template>
     <div class="flex flex-col gap-4">
       <div>
@@ -36,5 +38,9 @@ export default {
 .modal-btn {
   margin: auto;
   z-index: 10;
+}
+
+.help-icon {
+  font-size: 1.2rem;
 }
 </style>

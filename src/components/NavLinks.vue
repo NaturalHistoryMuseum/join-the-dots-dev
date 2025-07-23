@@ -33,6 +33,16 @@ export default {
         access_groups: ['admin', 'viewer', 'editor', 'manager'],
       },
       {
+        name: 'View Units',
+        path: '/view-units',
+        access_groups: ['admin', 'editor', 'manager'],
+      },
+      {
+        name: 'Rescore',
+        path: '/rescore',
+        access_groups: ['admin', 'editor', 'manager'],
+      },
+      {
         name: 'About',
         path: '/about',
         access_groups: ['admin', 'viewer', 'editor', 'manager'],
@@ -42,16 +52,7 @@ export default {
         path: '/reports',
         access_groups: ['admin', 'viewer', 'editor', 'manager'],
       },
-      {
-        name: 'View Units',
-        path: '/view-units',
-        access_groups: ['admin', 'editor', 'manager'],
-      },
-      {
-        name: 'Rescore',
-        path: '/manage-rescore',
-        access_groups: ['admin', 'editor', 'manager'],
-      },
+
       { name: 'Admin', path: '/admin', access_groups: ['admin'] },
     ];
 
@@ -103,7 +104,7 @@ nav a {
   margin: 0 10px;
   left: 0;
   right: 0;
-  height: 6px;
+  height: 8px;
   background-color: white;
   opacity: 0;
   transition: opacity 0.3s;

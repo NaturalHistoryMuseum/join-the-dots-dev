@@ -1,7 +1,6 @@
 <template>
   <div class="main-header">
-    <h1>Manage Rescore</h1>
-    <p>Latest Rescore : {{ latestRescore() }}</p>
+    <p class="last-rescore">Latest Rescore : {{ latestRescore() }}</p>
   </div>
   <div
     v-if="Object.keys(open_rescore).length && !is_loading"
@@ -53,8 +52,8 @@ import {
   markRescoreComplete,
   markRescoreOpen,
 } from '@/services/dataService';
-import TableCheckbox from '../components/TableCheckbox.vue';
-import { currentUser } from '../services/authService';
+import { currentUser } from '../../services/authService';
+import TableCheckbox from '../TableCheckbox.vue';
 
 export default {
   name: 'ManageRescoreView',
@@ -92,16 +91,9 @@ export default {
       // Check if there is an open rescore session
       this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
     },
-    navigateRescore(rescore_session_id) {
-      // Navigate to the rescore page with the session ID as a query parameter
-      const temp_id =
-        rescore_session_id || this.open_rescore.rescore_session_id;
-      this.$router.push({
-        name: 'rescore',
-        query: {
-          rescore_session_id: temp_id,
-        },
-      });
+    navigateRescore() {
+      // Emit the next step in stepper
+      this.$emit('update:current_step', 2);
     },
 
     async createRescore() {
@@ -170,5 +162,9 @@ export default {
   justify-content: center;
   margin: 1rem;
   gap: 1rem;
+}
+
+.last-rescore {
+  text-align: end;
 }
 </style>

@@ -14,7 +14,7 @@
     <div class="main-header">
       <div class="row">
         <div class="col-md-4">
-          <h1>View Unit</h1>
+          <h1>View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
         <div class="col-md-8">
@@ -170,9 +170,14 @@ export default {
       let unitData = await getGeneric(`full-unit/${this.unit_id}`);
       this.unit = unitData[0];
       // Check if the unit is assigned to the current user
-      this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(
-        this.unit.collection_unit_id,
-      );
+      if (this.currentUser.assigned_units) {
+        this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(
+          this.unit.collection_unit_id,
+        );
+      } else {
+        this.allow_edit = false;
+      }
+
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,

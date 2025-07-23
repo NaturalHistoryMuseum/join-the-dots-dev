@@ -23,28 +23,39 @@
           :units="units"
           @update:filteredUnits="handleFilteredUnits"
         />
-        <!-- Table -->
-        <TableCheckbox ref="viewTable" :units="filteredUnits" :fields="fields">
-          <!-- Custom rendering for the name column -->
-          <template #cell(name)="row">
-            {{ row.value.first }} {{ row.value.last }}
-          </template>
+        <div class="table-area">
+          <!-- Table -->
+          <TableCheckbox
+            ref="viewTable"
+            :units="filteredUnits"
+            :fields="fields"
+          >
+            <!-- Custom rendering for the name column -->
+            <template #cell(name)="row">
+              {{ row.value.first }} {{ row.value.last }}
+            </template>
 
-          <!-- Actions column -->
-          <!-- <template #cell(actions)="row">
-            <div class="row-actions">
-              <zoa-button @click="viewUnit(row.item)" class="view-btn">
+            <!-- Actions column -->
+            <!-- <template #cell(actions)="row">
+              <div class="row-actions">
+                <zoa-button @click="viewUnit(row.item)" class="view-btn">
+                  View Unit
+                </zoa-button>
+                <zoa-button class="delete-btn">Delete Unit</zoa-button>
+              </div>
+            </template> -->
+            <template #cell(actions)="row">
+              <zoa-button @click="() => viewUnit(row.item)" class="view-btn">
                 View Unit
               </zoa-button>
-              <zoa-button class="delete-btn">Delete Unit</zoa-button>
-            </div>
-          </template> -->
-          <template #cell(actions)="row">
-            <zoa-button @click="() => viewUnit(row.item)" class="view-btn">
-              View Unit
-            </zoa-button>
-          </template>
-        </TableCheckbox>
+            </template>
+          </TableCheckbox>
+          <p v-if="filteredUnits.length == 0">No units found.</p>
+          <p v-if="filteredUnits.length == 0">
+            Note: You can assign units to yourself in the account page (user
+            icon in top right of screen).
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -169,6 +180,12 @@ export default {
 
 .customPagination {
   margin: 0 !important;
+}
+
+.table-area {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 @media (max-width: 768px) {

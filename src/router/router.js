@@ -1,5 +1,4 @@
 import AdminView from '@/views/AdminView.vue';
-import ManageRescoreView from '@/views/ManageRescoreView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { currentUser, loadUser } from '../services/authService';
 import AboutView from '../views/AboutView.vue';
@@ -72,15 +71,15 @@ const router = createRouter({
         checkAuth(2, from, next);
       },
     },
-    {
-      path: '/manage-rescore',
-      name: 'manage rescore',
-      component: ManageRescoreView,
-      meta: { requiresAuth: true },
-      beforeEnter: (to, from, next) => {
-        checkAuth(2, from, next);
-      },
-    },
+    // {
+    //   path: '/manage-rescore',
+    //   name: 'manage rescore',
+    //   component: ManageRescoreView,
+    //   meta: { requiresAuth: true },
+    //   beforeEnter: (to, from, next) => {
+    //     checkAuth(2, from, next);
+    //   },
+    // },
     {
       path: '/admin',
       name: 'admin',

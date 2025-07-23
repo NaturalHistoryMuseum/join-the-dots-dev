@@ -277,7 +277,8 @@ UNIT_SCORES = """
                             			'metric_name', cumd.metric_name,
                             			'metric_definition', cumd.metric_definition,
                             			'metric_units', cumd.metric_units,
-                            			'metric_datatype', cumd.metric_datatype
+                            			'metric_datatype', cumd.metric_datatype,
+	                                    'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
                         			)
                             	) AS metric_json
                             	FROM {database_name}.collection_unit_metric cum
@@ -339,9 +340,9 @@ UNIT_SCORES = """
                         left join `{database_name}`.`person` `pe` on
                             ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
                         left join `{database_name}`.`curatorial_unit_definition` `cud` on
-                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
+                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`))))
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
---                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+--                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
                             (`cu`.`unit_active` = 'yes') AND cu.collection_unit_id = %i
                         order by
@@ -386,7 +387,7 @@ RESCORE_UNITS = """
 --                             			'metric_definition', cumd.metric_definition,
 --                             			'metric_units', cumd.metric_units,
 --                             			'metric_datatype', cumd.metric_datatype,
---                                         'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
+--                                      'collection_unit_metric_definition_id', cum.collection_unit_metric_definition_id
 --                         			)
 --                             	) AS metric_json
 --                             	FROM {database_name}.collection_unit_metric cum
@@ -627,9 +628,9 @@ RESCORE_UNITS = """
                         left join `{database_name}`.`person` `pe` on
                             ((`pe`.`person_id` = `cu`.`responsible_curator_id`)))
                         left join `{database_name}`.`curatorial_unit_definition` `cud` on
-                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`)))
+                            ((`cud`.`curatorial_unit_definition_id` = `cu`.`curatorial_unit_definition_id`))))
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
---                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`)))
+--                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
                             (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = %i
                         order by

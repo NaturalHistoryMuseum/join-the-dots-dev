@@ -46,6 +46,7 @@
           <div class="row">
             <div class="col-md-6">
               <zoa-input
+                v-if="rescore"
                 zoa-type="number"
                 :label="fieldNameCalc(metric.metric_name)"
                 v-model="metric.metric_value"
@@ -54,10 +55,21 @@
                     metric.collection_unit_metric_definition_id,
                   )
                 "
+                :config="{ min: 0 }"
               />
+              <div v-else>
+                <!-- Display the metric name and value -->
+                <zoa-input
+                  zoa-type="empty"
+                  :label="fieldNameCalc(metric.metric_name)"
+                  class="comments-title"
+                />
+                <p class="view-field">{{ metric.metric_value }}</p>
+              </div>
             </div>
             <div class="col-md-6 mb-2">
               <zoa-input
+                v-if="rescore"
                 zoa-type="dropdown"
                 label="Confidence"
                 label-position="above"
@@ -74,6 +86,15 @@
                 }"
                 v-model="metric.confidence_level"
               />
+              <div v-else>
+                <!-- Display the confidence value -->
+                <zoa-input
+                  zoa-type="empty"
+                  label="Confidence"
+                  class="comments-title"
+                />
+                <p class="view-field">{{ metric.confidence_level }}</p>
+              </div>
             </div>
           </div>
           <!-- Show saved message if metric came from drafts -->
@@ -92,11 +113,15 @@
           class="comments-title"
         />
         <textarea
+          v-if="rescore"
           class="text-area"
           rows="7"
           v-model="local_unit.unit_comment"
           @change="handleCommentChange"
         ></textarea>
+        <div v-else>
+          <p class="view-field">{{ local_unit.unit_comment }}</p>
+        </div>
         <!-- Saved message if comment is in drafts -->
         <SmallMessages
           message_text="Change Saved"
@@ -136,6 +161,7 @@
               <CriterionDefModal :crit="crit" :unit="unit" />
               <!-- Criterion Title -->
               <h6 class="criterion-name">
+                {{ crit.criterion_code }} -
                 {{ crit.criterion_name.split('/').join(' / ') }}
               </h6>
             </div>
@@ -158,8 +184,15 @@
               />
               <div v-else>
                 <!-- Display the rank value and percentage -->
-                <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
-                <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
+                <zoa-input
+                  zoa-type="empty"
+                  :label="`Rank ${rank.rank_value} (%)`"
+                  class="comments-title"
+                />
+                <p class="view-field">
+                  <!-- Only show where there are scores -->
+                  {{ rank.percentage ? rank.percentage * 100 : '' }}
+                </p>
               </div>
             </div>
             <!-- {{
@@ -489,6 +522,7 @@ export default {
         );
         if (
           currentMetric.metric_value == null ||
+          currentMetric.metric_value < 0 ||
           currentMetric.confidence_level == null
         )
           return;
@@ -527,29 +561,34 @@ export default {
       if (this.bulk_edit) {
         this.returnBulkEdit();
       } else {
-        // Check if there are any errors before submitting
-        const errors = this.checkErrors(criterion_id);
-        if (errors.length > 0) {
-          // If there are errors, do not submit
-          return;
-        } else {
-          // If no errors, proceed to submit the rank changes
-          const category_draft_id = this.getCatDraftId(criterion_id);
-          const rank_draft = {
-            rescore_session_units_id: this.unit.rescore_session_units_id,
-            collection_unit_id: this.unit.collection_unit_id,
-            criterion_id: criterion_id,
-            category_draft_id: category_draft_id,
-            ranks: ranks.map((rank) => ({
-              rank_id: rank.rank_id,
-              percentage: rank.percentage || 0,
-              comment: rank.comment || null,
-            })),
-          };
-          submitDraftRrank(rank_draft).then(() => {
-            // Fetch the updated data after submitting the rank changes
-            this.fetchUnitsData();
-          });
+        try {
+          // Check if there are any errors before submitting
+          const errors = this.checkErrors(criterion_id);
+          if (errors.length > 0 && !errors.some((e) => e.allow_submit)) {
+            // If there are errors, do not submit
+            return;
+          } else {
+            // If no errors, proceed to submit the rank changes
+            const category_draft_id = this.getCatDraftId(criterion_id);
+            const rank_draft = {
+              rescore_session_units_id: this.unit.rescore_session_units_id,
+              collection_unit_id: this.unit.collection_unit_id,
+              criterion_id: criterion_id,
+              category_draft_id: category_draft_id,
+              ranks: ranks.map((rank) => ({
+                rank_id: rank.rank_id,
+                percentage: rank.percentage || 0,
+                comment: rank.comment || null,
+              })),
+            };
+            submitDraftRrank(rank_draft).then(() => {
+              // Fetch the updated data after submitting the rank changes
+              this.fetchUnitsData();
+            });
+          }
+        } catch (error) {
+          console.error('Submission error:', error);
+          this.checkErrors(criterion_id);
         }
       }
     },
@@ -616,12 +655,53 @@ export default {
           type: 'warning',
         });
       }
+      // Check if the score has changed but not saved - only if no other messages
+      if (this.unit && errors.length == 0) {
+        const original_data_edited_ranks = this.getInitialEditedRanks(
+          this.unit,
+        );
+        if (original_data_edited_ranks) {
+          const original_data_ranks_filtered =
+            original_data_edited_ranks[criterion_id] || [];
+          // Check if there is a difference between original data and current data
+          for (let i = 0; i < ranks_filtered.length; i++) {
+            const original = original_data_ranks_filtered[i];
+            const current = ranks_filtered[i];
+
+            if (
+              original.percentage !== current.percentage ||
+              original.comment !== current.comment
+            ) {
+              errors.push({
+                message: 'Change not saved!',
+                type: 'error',
+                allow_submit: true,
+              });
+              // Stop if difference found
+              break;
+            }
+          }
+        }
+      }
+
       return errors;
     },
     checkEdited(ranks) {
       if (ranks == undefined) return false;
       // Check if any rank has been edited
       return ranks.some((rank) => rank.is_draft);
+    },
+    getInitialEditedRanks(unit) {
+      const ranks = unit.ranks_json;
+      const grouped = {};
+      if (!ranks || ranks.length === 0) return grouped;
+
+      ranks.forEach((rank) => {
+        if (!grouped[rank.criterion_id]) grouped[rank.criterion_id] = [];
+        grouped[rank.criterion_id].push({ ...rank });
+      });
+
+      return grouped;
     },
     initializeEditedRanks(unit) {
       const ranks = unit.ranks_json;

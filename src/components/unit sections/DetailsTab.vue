@@ -296,7 +296,13 @@
           label="Curatorial Unit Definition"
           class="comments-title"
         />
-        <p v-if="curatorial_def_options.length > 0" class="view-field">
+        <p
+          v-if="
+            curatorial_def_options.length > 0 &&
+            unit_value.curatorial_unit_definition_id
+          "
+          class="view-field"
+        >
           {{
             curatorial_def_options.find(
               (option) =>
@@ -362,7 +368,13 @@
           label="Library and Archives Function"
           class="comments-title"
         />
-        <p v-if="lib_function_options.length > 0" class="view-field">
+        <p
+          v-if="
+            lib_function_options.length > 0 &&
+            unit_value.library_and_archives_function_id
+          "
+          class="view-field"
+        >
           {{
             lib_function_options.find(
               (option) =>

@@ -23,7 +23,10 @@
         label="Storage Container"
         class="comments-title"
       />
-      <p v-if="container_options.length > 0" class="view-field">
+      <p
+        v-if="container_options.length > 0 && unit_value.storage_container_id"
+        class="view-field"
+      >
         {{
           container_options.find(
             (option) => option.value == unit_value.storage_container_id,
@@ -71,7 +74,10 @@
     />
     <div v-else>
       <zoa-input zoa-type="empty" label="Room Code" class="comments-title" />
-      <p v-if="room_options.length > 0" class="view-field">
+      <p
+        v-if="room_options.length > 0 && unit_value.storage_room_id"
+        class="view-field"
+      >
         {{
           room_options.find(
             (option) => option.value == unit_value.storage_room_id,

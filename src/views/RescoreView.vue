@@ -1,170 +1,131 @@
 <template>
   <div class="rescore">
-    <div class="main-header">
-      <div class="row">
-        <!-- Rescore Details -->
-        <div class="col-md-4">
-          <h1>Rescore</h1>
-          <div v-if="units.length > 0">
-            <h5>Units assigned: {{ units.length }}</h5>
-            <h5>Units completed: {{ countUnitsCompleted(units) }}</h5>
-          </div>
-        </div>
-        <!-- Actions button group -->
-        <div class="col-md-8 actions">
-          <ActionsBtnGroup v-if="!rescore_review">
-            <BulkEditScoreModal :units="units" />
-            <zoa-button kind="alt">See History</zoa-button>
-            <zoa-button kind="primary">Other Action</zoa-button>
-            <zoa-button kind="alt">Third Action</zoa-button></ActionsBtnGroup
-          >
-          <zoa-button
-            v-if="!success"
-            @click="rescore_review = !rescore_review"
-            >{{
-              rescore_review ? 'Edit scores' : 'Review and commit changes'
-            }}</zoa-button
-          >
-        </div>
-      </div>
+    <div class="row">
+      <h1 class="col-md-3 rescore-title">Rescore</h1>
+
+      <StepperComp
+        :steps="steps"
+        :current_step="current_step"
+        class="col-md-6"
+      />
+      <div class="col-md-3"></div>
     </div>
 
-    <!-- Add Collapsible Tabs to show units -->
-    <CollapsibleTabs
-      :units="units"
-      :fetchUnitsData="fetchUnitsData"
-      v-if="!rescore_review && !success"
-    />
-    <div v-if="rescore_review && !success">
-      <h2 class="text-center">Review Rescore Changes</h2>
-      <p>
-        Please review all of the changes below and confirm before submitting
-        them. These changes cannot be undone.
-      </p>
-      <div class="save-changes-container">
-        <zoa-input
-          class="check"
-          zoa-type="checkbox"
-          label="Confirm changes"
-          label-position="left"
-          v-model="confirm_changes"
-        />
-        <zoa-button
-          v-if="confirm_changes"
-          label="Save Changes and Close Rescore"
-          @click="handleSaveChanges"
-        />
-      </div>
-      <ReviewUnitChanges :units="units" />
-    </div>
-    <div v-if="success">
-      <zoa-flash
-        kind="success"
-        header="Rescore Completed"
-        message="Your rescore has been successfully completed. Thank you!"
+    <div class="stepper-navigation" v-if="rescore_session_id">
+      <zoa-button
+        v-if="current_step > 1"
+        label="Previous"
+        @click="current_step--"
+        class="stepper-btn left-btn"
       />
+      <div v-else></div>
+      <!-- <div class="stepper-seperator"></div> -->
+      <zoa-button
+        v-if="current_step < steps.length"
+        label="Continue"
+        @click="current_step++"
+        class="stepper-btn right-btn"
+      />
+    </div>
+    <div v-if="current_step === 1">
+      <ManageRescoreView @update:current_step="current_step++" />
+    </div>
+    <div v-if="current_step === 2">
+      <EditRescoreView
+        :rescore_session_id="rescore_session_id"
+        :units="units"
+        :fetchUnitsData="fetchUnitsData"
+      />
+    </div>
+    <div v-if="current_step === 3">
+      <ReviewRescoreView :units="units" />
     </div>
   </div>
 </template>
 
 <script>
-import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
-import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue';
-import CollapsibleTabs from '@/components/CollapsibleTabs.vue';
-import { getGeneric, submitDataGeneric } from '@/services/dataService';
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-
-import ReviewUnitChanges from '@/components/ReviewUnitChanges.vue';
+import StepperComp from '@/components/StepperComp.vue';
+import { getGeneric } from '@/services/dataService';
+import EditRescoreView from '../components/rescore/EditRescoreView.vue';
+import ManageRescoreView from '../components/rescore/ManageRescoreView.vue';
+import ReviewRescoreView from '../components/rescore/ReviewRescoreView.vue';
 
 export default {
   name: 'RescoreView',
   components: {
-    CollapsibleTabs,
-    ActionsBtnGroup,
-    BulkEditScoreModal,
-    ReviewUnitChanges,
-  },
-  setup() {
-    const route = useRoute();
-
-    // Access query parameters
-    const rescore_session_id = ref(null);
-    onMounted(() => {
-      rescore_session_id.value = route.query.rescore_session_id;
-    });
-
-    return {
-      rescore_session_id,
-    };
+    StepperComp,
+    ManageRescoreView,
+    EditRescoreView,
+    ReviewRescoreView,
   },
   data() {
     return {
       units: [],
-      show_actions: false,
-      rescore_review: false,
-      confirm_changes: false,
-      success: false,
+      steps: [
+        {
+          step: 1,
+          title: 'Select Units',
+          description: 'Choose the units you want to rescore.',
+        },
+        {
+          step: 2,
+          title: 'Edit Scores',
+          description: 'Adjust the scores for the selected units.',
+        },
+        {
+          step: 3,
+          title: 'Review Changes',
+          description: 'Review your changes before submiting.',
+        },
+      ],
+      current_step: 1,
+      rescore_session_id: null,
     };
   },
   mounted() {
     this.fetchUnitsData();
   },
   methods: {
-    fetchUnitsData() {
-      // Fetch units in this rescore session
-      getGeneric(`rescore-units/${this.rescore_session_id}`).then(
-        (response) => {
-          this.units = response.map((unit) => {
-            // Parse category tracking JSON
-            unit.category_tracking = JSON.parse(unit.category_tracking);
-            unit.ranks_json = JSON.parse(unit.ranks_json);
-            unit.metric_json = JSON.parse(unit.metric_json);
-            return unit;
-          });
-        },
-      );
-    },
-    // Function to toggle the visibility of the actions button group
-    toggleActions() {
-      this.show_actions = !this.show_actions;
-    },
-    // Function to count the number of completed units
-    countUnitsCompleted(units) {
-      let completed_count = 0;
-      // Loop through each unit and check if all categories are complete
-      units.forEach((unit) => {
-        const categories_json = unit.category_tracking;
-        const completed = categories_json.every((category) => {
-          return category.complete == 1;
-        });
-        if (completed) {
-          completed_count++;
-        }
-      });
-      return completed_count;
-    },
-    async handleSaveChanges() {
-      const response = await submitDataGeneric('rescore-complete', {
-        rescore_session_id: this.rescore_session_id,
-      });
-      if (response.success) {
-        this.success = true;
+    async fetchUnitsData() {
+      const rescoreResp = await getGeneric('open-rescore');
+      // Check if there is an open rescore session
+      const open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : null;
+      if (open_rescore) {
+        // Set the rescore session id
+        this.rescore_session_id = open_rescore.rescore_session_id;
+        // Fetch units in this rescore session
+        getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+          (response) => {
+            this.units = response.map((unit) => {
+              // Parse category tracking JSON
+              unit.category_tracking = JSON.parse(unit.category_tracking);
+              unit.ranks_json = JSON.parse(unit.ranks_json);
+              unit.metric_json = JSON.parse(unit.metric_json);
+              return unit;
+            });
+          },
+        );
       }
     },
   },
 };
 </script>
 
-<style>
-.prog-bar {
-  margin-top: 1rem;
-  width: 20rem;
+<style scoped>
+.rescore-title {
+  align-self: center;
+}
+.stepper-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
 }
 
-/* .main-page {
-  display: flex;
-  flex-direction: column;
-  padding: 0.5rem 2rem;
-} */
+.left-btn {
+  margin-left: 30%;
+}
+
+.right-btn {
+  margin-right: 30%;
+}
 </style>

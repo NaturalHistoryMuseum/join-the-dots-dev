@@ -74,7 +74,6 @@ export default {
       switch (this.action.action.toLowerCase()) {
         case 'delete':
           this.loading = true;
-          console.log('Deleting units:', this.selected_unit_ids);
           await submitDataGeneric('delete-units', {
             unit_ids: this.selected_unit_ids,
           });
@@ -82,7 +81,6 @@ export default {
           this.success = true;
           this.$emit('update:refreshData');
 
-          console.log('Deleted');
           break;
         case 'split':
           console.log('Splitting units:', this.selected_unit_ids);

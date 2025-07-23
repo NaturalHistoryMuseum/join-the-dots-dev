@@ -14,6 +14,7 @@
         responsive
         :items="stats.category_percent"
       ></b-table>
+      <p v-if="!stats.category_percent">loading...</p>
     </div>
     <div class="col-md-4 stats-summary">
       <!-- <h4>Stats Summary</h4> -->
