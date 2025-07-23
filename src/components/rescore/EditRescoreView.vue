@@ -12,7 +12,11 @@
         <!-- Actions button group -->
         <div class="col-md-8 actions">
           <ActionsBtnGroup v-if="!rescore_review">
-            <BulkEditScoreModal :units="units" v-if="units.length > 1" />
+            <BulkEditScoreModal
+              :units="units"
+              v-if="units.length > 1"
+              :refresh_page_data="fetchUnitsData"
+            />
             <zoa-button kind="alt">Undo Change</zoa-button>
             <zoa-button kind="primary">Revert All Changes</zoa-button>
           </ActionsBtnGroup>

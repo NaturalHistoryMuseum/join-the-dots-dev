@@ -2,7 +2,6 @@
   <div class="rescore">
     <div class="row">
       <h1 class="col-md-3 rescore-title">Rescore</h1>
-
       <StepperComp
         :steps="steps"
         :current_step="current_step"
@@ -10,7 +9,6 @@
       />
       <div class="col-md-3"></div>
     </div>
-
     <div class="stepper-navigation" v-if="rescore_session_id">
       <zoa-button
         v-if="current_step > 1"
@@ -19,7 +17,6 @@
         class="stepper-btn left-btn"
       />
       <div v-else></div>
-      <!-- <div class="stepper-seperator"></div> -->
       <zoa-button
         v-if="current_step < steps.length"
         label="Continue"
@@ -27,18 +24,24 @@
         class="stepper-btn right-btn"
       />
     </div>
-    <div v-if="current_step === 1">
-      <ManageRescoreView @update:current_step="current_step++" />
-    </div>
-    <div v-if="current_step === 2">
-      <EditRescoreView
-        :rescore_session_id="rescore_session_id"
-        :units="units"
-        :fetchUnitsData="fetchUnitsData"
-      />
-    </div>
-    <div v-if="current_step === 3">
-      <ReviewRescoreView :units="units" />
+    <div v-if="!loading">
+      <div v-if="current_step === 1">
+        <ManageRescoreView
+          @update:current_step="current_step++"
+          :open_rescore="open_rescore"
+          :fetchUnitsData="fetchUnitsData"
+        />
+      </div>
+      <div v-if="current_step === 2">
+        <EditRescoreView
+          :rescore_session_id="rescore_session_id"
+          :units="units"
+          :fetchUnitsData="fetchUnitsData"
+        />
+      </div>
+      <div v-if="current_step === 3">
+        <ReviewRescoreView :units="units" />
+      </div>
     </div>
   </div>
 </template>
@@ -80,6 +83,8 @@ export default {
       ],
       current_step: 1,
       rescore_session_id: null,
+      open_rescore: {},
+      loading: false,
     };
   },
   mounted() {
@@ -87,12 +92,13 @@ export default {
   },
   methods: {
     async fetchUnitsData() {
+      this.loading = true;
       const rescoreResp = await getGeneric('open-rescore');
       // Check if there is an open rescore session
-      const open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : null;
-      if (open_rescore) {
+      this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
+      if (Object.keys(this.open_rescore).length > 0) {
         // Set the rescore session id
-        this.rescore_session_id = open_rescore.rescore_session_id;
+        this.rescore_session_id = this.open_rescore.rescore_session_id;
         // Fetch units in this rescore session
         getGeneric(`rescore-units/${this.rescore_session_id}`).then(
           (response) => {
@@ -106,6 +112,7 @@ export default {
           },
         );
       }
+      this.loading = false;
     },
   },
 };

@@ -185,6 +185,7 @@ export default {
   },
   props: {
     units: Array,
+    refresh_page_data: Function,
   },
   async mounted() {
     const data = await import('../utils/ranks_json_temp.json');
@@ -262,6 +263,7 @@ export default {
       this.loading = false;
       this.success = response.success_count > 0;
       this.success_message = `Changes successfully made for ${response.success_count} / ${response.total_units}! ${response.success_count < response.total_units ? 'Please check changes and try again' : ''}`;
+      this.refresh_page_data();
     },
   },
 };

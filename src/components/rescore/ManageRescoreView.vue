@@ -61,6 +61,10 @@ export default {
   setup() {
     return { currentUser };
   },
+  props: {
+    open_rescore: Object,
+    fetchUnitsData: Function,
+  },
   data() {
     return {
       units: [],
@@ -71,8 +75,6 @@ export default {
         { label: 'Last Rescored', key: 'last_rescored' },
         { label: 'Actions', key: 'actions' },
       ],
-
-      open_rescore: {},
       is_loading: false,
     };
   },
@@ -85,11 +87,8 @@ export default {
       this.is_loading = true;
       // Fetch data
       this.units = await getGeneric('units-by-user');
-      const rescoreResp = await getGeneric('open-rescore');
       // End loading state
       this.is_loading = false;
-      // Check if there is an open rescore session
-      this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
     },
     navigateRescore() {
       // Emit the next step in stepper
@@ -98,15 +97,15 @@ export default {
 
     async createRescore() {
       // Create rescore session with selected units
-      markRescoreOpen(this.selectedUnitIds).then((response) => {
-        this.open_rescore = response.rescore_session_id;
-        this.navigateRescore(response.rescore_session_id);
-      });
+      await markRescoreOpen(this.selectedUnitIds);
+      this.fetchUnitsData();
+      // this.navigateRescore();
     },
-    closeRescore() {
+    async closeRescore() {
       // Close the rescore session
-      markRescoreComplete(this.open_rescore.rescore_session_id);
-      this.open_rescore = {};
+      await markRescoreComplete(this.open_rescore.rescore_session_id);
+      this.fetchUnitsData();
+      this.fetchData();
     },
     latestRescore() {
       // Initialize to a very old date

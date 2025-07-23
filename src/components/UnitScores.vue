@@ -176,7 +176,7 @@
                 v-if="rescore"
                 v-model="rank.percentage"
                 :label="`Rank ${rank.rank_value} (%)`"
-                :error="checkErrors(crit.criterion_id)"
+                :error="bulk_edit ? [] : checkErrors(crit.criterion_id)"
                 :submit="submitRankChanges"
                 :rank="rank"
                 :ranks="editedRanks[crit.criterion_id]"
@@ -201,7 +201,7 @@
             }} -->
           </div>
           <!-- Container for other criterion interations -->
-          <div class="row">
+          <div class="row" v-if="!bulk_edit">
             <!-- Show comments asigned to ranks in this criterion -->
             <div class="show-comments">
               <div
@@ -267,6 +267,7 @@
                   <EditCommentsModal
                     v-if="rescore && !bulk_edit"
                     :criterion_id="crit.criterion_id"
+                    :criterion_name="`${crit.criterion_code}: ${crit.criterion_name.split('/').join(' / ')}`"
                     :ranks="editedRanks[crit.criterion_id]"
                     :submit="submitRankChanges"
                   />
@@ -344,7 +345,7 @@ export default {
         const currentAccordion = this.expanded_accordion;
         this.local_unit = { ...newVal };
         this.initializeEditedRanks(newVal);
-        this.fetchMetrics();
+        // this.fetchMetrics();
         // Keep accordion open on unit change
         this.expanded_accordion = currentAccordion;
       },
@@ -354,7 +355,7 @@ export default {
   mounted() {
     this.fetchCriterionData();
     this.fetchCategoryData();
-    // this.fetchMetrics()
+    this.fetchMetrics();
   },
   methods: {
     fieldNameCalc,
@@ -533,18 +534,26 @@ export default {
         ).is_draft = true;
         this.returnBulkEdit();
       } else {
-        submitDataGeneric('submit-draft-metrics', {
-          rescore_session_units_id: this.unit.rescore_session_units_id,
-          collection_unit_id: this.unit.collection_unit_id,
-          metric_json: this.metric_definitions.filter(
-            (metric) =>
-              metric.collection_unit_metric_definition_id ==
-              collection_unit_metric_definition_id,
-          ),
-        }).then(() => {
-          // Fetch the updated data after submitting the metrics changes
-          this.fetchUnitsData();
-        });
+        const edited_metric = this.metric_definitions.find(
+          (metric) =>
+            metric.collection_unit_metric_definition_id ==
+            collection_unit_metric_definition_id,
+        );
+        // Check the the metric value and confidence is valid
+        if (
+          edited_metric.metric_value >= 0 &&
+          edited_metric.confidence_level !== null
+        ) {
+          // Submit the metric change
+          submitDataGeneric('submit-draft-metrics', {
+            rescore_session_units_id: this.unit.rescore_session_units_id,
+            collection_unit_id: this.unit.collection_unit_id,
+            metric_json: [edited_metric],
+          }).then(() => {
+            // Fetch the updated data after submitting the metrics changes
+            this.fetchUnitsData();
+          });
+        }
       }
     },
     returnBulkEdit() {
@@ -564,7 +573,12 @@ export default {
         try {
           // Check if there are any errors before submitting
           const errors = this.checkErrors(criterion_id);
-          if (errors.length > 0 && !errors.some((e) => e.allow_submit)) {
+          // Check if the ranks was actually changed
+          const was_changed = this.checkChanged(criterion_id);
+          if (
+            (errors.length > 0 && !errors.some((e) => e.allow_submit)) ||
+            !was_changed
+          ) {
             // If there are errors, do not submit
             return;
           } else {
@@ -657,34 +671,49 @@ export default {
       }
       // Check if the score has changed but not saved - only if no other messages
       if (this.unit && errors.length == 0) {
-        const original_data_edited_ranks = this.getInitialEditedRanks(
-          this.unit,
-        );
-        if (original_data_edited_ranks) {
-          const original_data_ranks_filtered =
-            original_data_edited_ranks[criterion_id] || [];
-          // Check if there is a difference between original data and current data
-          for (let i = 0; i < ranks_filtered.length; i++) {
-            const original = original_data_ranks_filtered[i];
-            const current = ranks_filtered[i];
-
-            if (
-              original.percentage !== current.percentage ||
-              original.comment !== current.comment
-            ) {
-              errors.push({
-                message: 'Change not saved!',
-                type: 'error',
-                allow_submit: true,
-              });
-              // Stop if difference found
-              break;
-            }
-          }
+        const was_changed = this.checkChanged(criterion_id);
+        if (was_changed) {
+          errors.push({
+            message: 'Change not saved!',
+            type: 'error',
+            allow_submit: true,
+          });
         }
       }
 
       return errors;
+    },
+    checkChanged(criterion_id) {
+      // Get filtered ranks
+      const ranks_filtered = this.editedRanks[criterion_id] || [];
+      // Sort ranks
+      const sorted_current = [...ranks_filtered].sort(
+        (a, b) => a.rank_id - b.rank_id,
+      );
+      // Get original data
+      const original_data_edited_ranks = this.getInitialEditedRanks(this.unit);
+      if (original_data_edited_ranks) {
+        const original_data_ranks_filtered =
+          original_data_edited_ranks[criterion_id] || [];
+        const sorted_original = [...original_data_ranks_filtered].sort(
+          (a, b) => a.rank_id - b.rank_id,
+        );
+        // Check if there is a difference between original data and current data
+        for (let i = 0; i < sorted_current.length; i++) {
+          const original = sorted_original[i];
+          const current = sorted_current[i];
+          //Check if the current rank is the same as the original
+          if (
+            original.percentage !== current.percentage ||
+            original.comment !== current.comment
+          ) {
+            // Change found
+            return true;
+          }
+        }
+        // No changes found
+        return false;
+      }
     },
     checkEdited(ranks) {
       if (ranks == undefined) return false;
