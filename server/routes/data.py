@@ -207,22 +207,17 @@ def submit_rescore_complete():
             (rescore_session_id, user_id),
         )
         draft_rows = cursor.fetchall()
-        print(f'Draft rows: {draft_rows}')
         # Group rows by collection_unit_id and criterion_id
         grouped_assessment = defaultdict(list)
         for row in draft_rows:
             key = (row['collection_unit_id'], row['criterion_id'])
             grouped_assessment[key].append(row)
-        print(f'Grouped assessment: {grouped_assessment}')
         # Insert assessment_criterion rows
         inserted_ids = {}
         for (
             collection_unit_id,
             criterion_id,
         ), group_rows in grouped_assessment.items():
-            print(
-                f'Inserting assessment criterion for collection_unit_id: {collection_unit_id}, criterion_id: {criterion_id}'
-            )
             cursor.execute(
                 f"""
                 INSERT INTO {database_name}.unit_assessment_criterion (
@@ -238,10 +233,6 @@ def submit_rescore_complete():
 
         # Insert all ranks referencing the correct assessment_criterion_id
         for row in draft_rows:
-            print(
-                f'Inserting rank for collection_unit_id: {row["collection_unit_id"]}, criterion_id: {row["criterion_id"]}, rank_id: {row["rank_id"]}'
-            )
-
             criterion_key = (row['collection_unit_id'], row['criterion_id'])
             assessment_criterion_id = inserted_ids[criterion_key]
             cursor.execute(
@@ -354,10 +345,8 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
                    """,
             (criterion_id, category_draft_id),
         )
-        print(data)
         # Loop through the ranks and update or insert them
         for sumbit_rank in ranks:
-            print(sumbit_rank)
             in_db = False
             rank_id = sumbit_rank['rank_id']
             percentage = sumbit_rank['percentage']
@@ -411,7 +400,6 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
     try:
         # Loop through the metrics and update or insert them
         for metric in metric_json:
-            print(metric)
             collection_unit_metric_definition_id = metric[
                 'collection_unit_metric_definition_id'
             ]
@@ -452,7 +440,6 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
                             confidence_level,
                         ),
                     )
-            print(metric['collection_unit_metric_definition_id'], 'changesd')
         return jsonify({'message': 'Draft metrics submitted successfully'}), 201
 
     except Exception as e:
@@ -529,7 +516,6 @@ def bulk_upload_rescore():
         if 'ranks_json' in rescore_data:
             # Loop through all of the score changes
             for criterion_ranks in rescore_data['ranks_json']:
-                print(criterion_ranks)
                 # Get the criterion_id for this score change
                 criterion_id = criterion_ranks[0]['criterion_id']
                 category_id = criterion_ranks[0]['category_id']
@@ -674,7 +660,6 @@ def submit_field():
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
 def get_units_and_departments():
-    print('current user id', get_jwt_identity())
     data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id

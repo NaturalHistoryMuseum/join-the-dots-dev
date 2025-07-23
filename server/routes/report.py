@@ -41,10 +41,7 @@ def get_embed_url():
         f'{POWER_BI_API}/groups/{Config.WORKSPACE_ID}/reports/{Config.REPORT_ID}'
     )
     # response = requests.get(report_url, headers=headers)
-    # print("Response:", response.json())
     # embed_url = response.json().get("embedUrl")
-
-    # print("Embed URL:", embed_url)
 
     try:
         response = requests.get(report_url, headers=headers)
