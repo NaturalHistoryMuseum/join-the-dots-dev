@@ -15,6 +15,8 @@
               @update:refreshData="fetchData"
             />
           </div>
+          <AddUnitModal />
+          <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
         </ActionsBtnGroup>
       </div>
       <div class="content-container">
@@ -63,6 +65,7 @@
 
 <script>
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
+import AddUnitModal from '@/components/AddUnitModal.vue';
 import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import UnitActionsModal from '@/components/UnitActionsModal.vue';
@@ -75,6 +78,7 @@ export default {
     UnitActionsModal,
     ActionsBtnGroup,
     TableCheckbox,
+    AddUnitModal,
   },
   data() {
     return {
@@ -140,6 +144,9 @@ export default {
         },
       });
     },
+    navAddUnit() {
+      this.$router.push({ path: '/view-unit', query: { add_unit: 1 } });
+    },
     handleFilteredUnits(filteredUnits) {
       // Only reset pagination if actual filter logic triggered
       if (!this._internalChange) {
@@ -162,6 +169,9 @@ export default {
 </script>
 
 <style>
+.actions-bar {
+  text-align: left;
+}
 .content-container {
   display: flex;
   flex-direction: row;

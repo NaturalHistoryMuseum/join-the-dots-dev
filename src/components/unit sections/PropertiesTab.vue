@@ -158,7 +158,7 @@
       <zoa-input
         zoa-type="textbox"
         label="Informal Taxon"
-        v-model="unit_value.infomal_taxon"
+        v-model="unit_value.informal_taxon"
         v-if="allow_edit"
       />
       <div v-else>
@@ -167,7 +167,7 @@
           label="Informal Taxon"
           class="comments-title"
         />
-        <p class="view-field">{{ unit_value.infomal_taxon }}</p>
+        <p class="view-field">{{ unit_value.informal_taxon }}</p>
       </div>
     </div>
     <div class="col-md-3 field">
@@ -355,6 +355,10 @@ export default {
       }
     },
     filterTaxonOptions() {
+      if (!this.department_id) {
+        this.taxon_options = this.taxon_all_options;
+        return;
+      }
       this.taxon_options = this.taxon_all_options.filter(
         (taxon) => taxon.department_id == this.department_id,
       );

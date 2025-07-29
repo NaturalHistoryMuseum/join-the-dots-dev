@@ -1,14 +1,18 @@
 <template>
-  <zoa-modal class="modal-btn">
+  <zoa-modal class="modal-btn criterion-modal" kind="info">
     <template v-slot:button>
       <i class="bi bi-info-circle help-icon"></i>
     </template>
-    <template v-slot:header> Definitions </template>
-    <div class="flex flex-col gap-4">
-      <div>
+    <template v-slot:header>
+      Definition - {{ crit.criterion_code }}: {{ crit.criterion_name }}
+    </template>
+    <div class="flex flex-col gap-4 criterion-definitions-content">
+      <div v-if="unit.ranks_json && unit.ranks_json.length > 0">
         <!-- Criteria name -->
-        <p class="desc-title">{{ crit.criterion_name }}:</p>
-        <p>{{ crit.definition }}</p>
+        <div class="desc-title">
+          <div class="bold-header">Criterion Definition:</div>
+          {{ crit.definition }}
+        </div>
         <!-- All Ranks for this Criteria -->
         <div
           v-for="ranks in unit.ranks_json.filter(
@@ -16,8 +20,10 @@
           )"
           :key="ranks.rank_id"
         >
-          <p class="desc-title">Rank {{ ranks.rank_value }}:</p>
-          <p>{{ ranks.definition }}</p>
+          <div class="desc-title">
+            <div class="bold-header">Rank {{ ranks.rank_value }}:</div>
+            {{ ranks.definition }}
+          </div>
         </div>
       </div>
     </div>
@@ -33,7 +39,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
 /* Zoe model */
 .modal-btn {
   margin: auto;
@@ -42,5 +48,26 @@ export default {
 
 .help-icon {
   font-size: 1.2rem;
+}
+
+.criterion-modal {
+  width: 80vw !important;
+}
+
+.indent {
+  margin: 1rem;
+}
+
+.desc-title {
+  margin-bottom: 0.5rem;
+}
+
+.bold-header {
+  font-weight: bold;
+}
+
+.criterion-definitions-content {
+  max-height: 75vh;
+  overflow: auto;
 }
 </style>

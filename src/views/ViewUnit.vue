@@ -10,9 +10,18 @@
       </div>
     </transition-group>
   </div>
-  <div class="main-page">
+  <div v-if="unit_create_success" class="main-page">
+    <zoa-flash kind="success" header="Unit Successfully Created">
+      <p>
+        The unit <strong>{{ unit.unit_name }}</strong> has been successfully
+        created with ID: <strong>{{ this.new_unit_id }}</strong>
+      </p>
+      <zoa-button label="Go to Unit" @click="navNewUnit()" />
+    </zoa-flash>
+  </div>
+  <div v-else class="main-page">
     <div class="main-header">
-      <div class="row">
+      <div class="row" v-if="(unit && unit_id) || !add_unit_mode">
         <div class="col-md-4">
           <h1>View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
           <p>Unit ID: {{ unit_id }}</p>
@@ -23,14 +32,46 @@
               <UnitActionsModal
                 :action="action"
                 :selected_unit_ids="[this.unit.collection_unit_id]"
-                @update:refreshData="fetchData"
+                @update:refreshData="fetchUnitData"
               />
             </div>
           </ActionsBtnGroup>
         </div>
       </div>
+      <div v-else class="row">
+        <div class="col-md-6">
+          <h1>Add New Unit</h1>
+          <p>
+            Please fill out all required units (<span style="color: red">*</span
+            >) and the scoring page to create this unit.
+          </p>
+        </div>
+        <div class="col-md-3">
+          <div class="required-message">
+            Required fields completion:
+            <div class="round-prog-bar">
+              <RoundProgressBar :progress="countRequiredFields()" />
+            </div>
+          </div>
+          <div class="required-message">
+            Scoring completion:
+            <div class="round-prog-bar">
+              <RoundProgressBar :progress="scores_percentage" />
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <!-- Button to create unit - only visible when unit is ready -->
+          <zoa-button
+            v-if="scores_percentage == 100 && countRequiredFields() == 100"
+            label="Create Unit"
+            @click="submitUnit()"
+          />
+        </div>
+      </div>
+      <!-- {{ this.unit }} -->
       <TopTabs :tabs="tabs" :active_tab="active_tab" :changeTabFunc="changeTab">
-        <div v-if="unit && unit_id">
+        <div v-if="(unit && unit_id) || add_unit_mode">
           <!-- Unit Details -->
           <div v-if="active_tab == 0" class="content row">
             <DetailsTab
@@ -73,7 +114,13 @@
           </div>
           <!-- Scores -->
           <div v-show="active_tab == 4" class="content row">
-            <ScoresTab :unit="unit" :unit_id="unit_id" />
+            <ScoresTab
+              :unit="unit"
+              :unit_id="unit_id"
+              :add_unit_mode="add_unit_mode"
+              @update:scores_percentage="scores_percentage = $event"
+              @new_unit="scored_unit = $event"
+            />
           </div>
           <!-- Comments -->
           <!-- <div v-if="active_tab == 5" class="content row">
@@ -100,6 +147,8 @@ import StorageTab from '@/components/unit sections/StorageTab.vue';
 import UnitActionsModal from '@/components/UnitActionsModal.vue';
 import { currentUser } from '@/services/authService';
 
+import RoundProgressBar from '@/components/RoundProgressBar.vue';
+
 export default {
   name: 'ViewUnit',
   components: {
@@ -113,6 +162,7 @@ export default {
     SmallMessages,
     ActionsBtnGroup,
     UnitActionsModal,
+    RoundProgressBar,
   },
   data() {
     return {
@@ -156,6 +206,10 @@ export default {
             'This will split the selected units into different units. This cannot be undone. (not working yet)',
         },
       ],
+      add_unit_mode: true,
+      scores_percentage: 0,
+      scored_unit: [],
+      unit_create_success: false,
     };
   },
   setup() {
@@ -163,21 +217,41 @@ export default {
   },
   created() {
     this.unit_id = this.$route.query.unit_id;
-    this.fetchData();
+    if (this.unit_id == undefined || this.unit_id == null) {
+      this.add_unit_mode = true;
+      this.allow_edit = true;
+      this.unit = {
+        collection_unit_id: 0,
+        unit_name: '',
+        section_id: null,
+        public_unit_name: '',
+        storage_room_id: null,
+        curatorial_unit_definition_id: null,
+        publish_flag: 'yes',
+        unit_active: 'yes',
+      };
+    } else {
+      this.add_unit_mode = false;
+      this.fetchUnitData();
+    }
+    this.fetchSectionOptions();
   },
   methods: {
-    async fetchData() {
-      let unitData = await getGeneric(`full-unit/${this.unit_id}`);
-      this.unit = unitData[0];
-      // Check if the unit is assigned to the current user
-      if (this.currentUser.assigned_units) {
-        this.allow_edit = JSON.parse(this.currentUser.assigned_units).includes(
-          this.unit.collection_unit_id,
-        );
-      } else {
-        this.allow_edit = false;
+    async fetchUnitData() {
+      if (!this.add_unit_mode && this.unit_id) {
+        let unitData = await getGeneric(`full-unit/${this.unit_id}`);
+        this.unit = unitData[0];
+        // Check if the unit is assigned to the current user
+        if (this.currentUser.assigned_units) {
+          this.allow_edit = JSON.parse(
+            this.currentUser.assigned_units,
+          ).includes(this.unit.collection_unit_id);
+        } else {
+          this.allow_edit = false;
+        }
       }
-
+    },
+    fetchSectionOptions() {
       getGeneric(`all-sections`).then((response) => {
         this.section_options = response.map((section) => ({
           ...section,
@@ -206,12 +280,31 @@ export default {
         )[0];
       }
     },
-
+    countRequiredFields() {
+      let total_fields = this.required_fields.length;
+      let filled_fields = 0;
+      // Go through each key of the unit object
+      for (const property in this.unit) {
+        // Check if the property has data
+        if (
+          this.checkRequired(property) &&
+          this.unit[property] !== null &&
+          this.unit[property] !== ''
+        ) {
+          filled_fields++;
+        }
+      }
+      // Return percentage of required fields completed
+      return ((filled_fields / total_fields) * 100 || 0).toFixed(2);
+    },
     checkRequired(field_name) {
       return this.required_fields.includes(field_name);
     },
 
     async handleFieldChange(field_name, new_value) {
+      // If not allowed to edit or in add mode, do nothing
+      this.countRequiredFields();
+      if (!this.allow_edit || this.add_unit_mode) return;
       if (this.checkRequired(field_name) && !new_value) {
         this.errors.push({
           field: field_name,
@@ -246,7 +339,7 @@ export default {
             });
             this.removeMessage();
           }
-          this.fetchData();
+          this.fetchUnitData();
         } catch (error) {
           console.error('Submission error:', error);
 
@@ -263,16 +356,47 @@ export default {
         this.messages.shift();
       }, 3000);
     },
+    submitUnit() {
+      console.log('can we add units? ', this.allow_edit, this.add_unit_mode);
+      // If not allowed to edit or in add mode, do nothing
+      if (!this.allow_edit || !this.add_unit_mode) return;
+      console.log('submitting unit data', this.unit, this.scored_unit);
+      // Check if all required fields are filled
+      if (this.countRequiredFields() < 100) {
+        this.messages.push({
+          message_text: 'Please fill all required fields',
+          message_type: 'error',
+        });
+        this.removeMessage();
+        return;
+      }
+      // Submit the unit data
+      submitDataGeneric('submit-unit', {
+        unit_data: this.unit,
+        score_data: this.scored_unit,
+      }).then((response) => {
+        if (response.success) {
+          this.unit_create_success = true;
+          this.new_unit_id = response.collection_unit_id;
+        } else {
+          this.messages.push({
+            message_text: 'Error saving unit',
+            message_type: 'error',
+          });
+          this.removeMessage();
+        }
+      });
+    },
+    navNewUnit() {
+      this.$router.push({
+        path: '/view-unit',
+        query: {
+          unit_id: this.new_unit_id,
+        },
+      });
+    },
   },
-  computed: {
-    // allowEdit() {
-    //   // Allow edit if the user is an admin or the unit is assigned to them
-    //   return (
-    //     this.currentUser.level > 3 ||
-    //     JSON.parse(this.currentUser.assigned_units).includes(this.unit.collection_unit_id)
-    //   )
-    // }
-  },
+  computed: {},
 };
 </script>
 
@@ -333,6 +457,13 @@ export default {
   z-index: 1;
   pointer-events: none;
   gap: 1rem;
+}
+
+.required-message {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem;
 }
 
 .message-stack {

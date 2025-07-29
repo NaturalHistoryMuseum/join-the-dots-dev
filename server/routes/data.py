@@ -607,6 +607,103 @@ def update_complete_category():
 
 
 # Unit routes
+@data_bp.route('/submit-unit', methods=['POST'])
+@jwt_required()
+def submit_unit():
+    data = request.get_json()
+    unit_data = data.get('unit_data')
+    score_data = data.get('score_data')
+    metric_json = score_data.get('metric_json')
+    ranks_json = score_data.get('ranks_json')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    # Filter the data to remove None values and the collection_unit_id
+    filter_unit_data = {
+        key: value
+        for key, value in unit_data.items()
+        if value is not None and key is not 'collection_unit_id'
+    }
+    # Extract fields and values
+    keys = list(filter_unit_data.keys())
+    values = list(filter_unit_data.values())
+
+    # Construct the SQL dynamically
+    placeholders = ', '.join(['%s'] * len(keys))  # %s placeholders
+    columns = ', '.join([f'`{key}`' for key in keys])  # column names with backticks
+    sql_query = f'INSERT INTO {database_name}.collection_unit ({columns}) VALUES ({placeholders})'
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Execute the query and return the new unit ID
+        cursor.execute(sql_query, values)
+        new_unit_id = cursor.lastrowid
+        print(f'new unit id - {new_unit_id}')
+
+        if new_unit_id is None:
+            return jsonify({'error': 'Failed to create new unit'}), 500
+
+        # Handle metrics
+        if metric_json:
+            for metric in metric_json:
+                collection_unit_metric_definition_id = metric.get(
+                    'collection_unit_metric_definition_id'
+                )
+                metric_value = metric.get('metric_value')
+                confidence_level = metric.get('confidence_level')
+                if metric_value is not None or confidence_level is not None:
+                    cursor.execute(
+                        f"""INSERT INTO {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id, metric_value, confidence_level, date_from, `current`)
+                            VALUES (%s, %s, %s, %s, NOW(), 'yes');
+                        """,
+                        (
+                            new_unit_id,
+                            collection_unit_metric_definition_id,
+                            metric_value,
+                            confidence_level,
+                        ),
+                    )
+        # Handle ranks
+        if ranks_json:
+            for criterion in ranks_json:
+                criterion_id = criterion[0]['criterion_id']
+                # Add the criterion to the unit_assessment_criterion table and get the new id
+                cursor.execute(
+                    f"""
+                    INSERT INTO {database_name}.unit_assessment_criterion (
+                        collection_unit_id, criterion_id, assessor_id,
+                        date_assessed, date_from, current
+                    ) VALUES (%s, %s, %s, NOW(), NOW(), 'yes')
+                    """,
+                    (new_unit_id, criterion_id, user_id),
+                )
+                unit_assessment_criterion_id = cursor.lastrowid
+                for rank in criterion:
+                    rank_id = rank['rank_id']
+                    percentage = rank['percentage']
+                    comment = rank['comment']
+                    cursor.execute(
+                        f"""
+                        INSERT INTO {database_name}.unit_assessment_rank (
+                            unit_assessment_criterion_id, rank_id, percentage, comment
+                        ) VALUES (%s, %s, %s, %s)
+                        """,
+                        (
+                            unit_assessment_criterion_id,
+                            rank_id,
+                            percentage,
+                            comment,
+                        ),
+                    )
+
+        # Commit the transaction queries
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        return jsonify({'collection_unit_id': new_unit_id, 'success': True}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 def column_exists(field_name, new_value):
