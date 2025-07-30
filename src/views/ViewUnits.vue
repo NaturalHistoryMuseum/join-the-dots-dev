@@ -15,7 +15,6 @@
               @update:refreshData="fetchData"
             />
           </div>
-          <AddUnitModal />
           <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
         </ActionsBtnGroup>
       </div>
@@ -65,7 +64,6 @@
 
 <script>
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
-import AddUnitModal from '@/components/AddUnitModal.vue';
 import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import UnitActionsModal from '@/components/UnitActionsModal.vue';
@@ -78,7 +76,6 @@ export default {
     UnitActionsModal,
     ActionsBtnGroup,
     TableCheckbox,
-    AddUnitModal,
   },
   data() {
     return {

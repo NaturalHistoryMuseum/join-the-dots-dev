@@ -1,4 +1,3 @@
-import AddUnitView from '@/views/AddUnitView.vue';
 import AdminView from '@/views/AdminView.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { currentUser, loadUser } from '../services/authService';
@@ -89,11 +88,6 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         checkAuth(4, from, next);
       },
-    },
-    {
-      path: '/add-unit',
-      name: 'add unit',
-      component: AddUnitView,
     },
   ],
 });
