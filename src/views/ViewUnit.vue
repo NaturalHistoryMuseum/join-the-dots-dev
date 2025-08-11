@@ -70,10 +70,14 @@
         </div>
       </div>
       <!-- {{ this.unit }} -->
-      <TopTabs :tabs="tabs" :active_tab="active_tab" :changeTabFunc="changeTab">
+      <TopTabs
+        :tabs="unit_sections"
+        :active_tab="active_tab"
+        :changeTabFunc="changeTab"
+      >
         <div v-if="(unit && unit_id) || add_unit_mode">
           <!-- Unit Details -->
-          <div v-if="active_tab == 0" class="content row">
+          <!-- <div v-if="active_tab == 0" class="content row">
             <DetailsTab
               :unit="unit"
               :department_id="current_section.department_id"
@@ -81,9 +85,9 @@
               :errors="errors"
               :allow_edit="allow_edit"
             />
-          </div>
+          </div> -->
           <!-- Section -->
-          <div v-if="active_tab == 1" class="content row">
+          <!-- <div v-if="active_tab == 1" class="content row">
             <SectionTab
               :unit="unit"
               :current_section="current_section"
@@ -93,27 +97,27 @@
               :errors="errors"
               :allow_edit="allow_edit"
             />
-          </div>
+          </div> -->
           <!-- Properties -->
-          <div v-if="active_tab == 2" class="content row">
+          <!-- <div v-if="active_tab == 2" class="content row">
             <PropertiesTab
               :unit="unit"
               :department_id="current_section.department_id"
               :handleFieldChange="handleFieldChange"
               :allow_edit="allow_edit"
             />
-          </div>
+          </div> -->
           <!-- Storage -->
-          <div v-if="active_tab == 3" class="content row">
+          <!-- <div v-if="active_tab == 3" class="content row">
             <StorageTab
               :unit="unit"
               :handleFieldChange="handleFieldChange"
               :errors="errors"
               :allow_edit="allow_edit"
             />
-          </div>
+          </div> -->
           <!-- Scores -->
-          <div v-show="active_tab == 4" class="content row">
+          <!-- <div v-show="active_tab == 4" class="content row">
             <ScoresTab
               :unit="unit"
               :unit_id="unit_id"
@@ -121,11 +125,56 @@
               @update:scores_percentage="scores_percentage = $event"
               @new_unit="scored_unit = $event"
             />
-          </div>
+          </div> -->
           <!-- Comments -->
           <!-- <div v-if="active_tab == 5" class="content row">
             <CommentsTab :unit="unit" />
           </div> -->
+          <div v-if="unit_sections.length > 0">
+            <div
+              v-for="section in unit_sections.filter(
+                (section) => active_tab == section.section_id,
+              )"
+              :key="section.section_id"
+              class="content row"
+            >
+              <!-- <h4 class="subheading">{{ section.section_name }}</h4> -->
+              <div
+                v-if="section.sub_sections && section.sub_sections.length > 0"
+              >
+                <div
+                  v-for="sub in section.sub_sections"
+                  :key="sub.sub_section_id"
+                >
+                  <h4 class="subheading">{{ sub.sub_section_name }}</h4>
+                  <div v-if="sub.fields.length > 0" class="fields-box">
+                    <div
+                      v-for="field in sub.fields"
+                      :key="field.field_name"
+                      class="custom-field"
+                    >
+                      <CustomField
+                        :field="field"
+                        :value="unit[field.field_name]"
+                        :allow_edit="true"
+                        @dataChange="handleFieldChange"
+                        @updateValue="unit[field.field_name] = $event"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <ScoresTab
+                  :unit="unit"
+                  :unit_id="unit_id"
+                  :add_unit_mode="add_unit_mode"
+                  @update:scores_percentage="scores_percentage = $event"
+                  @new_unit="scored_unit = $event"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </TopTabs>
     </div>
@@ -139,15 +188,16 @@ import fieldNameCalc from '@/utils/utils';
 // import CommentsTab from '@/components/unit sections/CommentsTab.vue'
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
 import SmallMessages from '@/components/SmallMessages.vue';
-import DetailsTab from '@/components/unit sections/DetailsTab.vue';
-import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
+// import DetailsTab from '@/components/unit sections/DetailsTab.vue';
+// import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
-import SectionTab from '@/components/unit sections/SectionTab.vue';
-import StorageTab from '@/components/unit sections/StorageTab.vue';
+// import SectionTab from '@/components/unit sections/SectionTab.vue';
+// import StorageTab from '@/components/unit sections/StorageTab.vue';
 import UnitActionsModal from '@/components/UnitActionsModal.vue';
 import { currentUser } from '@/services/authService';
 
 import RoundProgressBar from '@/components/RoundProgressBar.vue';
+import CustomField from '@/components/unit sections/CustomField.vue';
 
 export default {
   name: 'ViewUnit',
@@ -155,26 +205,19 @@ export default {
     TopTabs,
     // CommentsTab,
     ScoresTab,
-    StorageTab,
-    PropertiesTab,
-    SectionTab,
-    DetailsTab,
+    // StorageTab,
+    // PropertiesTab,
+    // SectionTab,
+    // DetailsTab,
     SmallMessages,
     ActionsBtnGroup,
     UnitActionsModal,
     RoundProgressBar,
+    CustomField,
   },
   data() {
     return {
       unit: [],
-      tabs: [
-        { id: 0, label: 'Unit Details' },
-        { id: 1, label: 'Section' },
-        { id: 2, label: 'Properties' },
-        { id: 3, label: 'Storage' },
-        { id: 4, label: 'Scores' },
-        // { id: 5, label: 'Comments' },
-      ],
 
       active_tab: 0,
 
@@ -195,13 +238,13 @@ export default {
       actions: [
         {
           action: 'Delete',
-          header: 'Delete Units',
+          header: 'Delete Unit',
           description:
             'This will remove the selected units. This cannot be undone without contacting an admin.',
         },
         {
           action: 'Split',
-          header: 'Split Units',
+          header: 'Split Unit',
           description:
             'This will split the selected units into different units. This cannot be undone. (not working yet)',
         },
@@ -210,12 +253,14 @@ export default {
       scores_percentage: 0,
       scored_unit: [],
       unit_create_success: false,
+      unit_sections: [],
     };
   },
   setup() {
     return { currentUser };
   },
   created() {
+    this.setUnitSections();
     this.unit_id = this.$route.query.unit_id;
     if (this.unit_id == undefined || this.unit_id == null) {
       this.add_unit_mode = true;
@@ -237,6 +282,11 @@ export default {
     this.fetchSectionOptions();
   },
   methods: {
+    async setUnitSections() {
+      const data = await import('../utils/unit_sections.json');
+      this.unit_sections = data.default;
+      console.log(this.unit_scores);
+    },
     async fetchUnitData() {
       if (!this.add_unit_mode && this.unit_id) {
         let unitData = await getGeneric(`full-unit/${this.unit_id}`);
@@ -302,6 +352,7 @@ export default {
     },
 
     async handleFieldChange(field_name, new_value) {
+      console.log('field changed');
       // If not allowed to edit or in add mode, do nothing
       this.countRequiredFields();
       if (!this.allow_edit || this.add_unit_mode) return;
@@ -409,6 +460,18 @@ export default {
   padding: 5px;
 }
 
+.fields-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  text-align: left;
+  width: 100%;
+}
+.subheading {
+  text-align: left;
+  margin: 1rem 0;
+}
+
 .text-area {
   width: 100%;
   height: 50%;
@@ -451,8 +514,8 @@ export default {
 }
 
 .unit-save-msg-container {
-  position: absolute;
-  top: 20rem;
+  position: fixed;
+  /* padding-top: 30rem; */
   left: 85%;
   z-index: 1;
   pointer-events: none;

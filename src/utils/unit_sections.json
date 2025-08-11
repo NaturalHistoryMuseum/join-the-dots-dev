@@ -1,0 +1,414 @@
+[
+  {
+    "section_id": 0,
+    "section_name": "Unit Details",
+    "sub_sections": [
+      {
+        "sub_section_id": 1,
+        "sub_section_name": "Details",
+        "fields": [
+          {
+            "field_name": "unit_name",
+            "field_type": "textbox",
+            "label": "Unit Name",
+            "required": true,
+            "editable": true,
+            "help_text": "A short descriptive name which reflects how curators describe and understand that part of the collection. This may duplicate some information that is specified as other attributes (see examples), but is used for descriptive purposes rather than any formal categorisation."
+          },
+          {
+            "field_name": "public_unit_name",
+            "field_type": "textbox",
+            "label": "Public Unit Name",
+            "required": true,
+            "editable": true,
+            "help_text": "A short descriptive name for the collection unit which is used for the JtD dataset published on the NHM Data Portal instead of the `unit_name`. This may be the same value as the `unit_name`, or a version that's more suitable for public consumption."
+          },
+          {
+            "field_name": "named_collection",
+            "field_type": "textbox",
+            "label": "Named Collection",
+            "required": false,
+            "editable": true,
+            "help_text": "A colloquial, informal or historical name for the collection to which the collection unit belongs. This will commonly reflect the donor, collector or historical source of the specimens."
+          },
+          {
+            "field_name": "archives_fond_ref",
+            "field_type": "textbox",
+            "label": "Archives Fond Ref",
+            "required": false,
+            "editable": true,
+            "help_text": "The reference for the fond into which the collection unit is organised in CALM, the archives management system."
+          },
+          {
+            "field_name": "sort_order",
+            "field_type": "number",
+            "label": "Sort Order",
+            "required": false,
+            "editable": true,
+            "help_text": "The sort order of the collection units for displaying in rescore forms."
+          },
+          {
+            "field_name": "unit_active",
+            "field_type": "checkbox",
+            "label": "Unit Active?",
+            "required": false,
+            "editable": true,
+            "help_text": "Flag to define whether the collection unit is currently active."
+          },
+          {
+            "field_name": "publish_flag",
+            "field_type": "checkbox",
+            "label": "Publish Unit?",
+            "required": true,
+            "editable": true,
+            "help_text": "A flag to indicate whether the collection unit should be included in the public JtD dataset published in the NHM Data Portal."
+          },
+          {
+            "field_name": "type_collection_flag",
+            "field_type": "checkbox",
+            "label": "Type Collection?",
+            "required": false,
+            "editable": true,
+            "help_text": "A flag to indicate that a collection unit is a specific collection of type specimens."
+          },
+          {
+            "field_name": "es_recent_specimen_flag",
+            "field_type": "checkbox",
+            "label": "ES Recent Specimen?",
+            "required": false,
+            "editable": true,
+            "help_text": "A flag to indicate that the items in an Earth Sciences unit are recent biological specimens. Some ES divisions have collections of recent (unfossilised) items, and this flag can be used to indicate that they may need to be treated similarly to Life Sciences collection units."
+          },
+          {
+            "field_name": "count_curatorial_units_flag",
+            "field_type": "checkbox",
+            "label": "Count Curatorial Units?",
+            "required": false,
+            "editable": true,
+            "help_text": "A flag to indicate that the 'curatorial unit count' metric should be used to calculate the 'reporting count' rather than the 'item count' for this collection unit."
+          }
+        ]
+      },
+      {
+        "sub_section_id": 2,
+        "sub_section_name": "Responsible Curator",
+        "fields": []
+      },
+      {
+        "sub_section_id": 3,
+        "sub_section_name": "Curtorial Unit Definition",
+        "fields": [
+          {
+            "field_name": "curatorial_unit_definition_id",
+            "field_type": "dropdown",
+            "label": "Curatorial Unit Definition",
+            "required": true,
+            "editable": true,
+            "options_source": "all-curtorial-definition",
+            "help_text": "A short description of the curatorial unit type that reflects the terminology used by the curators.",
+            "dependant_fields": [
+              {
+                "field_name": "item_type",
+                "label": "Item Type",
+                "help_text": "The short name of the type of collection item."
+              },
+              {
+                "field_name": "bibliographic_level",
+                "label": "Bibliographic Level",
+                "help_text": "Description of how the items in the collection unit are defined according to current cataloguing standards. These labels indicate the bibliographic level of the record, i.e., mode of issuance, relationship of component part."
+              },
+              {
+                "field_name": "preservation_method",
+                "label": "Preservation Method",
+                "help_text": "The short name of the preservation method."
+              },
+              {
+                "field_name": "items_unestimatable_flag",
+                "label": "Items Unestimatable Flag",
+                "help_text": "A flag to indicate that it isn't possible to even estimate the number of items in a curatorial unit. If set to 'Yes', this will indicate that the collection unit is expected to have a curatorial unit count but not an item count."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sub_section_id": 4,
+        "sub_section_name": "Library and Archives Function",
+        "fields": [
+          {
+            "field_name": "library_and_archives_function_id",
+            "field_type": "dropdown",
+            "label": "Library and Archives Function",
+            "required": false,
+            "editable": true,
+            "options_source": "all-lib-function",
+            "help_text": "The short name of the LA function."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section_id": 1,
+    "section_name": "Section",
+    "sub_sections": [
+      {
+        "sub_section_id": 1,
+        "sub_section_name": "Section",
+        "fields": [
+          {
+            "field_name": "section_id",
+            "field_type": "dropdown",
+            "label": "Section Name",
+            "required": true,
+            "editable": true,
+            "options_source": "all-sections",
+            "help_text": "The short name of the section.",
+            "dependant_fields": [
+              {
+                "field_name": "division_name",
+                "label": "Division Name",
+                "help_text": "The official name of the NHM division."
+              },
+              {
+                "field_name": "department_name",
+                "label": "Department Name",
+                "help_text": "The official name of the NHM department."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section_id": 2,
+    "section_name": "Properties",
+    "sub_sections": [
+      {
+        "sub_section_id": 1,
+        "sub_section_name": "Geological Time Period",
+        "fields": [
+          {
+            "field_name": "geological_time_period_to_id",
+            "field_type": "dropdown",
+            "label": "Geological Time Period To",
+            "required": false,
+            "editable": true,
+            "options_source": "all-geological-time-period",
+            "help_text": "The name of the chronostratigraphic period.",
+            "dependant_fields": [
+              {
+                "field_name": "rank",
+                "label": "Time To Rank",
+                "help_text": "The rank of the chronostratigraphic period."
+              }
+            ]
+          },
+          {
+            "field_name": "geological_time_period_from_id",
+            "field_type": "dropdown",
+            "label": "Geological Time Period From",
+            "required": false,
+            "editable": true,
+            "options_source": "all-geological-time-period",
+            "help_text": "The name of the chronostratigraphic period.",
+            "dependant_fields": [
+              {
+                "field_name": "rank",
+                "label": "Time To Rank",
+                "help_text": "The rank of the chronostratigraphic period."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sub_section_id": 2,
+        "sub_section_name": "Geographic Origin",
+        "fields": [
+          {
+            "field_name": "geographic_origin_id",
+            "field_type": "dropdown",
+            "label": "Geographic Origin Name",
+            "required": false,
+            "editable": true,
+            "options_source": "all-geographic-origin",
+            "help_text": "The name of the geographic region.",
+            "dependant_fields": [
+              {
+                "field_name": "region_type",
+                "label": "Region Type",
+                "help_text": "The type of geographic region."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sub_section_id": 3,
+        "sub_section_name": "Taxon",
+        "fields": [
+          {
+            "field_name": "informal_taxon",
+            "field_type": "textbox",
+            "label": "Informal Taxon",
+            "required": false,
+            "editable": true,
+            "help_text": "An informal description of the taxon or taxa represented by the collection unit. This is a free text attribute which allows details to be added of multiple taxa, different taxon concepts, historical taxa and common names."
+          },
+          {
+            "field_name": "taxon_id",
+            "field_type": "dropdown",
+            "label": "Taxon Name",
+            "required": false,
+            "editable": true,
+            "options_source": "all-taxon",
+            "help_text": "The name of the taxon.",
+            "dependant_fields": [
+              {
+                "field_name": "taxon_rank",
+                "label": "Taxon Rank",
+                "help_text": "The rank of the taxon."
+              },
+              {
+                "field_name": "external_ref_name",
+                "label": "External Ref Name",
+                "help_text": "The name of the external reference or authority that is the source of the `external_ref_id`."
+              },
+              {
+                "field_name": "external_ref_id",
+                "label": "External Ref Id"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section_id": 3,
+    "section_name": "Storage",
+    "sub_sections": [
+      {
+        "sub_section_id": 1,
+        "sub_section_name": "Storage Container",
+        "fields": [
+          {
+            "field_name": "storage_container_id",
+            "field_type": "dropdown",
+            "label": "Storage Container",
+            "required": false,
+            "editable": true,
+            "options_source": "container-data",
+            "help_text": "The name of the storage container (fridge/freezer).",
+            "dependant_fields": [
+              {
+                "field_name": "temperature",
+                "label": "Temperature",
+                "help_text": "The normal temperature of the storage container."
+              },
+              {
+                "field_name": "relative_humidity",
+                "label": "Relative Humidity"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "sub_section_id": 2,
+        "sub_section_name": "Room Information",
+        "fields": [
+          {
+            "field_name": "storage_room_id",
+            "field_type": "dropdown",
+            "label": "Room Code",
+            "required": true,
+            "editable": true,
+            "options_source": "room-data",
+            "help_text": "The name of the storage container (fridge/freezer).",
+            "dependant_fields": [
+              {
+                "field_name": "floor_name",
+                "label": "Floor Name"
+              },
+              {
+                "field_name": "building_name",
+                "label": "Building Name"
+              },
+              {
+                "field_name": "site_name",
+                "label": "Site Name"
+              },
+              {
+                "field_name": "room_name",
+                "label": "Room Name"
+              },
+              {
+                "field_name": "circulation",
+                "label": "Circulation"
+              },
+              {
+                "field_name": "estates_division_code",
+                "label": "Estates Division Code"
+              },
+              {
+                "field_name": "estates_room_area",
+                "label": "Estates Room Area"
+              },
+              {
+                "field_name": "estates_room_type",
+                "label": "Estates Room Type"
+              },
+              {
+                "field_name": "floorplan_area",
+                "label": "Floorplan Area"
+              },
+              {
+                "field_name": "multi_room_split",
+                "label": "Multi Room Split"
+              },
+              {
+                "field_name": "storage_footprint",
+                "label": "Storage Footprint"
+              },
+              {
+                "field_name": "storage_room_id",
+                "label": "Storage Room Id"
+              },
+              {
+                "field_name": "threshold_rh_max",
+                "label": "Threshold Rh Max"
+              },
+              {
+                "field_name": "threshold_rh_min",
+                "label": "Threshold Rh Min"
+              },
+              {
+                "field_name": "threshold_temp_max",
+                "label": "Threshold Temp Max"
+              },
+              {
+                "field_name": "threshold_temp_min",
+                "label": "Threshold Temp Min"
+              },
+              {
+                "field_name": "typical_height",
+                "label": "Typical Height"
+              },
+              {
+                "field_name": "volume",
+                "label": "Volume"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "section_id": 4,
+    "section_name": "Scores"
+  }
+]

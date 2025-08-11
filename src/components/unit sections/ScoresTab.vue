@@ -40,7 +40,6 @@ export default {
     return { unit_scores: [], edited_unit: [], rank_json: [] };
   },
   async mounted() {
-    console.log('scores tab mounted - ', this.unit_id);
     if (this.add_unit_mode) {
       const data = await import('../../utils/ranks_json_temp.json');
       this.rank_json = data.default;
@@ -78,7 +77,6 @@ export default {
             unit.metric_json = JSON.parse(unit.metric_json);
             return unit;
           });
-          console.log('unit_scores', this.unit_scores);
         });
       }
     },
@@ -93,7 +91,6 @@ export default {
         return 0;
       }
       const ranks = this.edited_unit.ranks_json;
-      console.log(this.edited_unit);
       const metrics = this.edited_unit.metric_json;
 
       // Calculate the total completeness based on the number of ranks divided by 5
@@ -101,7 +98,6 @@ export default {
       let actual_completness = 0;
       // Go through each rank and see if it has a total score
       ranks.forEach((rank_group) => {
-        console.log('rank_group', rank_group);
         const percentage_total = rank_group.reduce(
           (sum, r) => sum + (r.percentage || 0),
           0,
@@ -117,8 +113,6 @@ export default {
         (actual_completness / total_completness) * 100 || 0
       ).toFixed(2);
       this.$emit('update:scores_percentage', percentage);
-      console.log('total_completness', total_completness);
-      console.log('actual_completness', actual_completness);
       return percentage;
     },
   },

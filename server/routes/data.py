@@ -731,8 +731,8 @@ def submit_field():
 
     if not field_name:
         return jsonify({'error': 'field_name is required'}), 400
-    if new_value is None:
-        return jsonify({'error': 'new_value is required'}), 400
+    # if new_value is None:
+    #     return jsonify({'error': 'new_value is required'}), 400
     if not collection_unit_id:
         return jsonify({'error': 'collection_unit_id is required'}), 400
 
@@ -808,6 +808,20 @@ def get_criterion():
     return jsonify(data)
 
 
+@data_bp.route('/units-metrics/<unit_id>', methods=['GET'])
+@jwt_required()
+def get_units_metrics(unit_id):
+    data = fetch_data(
+        """SELECT cum.*, cumd.*
+                        FROM {database_name}.collection_unit_metric cum
+                        JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id
+                        WHERE cum.current = 'yes' AND cum.collection_unit_id = %s;
+                      """,
+        (unit_id,),
+    )
+    return jsonify(data)
+
+
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
 def get_category():
@@ -829,7 +843,7 @@ def get_metric_definitions():
 @data_bp.route('/all-sections', methods=['GET'])
 @jwt_required()
 def get_all_sections():
-    data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name
+    data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name, sect.section_id AS value, sect.section_name AS label
                    FROM {database_name}.section sect
                     LEFT JOIN {database_name}.division divis ON divis.division_id = sect.division_id
                     LEFT JOIN {database_name}.department dept ON dept.department_id = divis.department_id;
@@ -840,7 +854,7 @@ def get_all_sections():
 @data_bp.route('/all-geographic-origin', methods=['GET'])
 @jwt_required()
 def get_all_geographic_origin():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, geographic_origin_name AS label, geographic_origin_id AS value
                    FROM {database_name}.geographic_origin;
                    """)
     return jsonify(data)
@@ -849,7 +863,7 @@ def get_all_geographic_origin():
 @data_bp.route('/all-geological-time-period', methods=['GET'])
 @jwt_required()
 def get_all_geological_time_period():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, geological_time_period_id AS value, period_name AS label
                    FROM {database_name}.geological_time_period;
                    """)
     return jsonify(data)
@@ -876,7 +890,7 @@ def get_all_departments():
 @data_bp.route('/container-data', methods=['GET'])
 @jwt_required()
 def get_all_containers():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, storage_container_id AS value, container_name AS label
                    FROM {database_name}.storage_container ;
                    """)
     return jsonify(data)
@@ -885,7 +899,7 @@ def get_all_containers():
 @data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
 def get_all_taxon():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, taxon_id AS value, CONCAT(taxon_name, ' ', taxon_rank) AS label
                    FROM {database_name}.taxon ;
                    """)
     return jsonify(data)
@@ -894,7 +908,7 @@ def get_all_taxon():
 @data_bp.route('/all-curtorial-definition', methods=['GET'])
 @jwt_required()
 def get_all_curtorial_definition():
-    data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*
+    data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*, cud.curatorial_unit_definition_id as value, cud.description as label
                     FROM {database_name}.curatorial_unit_definition cud
                     LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id
                     LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id
@@ -906,7 +920,7 @@ def get_all_curtorial_definition():
 @data_bp.route('/room-data', methods=['GET'])
 @jwt_required()
 def get_all_rooms():
-    data = fetch_data("""SELECT sr.*, f.*, b.*, s.*
+    data = fetch_data("""SELECT sr.*, f.*, b.*, s.*, sr.storage_room_id AS value, sr.room_code AS label
                         FROM {database_name}.storage_room sr
                         JOIN {database_name}.floor f ON f.floor_id = sr.floor_id
                         JOIN {database_name}.building b ON b.building_id = f.building_id
@@ -918,7 +932,7 @@ def get_all_rooms():
 @data_bp.route('/all-lib-function', methods=['GET'])
 @jwt_required()
 def get_all_lib_function():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, library_and_archives_function_id AS value, function_name AS label
                         FROM {database_name}.library_and_archives_function;
                    """)
     return jsonify(data)
