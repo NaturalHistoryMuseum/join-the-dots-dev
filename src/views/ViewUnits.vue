@@ -9,6 +9,7 @@
                 selectedUnitIds.includes(unit.collection_unit_id),
               )
             "
+            @update:refreshData="fetchData"
           />
           <SplitModal
             v-if="selectedUnitIds.length < 2"
@@ -81,6 +82,7 @@ import DeleteModal from '@/components/modals/DeleteModal.vue';
 import SplitModal from '@/components/modals/SplitModal.vue';
 import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
+import { loadUser } from '@/services/authService';
 import { getGeneric } from '@/services/dataService';
 
 export default {
@@ -140,6 +142,8 @@ export default {
   },
   methods: {
     fetchData() {
+      // Reload the user - this gets the list of assigned units
+      loadUser(true);
       // Fetch units
       getGeneric('unit-department').then((response) => {
         // Add selected property to each unit
