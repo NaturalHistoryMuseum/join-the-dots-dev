@@ -14,6 +14,8 @@
         zoa-type="empty"
         :label="field.label"
         class="comments-title"
+        :help="field.help_text"
+        help-position="right"
         v-if="!allow_edit"
       />
       <p v-if="!allow_edit" class="view-field">
@@ -55,7 +57,9 @@
           :help="dep_field.help_text"
         />
         <p class="view-field">
-          {{ current_option ? current_option[dep_field.field_name] || '' : '' }}
+          {{
+            current_option ? current_option[dep_field.field_name] || '-' : '-'
+          }}
         </p>
       </div>
     </div>
@@ -117,8 +121,14 @@ export default {
     displayValue() {
       if (this.field.field_type === 'checkbox') {
         return this.value === 'yes' ? 'Yes' : 'No';
+      } else if (this.field.field_type === 'dropdown') {
+        return this.current_option.label
+          ? this.current_option.label
+          : this.allow_edit
+            ? ''
+            : '-';
       }
-      return this.value;
+      return this.value ? this.value : this.allow_edit ? '' : '-';
     },
     local_value: {
       get() {
@@ -137,7 +147,6 @@ export default {
         // Inform parent
         this.$emit('dataChange', this.field.field_name, new_val);
         this.$emit('updateValue', new_val);
-        console.log('the new val', new_val);
         // Update dependent field binding
         this.setCurrentOption(new_val);
       },
@@ -154,8 +163,6 @@ export default {
       });
     },
     setCurrentOption(new_val) {
-      console.log('omg lets set the current options ');
-      console.log(' this.local_value:', this.local_value);
       const current_val = new_val || this.local_value;
       if (current_val == null) {
         this.current_option = {
@@ -181,7 +188,6 @@ export default {
     },
     handleChange() {
       if (this.field.field_type === 'dropdown') {
-        console.log('Dropdown changed:', this.current_option, this.local_value);
         this.setCurrentOption();
       }
     },

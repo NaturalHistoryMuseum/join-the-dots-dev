@@ -26,15 +26,10 @@
           <h1>View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-8" v-if="allow_edit">
           <ActionsBtnGroup>
-            <div v-for="action in actions" :key="action.action">
-              <UnitActionsModal
-                :action="action"
-                :selected_unit_ids="[this.unit.collection_unit_id]"
-                @update:refreshData="fetchUnitData"
-              />
-            </div>
+            <DeleteModal :selected_units="[unit]" :navigate_on_success="true" />
+            <SplitModal :selected_unit="unit" :navigate_on_success="true" />
           </ActionsBtnGroup>
         </div>
       </div>
@@ -132,11 +127,10 @@
           </div> -->
           <div v-if="unit_sections.length > 0">
             <div
-              v-for="section in unit_sections.filter(
-                (section) => active_tab == section.section_id,
-              )"
+              v-for="section in unit_sections"
               :key="section.section_id"
               class="content row"
+              v-show="active_tab == section.section_id"
             >
               <!-- <h4 class="subheading">{{ section.section_name }}</h4> -->
               <div
@@ -156,7 +150,7 @@
                       <CustomField
                         :field="field"
                         :value="unit[field.field_name]"
-                        :allow_edit="true"
+                        :allow_edit="allow_edit"
                         @dataChange="handleFieldChange"
                         @updateValue="unit[field.field_name] = $event"
                       />
@@ -193,9 +187,10 @@ import SmallMessages from '@/components/SmallMessages.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
 // import SectionTab from '@/components/unit sections/SectionTab.vue';
 // import StorageTab from '@/components/unit sections/StorageTab.vue';
-import UnitActionsModal from '@/components/UnitActionsModal.vue';
 import { currentUser } from '@/services/authService';
 
+import DeleteModal from '@/components/modals/DeleteModal.vue';
+import SplitModal from '@/components/modals/SplitModal.vue';
 import RoundProgressBar from '@/components/RoundProgressBar.vue';
 import CustomField from '@/components/unit sections/CustomField.vue';
 
@@ -211,9 +206,10 @@ export default {
     // DetailsTab,
     SmallMessages,
     ActionsBtnGroup,
-    UnitActionsModal,
     RoundProgressBar,
     CustomField,
+    SplitModal,
+    DeleteModal,
   },
   data() {
     return {
@@ -235,20 +231,6 @@ export default {
         'curatorial_unit_definition_id',
       ],
       allow_edit: false,
-      actions: [
-        {
-          action: 'Delete',
-          header: 'Delete Unit',
-          description:
-            'This will remove the selected units. This cannot be undone without contacting an admin.',
-        },
-        {
-          action: 'Split',
-          header: 'Split Unit',
-          description:
-            'This will split the selected units into different units. This cannot be undone. (not working yet)',
-        },
-      ],
       add_unit_mode: true,
       scores_percentage: 0,
       scored_unit: [],
@@ -285,7 +267,6 @@ export default {
     async setUnitSections() {
       const data = await import('../utils/unit_sections.json');
       this.unit_sections = data.default;
-      console.log(this.unit_scores);
     },
     async fetchUnitData() {
       if (!this.add_unit_mode && this.unit_id) {
@@ -352,7 +333,6 @@ export default {
     },
 
     async handleFieldChange(field_name, new_value) {
-      console.log('field changed');
       // If not allowed to edit or in add mode, do nothing
       this.countRequiredFields();
       if (!this.allow_edit || this.add_unit_mode) return;
@@ -408,10 +388,8 @@ export default {
       }, 3000);
     },
     submitUnit() {
-      console.log('can we add units? ', this.allow_edit, this.add_unit_mode);
       // If not allowed to edit or in add mode, do nothing
       if (!this.allow_edit || !this.add_unit_mode) return;
-      console.log('submitting unit data', this.unit, this.scored_unit);
       // Check if all required fields are filled
       if (this.countRequiredFields() < 100) {
         this.messages.push({

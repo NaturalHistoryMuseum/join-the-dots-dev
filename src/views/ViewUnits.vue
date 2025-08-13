@@ -3,18 +3,30 @@
     <div class="units-content">
       <div class="actions-bar">
         <ActionsBtnGroup :force_show="selectedUnitIds.length > 0">
-          <!-- <zoa-button class="bulk-btn">Bulk Edit</zoa-button>
-          <zoa-button class="merge-btn">Combine Units</zoa-button>
-          <zoa-button class="delete-btn">Delete Unit(s)</zoa-button>
-          <zoa-button class="split-btn">Split Unit(s)</zoa-button> -->
-          <!-- Add a modal for all actions -->
-          <div v-for="action in actions" :key="action.action">
-            <UnitActionsModal
-              :action="action"
-              :selected_unit_ids="selectedUnitIds"
-              @update:refreshData="fetchData"
-            />
-          </div>
+          <DeleteModal
+            :selected_units="
+              units.filter((unit) =>
+                selectedUnitIds.includes(unit.collection_unit_id),
+              )
+            "
+          />
+          <SplitModal
+            v-if="selectedUnitIds.length < 2"
+            :selected_unit="
+              units.find(
+                (unit) => unit.collection_unit_id == selectedUnitIds[0],
+              )
+            "
+            @update:refreshData="fetchData"
+          />
+          <CombineModal
+            :selected_units="
+              units.filter((unit) =>
+                selectedUnitIds.includes(unit.collection_unit_id),
+              )
+            "
+            @update:refreshData="fetchData"
+          />
           <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
         </ActionsBtnGroup>
       </div>
@@ -64,18 +76,22 @@
 
 <script>
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
+import CombineModal from '@/components/modals/CombineModal.vue';
+import DeleteModal from '@/components/modals/DeleteModal.vue';
+import SplitModal from '@/components/modals/SplitModal.vue';
 import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
-import UnitActionsModal from '@/components/UnitActionsModal.vue';
 import { getGeneric } from '@/services/dataService';
 
 export default {
   name: 'ViewUnits',
   components: {
     SidebarFilter,
-    UnitActionsModal,
     ActionsBtnGroup,
     TableCheckbox,
+    SplitModal,
+    CombineModal,
+    DeleteModal,
   },
   data() {
     return {
@@ -88,9 +104,9 @@ export default {
         },
         {
           action: 'Split',
-          header: 'Split Units',
+          header: 'Split Unit',
           description:
-            'This will split the selected units into different units. This cannot be undone. (not working yet)',
+            'This will split the selected units into multiple different units. You will then need to go and edit the meta data of the new units.',
         },
         {
           action: 'Combine',
