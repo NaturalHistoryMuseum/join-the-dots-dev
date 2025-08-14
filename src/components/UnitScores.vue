@@ -343,11 +343,17 @@ export default {
   watch: {
     unit: {
       immediate: true,
-      handler(newVal) {
+      handler(new_val, old_val) {
         const currentAccordion = this.expanded_accordion;
-        this.local_unit = { ...newVal };
-        this.initializeEditedRanks(newVal);
-        // this.fetchMetrics();
+        this.local_unit = { ...new_val };
+        // Only reinitialize if ranks_json changed
+        if (
+          !old_val ||
+          JSON.stringify(new_val.ranks_json) !==
+            JSON.stringify(old_val.ranks_json)
+        ) {
+          this.initializeEditedRanks(new_val);
+        }
         // Keep accordion open on unit change
         this.expanded_accordion = currentAccordion;
       },
@@ -358,6 +364,9 @@ export default {
     this.fetchCriterionData();
     this.fetchCategoryData();
     this.fetchMetrics();
+    if (!this.editedRanks || Object.keys(this.editedRanks).length === 0) {
+      this.initializeEditedRanks(this.unit);
+    }
   },
   methods: {
     fieldNameCalc,
@@ -530,10 +539,10 @@ export default {
           submit_category_ids_arr,
           val,
         ).then(() => {
-          this.fetchUnitsData();
+          // this.fetchUnitsData();
         });
       }
-      this.local_unit.category_tracking = JSON.stringify(category_tracking);
+      // this.local_unit.category_tracking = JSON.stringify(category_tracking);
     },
 
     submitMetricsChanges(collection_unit_metric_definition_id) {
@@ -593,8 +602,6 @@ export default {
         this.returnBulkEdit();
       } else {
         try {
-          // Set that this criterion is being saved
-          this.saving_criterion_id = criterion_id;
           // Check if there are any errors before submitting
           const errors = this.checkErrors(criterion_id);
           // Check if the ranks was actually changed
@@ -606,6 +613,8 @@ export default {
             // If there are errors, do not submit
             return;
           } else {
+            // Set that this criterion is being saved
+            this.saving_criterion_id = criterion_id;
             // If no errors, proceed to submit the rank changes
             const category_draft_id = this.getCatDraftId(criterion_id);
             const rank_draft = {
