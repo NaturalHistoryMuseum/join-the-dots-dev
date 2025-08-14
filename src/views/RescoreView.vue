@@ -1,7 +1,9 @@
 <template>
-  <div class="rescore">
+  <div class="rescore" v-show="!loading">
     <div class="row">
-      <h1 class="col-md-3 rescore-title">Rescore</h1>
+      <!-- <h1 class="col-md-3 rescore-title">Rescore</h1> -->
+      <div class="col-md-3"></div>
+
       <StepperComp
         :steps="steps"
         :current_step="current_step"
@@ -24,26 +26,27 @@
         class="stepper-btn right-btn"
       />
     </div>
-    <div v-if="!loading">
-      <div v-if="current_step === 1">
-        <ManageRescoreView
-          @update:current_step="current_step++"
-          :open_rescore="open_rescore"
-          :fetchUnitsData="fetchUnitsData"
-        />
-      </div>
-      <div v-if="current_step === 2">
-        <EditRescoreView
-          :rescore_session_id="rescore_session_id"
-          :units="units"
-          :fetchUnitsData="fetchUnitsData"
-        />
-      </div>
-      <div v-if="current_step === 3">
-        <ReviewRescoreView :units="units" />
-      </div>
+    <!-- <div v-show="!loading"> -->
+    <div v-if="current_step === 1">
+      <ManageRescoreView
+        @update:current_step="current_step++"
+        :open_rescore="open_rescore"
+        :fetchUnitsData="fetchUnitsData"
+      />
     </div>
+    <div v-if="current_step === 2">
+      <EditRescoreView
+        :rescore_session_id="rescore_session_id"
+        :units="units"
+        :fetchUnitsData="fetchUnitsData"
+      />
+    </div>
+    <div v-if="current_step === 3">
+      <ReviewRescoreView :units="units" />
+    </div>
+    <!-- </div> -->
   </div>
+  <div v-show="loading">loading...</div>
 </template>
 
 <script>
@@ -84,7 +87,7 @@ export default {
       current_step: 1,
       rescore_session_id: null,
       open_rescore: {},
-      loading: false,
+      loading: true,
     };
   },
   mounted() {
@@ -92,7 +95,7 @@ export default {
   },
   methods: {
     async fetchUnitsData() {
-      this.loading = true;
+      // this.loading = true;
       const rescoreResp = await getGeneric('open-rescore');
       // Check if there is an open rescore session
       this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
@@ -100,7 +103,7 @@ export default {
         // Set the rescore session id
         this.rescore_session_id = this.open_rescore.rescore_session_id;
         // Fetch units in this rescore session
-        getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+        await getGeneric(`rescore-units/${this.rescore_session_id}`).then(
           (response) => {
             this.units = response.map((unit) => {
               // Parse category tracking JSON
@@ -111,6 +114,8 @@ export default {
             });
           },
         );
+        // Move to the editing page after loading
+        this.current_step = 2;
       }
       this.loading = false;
     },

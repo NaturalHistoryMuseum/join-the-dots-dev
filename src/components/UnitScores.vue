@@ -142,6 +142,7 @@
       :rescore="rescore && !bulk_edit"
       :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
       :changeCatComplete="() => changeCatComplete([cat.category_id])"
+      :error="checkCategoryErrors(cat.category_id)"
     >
       <div class="">
         <!-- last edited date for this whole category -->
@@ -336,6 +337,7 @@ export default {
       ranks: this.unit.ranks_json,
       editedRanks: {},
       metric_definitions: [],
+      saving_criterion_id: 0,
     };
   },
   watch: {
@@ -478,34 +480,54 @@ export default {
       }
     },
     checkCatComplete(cat) {
-      const category_tracking = this.local_unit.category_tracking;
-      const category = category_tracking.filter((category) => {
-        return category.category_id == cat.category_id;
-      });
-      if (category.length > 0) {
-        return category[0].complete == 1;
+      // Get the tracking data in JSON format
+      const category_tracking = Array.isArray(this.local_unit.category_tracking)
+        ? this.local_unit.category_tracking
+        : JSON.parse(this.local_unit.category_tracking);
+      // Check there is tracking
+      if (category_tracking) {
+        // Filter and check if category is complete
+        const category = category_tracking.filter((category) => {
+          return category.category_id == cat.category_id;
+        });
+        if (category.length > 0) {
+          return category[0].complete == 1;
+        }
       }
     },
     changeCatComplete(category_ids_arr, new_val = null) {
+      // Set variables
       let submit_change = false;
       let val = null;
-      const category_tracking = this.unit.category_tracking;
+      let submit_category_ids_arr = [];
+      // Get the tracking data in JSON format
+      const category_tracking = Array.isArray(this.local_unit.category_tracking)
+        ? this.local_unit.category_tracking
+        : JSON.parse(this.local_unit.category_tracking);
+      // Go through each category and check if it is included in the array of ids listed
       category_tracking.forEach((category) => {
         if (category_ids_arr.includes(category.category_id)) {
-          if (new_val != null) {
-            category.complete = new_val;
-            val = new_val;
+          // If a specific value is set, set the categories completed status to that specific value (either complete or not complete)
+          let submit_value =
+            new_val != null ? new_val : category.complete == 1 ? 0 : 1;
+          // If the new value is true and there is an error - do not submit it
+          if (submit_value && this.checkCategoryErrors(category.category_id)) {
+            return;
           } else {
-            category.complete = category.complete == 1 ? 0 : 1;
-            val = category.complete;
+            // Add id to the array to be submited and change the values for it
+            submit_category_ids_arr.push(category.category_id);
+
+            category.complete = submit_value;
+            val = submit_value;
           }
+
           submit_change = true;
         }
       });
-      if (submit_change) {
+      if (submit_change && submit_category_ids_arr.length > 0) {
         completeCats(
           this.unit.rescore_session_units_id,
-          category_ids_arr,
+          submit_category_ids_arr,
           val,
         ).then(() => {
           this.fetchUnitsData();
@@ -566,11 +588,13 @@ export default {
       });
     },
 
-    submitRankChanges(ranks, criterion_id) {
+    async submitRankChanges(ranks, criterion_id) {
       if (this.bulk_edit) {
         this.returnBulkEdit();
       } else {
         try {
+          // Set that this criterion is being saved
+          this.saving_criterion_id = criterion_id;
           // Check if there are any errors before submitting
           const errors = this.checkErrors(criterion_id);
           // Check if the ranks was actually changed
@@ -595,10 +619,11 @@ export default {
                 comment: rank.comment || null,
               })),
             };
-            submitDraftRrank(rank_draft).then(() => {
-              // Fetch the updated data after submitting the rank changes
-              this.fetchUnitsData();
-            });
+            await submitDraftRrank(rank_draft);
+            // Fetch the updated data after submitting the rank changes
+            await this.fetchUnitsData();
+            // Set that this criterion is done saving saved
+            this.saving_criterion_id = 0;
           }
         } catch (error) {
           console.error('Submission error:', error);
@@ -641,6 +666,20 @@ export default {
       );
       return category.category_draft_id;
     },
+    // Function to check for errors in a while category
+    checkCategoryErrors(category_id) {
+      const criterions = this.criterion.filter(
+        (criteria) => criteria.category_id == category_id,
+      );
+      let is_error = false;
+      criterions.forEach((criterion) => {
+        let errors = this.checkErrors(criterion.criterion_id);
+        if (errors.some((error) => error.type == 'error')) {
+          is_error = true;
+        }
+      });
+      return is_error;
+    },
     // Function to check for errors in ranks
     checkErrors(criterion_id) {
       const errors = [];
@@ -669,8 +708,19 @@ export default {
           type: 'warning',
         });
       }
-      // Check if the score has changed but not saved - only if no other messages
-      if (this.unit && errors.length == 0) {
+      if (this.checkScoreDecimal(ranks_filtered)) {
+        errors.push({
+          message: 'Score contains a decimal',
+          type: 'error',
+        });
+      }
+      // Check if the score has changed but not saved - only if no other messages and if this criterion is not currently saving
+      if (
+        this.unit &&
+        errors.length == 0 &&
+        this.saving_criterion_id !== criterion_id
+      ) {
+        // Check that there was a change
         const was_changed = this.checkChanged(criterion_id);
         if (was_changed) {
           errors.push({
@@ -679,9 +729,29 @@ export default {
             allow_submit: true,
           });
         }
+      } else if (
+        errors.length == 0 &&
+        this.saving_criterion_id === criterion_id
+      ) {
+        // Show that there is a change and it is saving
+        errors.push({
+          message: 'Saving change...',
+          type: 'warning',
+          allow_submit: true,
+        });
       }
 
       return errors;
+    },
+    checkScoreDecimal(array) {
+      return array.some((item) => {
+        const value = item['percentage'];
+        if (typeof value === 'number' && !isNaN(value)) {
+          const percentage = value * 100;
+          return !Number.isInteger(percentage);
+        }
+        return false;
+      });
     },
     checkChanged(criterion_id) {
       // Get filtered ranks

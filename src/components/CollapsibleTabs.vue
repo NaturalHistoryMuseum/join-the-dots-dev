@@ -11,7 +11,9 @@
         <!-- Button to show/hide unit names -->
         <zoa-button @click="toggleSidebar" class="toggle-btn">
           <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
-          <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
+          <div v-else>
+            <i class="bi bi-x-lg btn-icon"></i>
+          </div>
         </zoa-button>
         <!-- Button to show/hide completed units from list -->
         <div v-if="!is_collapsed">
@@ -50,8 +52,8 @@
             <div v-if="checkUnitCompleted(unit)">
               <i class="bi bi-check-lg"></i>
             </div>
-            <div v-else><i class="bi bi-x-lg"></i></div
-          ></span>
+            <!-- <div v-else><i class="bi bi-x-lg"></i></div> -->
+          </span>
         </button>
       </div>
     </div>
@@ -178,7 +180,7 @@ export default {
 
 .content {
   flex: 1;
-  padding: 10px 20px;
+  /* padding: 10px 20px; */
 }
 
 .btn-icon {
