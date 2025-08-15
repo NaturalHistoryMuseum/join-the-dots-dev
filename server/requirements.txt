@@ -6,3 +6,4 @@ msal
 flask_dance
 dotenv
 PyJWT
+flask_jwt_extended
