@@ -1,14 +1,14 @@
 <template>
   <zoa-modal class="modal-btn">
     <template v-slot:button>Edit Comments</template>
-    <template v-slot:header> Edit Comments </template>
+    <template v-slot:header> Edit Comments - {{ criterion_name }}</template>
     <div class="flex flex-col gap-4">
       <div>
         <div v-for="rank in ranks" :key="rank.rank_id">
           <!-- Show the comment for each rank -->
           <zoa-input
             zoa-type="empty"
-            :label="`Rank ${rank.rank_value} Comment`"
+            :label="`Rank ${rank.rank_value} Comment - (Score: ${rank.percentage * 100}%)`"
             class="comments-title"
           />
           <textarea
@@ -28,8 +28,10 @@
 
 <script>
 export default {
+  name: 'EditCommentsModal',
   props: {
     criterion_id: Number,
+    criterion_name: String,
     ranks: Array,
     submit: Function,
   },

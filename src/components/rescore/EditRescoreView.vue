@@ -1,22 +1,27 @@
 <template>
   <div class="rescore">
-    <div class="main-header">
-      <div class="row">
-        <!-- Rescore Details -->
-        <div class="col-md-4">
-          <div v-if="units.length > 0">
-            <h5>Units assigned: {{ units.length }}</h5>
-            <h5>Units completed: {{ countUnitsCompleted(units) }}</h5>
-          </div>
-        </div>
-        <!-- Actions button group -->
-        <div class="col-md-8 actions">
-          <ActionsBtnGroup v-if="!rescore_review">
-            <BulkEditScoreModal :units="units" v-if="units.length > 1" />
-            <zoa-button kind="alt">Undo Change</zoa-button>
-            <zoa-button kind="primary">Revert All Changes</zoa-button>
-          </ActionsBtnGroup>
-        </div>
+    <div class="row rescore-helper-container">
+      <!-- Rescore Details -->
+      <div class="col-md-4 unit-rescore-progress" v-if="units.length > 0">
+        <h4 class="progress-msg">
+          Units completed: {{ countUnitsCompleted(units) }} /
+          {{ units.length }}
+        </h4>
+        <RoundProgressBar
+          :progress="(countUnitsCompleted(units) / units.length) * 100"
+        />
+      </div>
+      <!-- Actions button group -->
+      <div class="col-md-8 actions">
+        <ActionsBtnGroup v-if="!rescore_review">
+          <BulkEditScoreModal
+            :units="units"
+            v-if="units.length > 1"
+            :refresh_page_data="fetchUnitsData"
+          />
+          <!-- <zoa-button kind="alt">Undo Change</zoa-button>
+          <zoa-button kind="primary">Revert All Changes</zoa-button> -->
+        </ActionsBtnGroup>
       </div>
     </div>
 
@@ -33,6 +38,7 @@
 import ActionsBtnGroup from '../ActionsBtnGroup.vue';
 import BulkEditScoreModal from '../BulkEditScoreModal.vue';
 import CollapsibleTabs from '../CollapsibleTabs.vue';
+import RoundProgressBar from '../RoundProgressBar.vue';
 
 export default {
   name: 'EditRescoreView',
@@ -40,6 +46,7 @@ export default {
     CollapsibleTabs,
     ActionsBtnGroup,
     BulkEditScoreModal,
+    RoundProgressBar,
   },
   props: {
     rescore_session_id: String,
@@ -81,9 +88,19 @@ export default {
   width: 20rem;
 }
 
-/* .main-page {
+.unit-rescore-progress {
+  text-align: left;
   display: flex;
-  flex-direction: column;
-  padding: 0.5rem 2rem;
-} */
+  align-items: center;
+  justify-content: left;
+  gap: 1rem;
+}
+
+.rescore-helper-container {
+  padding: 1rem 1rem;
+}
+
+.progress-msg {
+  margin: 0;
+}
 </style>

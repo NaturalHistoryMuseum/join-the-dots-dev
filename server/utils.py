@@ -27,7 +27,7 @@ def fetch_data(query, params=None):
     return result
 
 
-def execute_query(query, params=None):
+def execute_query(query, params=None, return_lastrowid=False):
     """
     Helper function to execute a database query with commit.
     """
@@ -37,8 +37,14 @@ def execute_query(query, params=None):
     formatted_query = query.format(database_name=database_name)
     cursor.execute(formatted_query, params or ())
     connection.commit()
+    # If last row ID is requested, get it
+    last_id = cursor.lastrowid if return_lastrowid else None
+    # Close the cursor and connection
     cursor.close()
     connection.close()
+    # Return the last row ID if requested
+    if return_lastrowid:
+        return last_id
 
 
 def refreshJWTToken(response):

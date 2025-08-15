@@ -1,7 +1,8 @@
 <template>
-  <div class="rescore">
+  <div class="rescore" v-show="!loading">
     <div class="row">
-      <h1 class="col-md-3 rescore-title">Rescore</h1>
+      <!-- <h1 class="col-md-3 rescore-title">Rescore</h1> -->
+      <div class="col-md-3"></div>
 
       <StepperComp
         :steps="steps"
@@ -10,7 +11,6 @@
       />
       <div class="col-md-3"></div>
     </div>
-
     <div class="stepper-navigation" v-if="rescore_session_id">
       <zoa-button
         v-if="current_step > 1"
@@ -19,7 +19,6 @@
         class="stepper-btn left-btn"
       />
       <div v-else></div>
-      <!-- <div class="stepper-seperator"></div> -->
       <zoa-button
         v-if="current_step < steps.length"
         label="Continue"
@@ -27,8 +26,13 @@
         class="stepper-btn right-btn"
       />
     </div>
+    <!-- <div v-show="!loading"> -->
     <div v-if="current_step === 1">
-      <ManageRescoreView @update:current_step="current_step++" />
+      <ManageRescoreView
+        @update:current_step="current_step++"
+        :open_rescore="open_rescore"
+        :fetchUnitsData="fetchUnitsData"
+      />
     </div>
     <div v-if="current_step === 2">
       <EditRescoreView
@@ -40,7 +44,9 @@
     <div v-if="current_step === 3">
       <ReviewRescoreView :units="units" />
     </div>
+    <!-- </div> -->
   </div>
+  <div v-show="loading">loading...</div>
 </template>
 
 <script>
@@ -80,6 +86,8 @@ export default {
       ],
       current_step: 1,
       rescore_session_id: null,
+      open_rescore: {},
+      loading: true,
     };
   },
   mounted() {
@@ -87,14 +95,15 @@ export default {
   },
   methods: {
     async fetchUnitsData() {
+      // this.loading = true;
       const rescoreResp = await getGeneric('open-rescore');
       // Check if there is an open rescore session
-      const open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : null;
-      if (open_rescore) {
+      this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
+      if (Object.keys(this.open_rescore).length > 0) {
         // Set the rescore session id
-        this.rescore_session_id = open_rescore.rescore_session_id;
+        this.rescore_session_id = this.open_rescore.rescore_session_id;
         // Fetch units in this rescore session
-        getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+        await getGeneric(`rescore-units/${this.rescore_session_id}`).then(
           (response) => {
             this.units = response.map((unit) => {
               // Parse category tracking JSON
@@ -105,7 +114,10 @@ export default {
             });
           },
         );
+        // Move to the editing page after loading
+        this.current_step = 2;
       }
+      this.loading = false;
     },
   },
 };

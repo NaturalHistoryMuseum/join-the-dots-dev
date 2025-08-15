@@ -607,6 +607,103 @@ def update_complete_category():
 
 
 # Unit routes
+@data_bp.route('/submit-unit', methods=['POST'])
+@jwt_required()
+def submit_unit():
+    data = request.get_json()
+    unit_data = data.get('unit_data')
+    score_data = data.get('score_data')
+    metric_json = score_data.get('metric_json')
+    ranks_json = score_data.get('ranks_json')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    # Filter the data to remove None values and the collection_unit_id
+    filter_unit_data = {
+        key: value
+        for key, value in unit_data.items()
+        if value is not None and key is not 'collection_unit_id'
+    }
+    # Extract fields and values
+    keys = list(filter_unit_data.keys())
+    values = list(filter_unit_data.values())
+
+    # Construct the SQL dynamically
+    placeholders = ', '.join(['%s'] * len(keys))  # %s placeholders
+    columns = ', '.join([f'`{key}`' for key in keys])  # column names with backticks
+    sql_query = f'INSERT INTO {database_name}.collection_unit ({columns}) VALUES ({placeholders})'
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Execute the query and return the new unit ID
+        cursor.execute(sql_query, values)
+        new_unit_id = cursor.lastrowid
+        print(f'new unit id - {new_unit_id}')
+
+        if new_unit_id is None:
+            return jsonify({'error': 'Failed to create new unit'}), 500
+
+        # Handle metrics
+        if metric_json:
+            for metric in metric_json:
+                collection_unit_metric_definition_id = metric.get(
+                    'collection_unit_metric_definition_id'
+                )
+                metric_value = metric.get('metric_value')
+                confidence_level = metric.get('confidence_level')
+                if metric_value is not None or confidence_level is not None:
+                    cursor.execute(
+                        f"""INSERT INTO {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id, metric_value, confidence_level, date_from, `current`)
+                            VALUES (%s, %s, %s, %s, NOW(), 'yes');
+                        """,
+                        (
+                            new_unit_id,
+                            collection_unit_metric_definition_id,
+                            metric_value,
+                            confidence_level,
+                        ),
+                    )
+        # Handle ranks
+        if ranks_json:
+            for criterion in ranks_json:
+                criterion_id = criterion[0]['criterion_id']
+                # Add the criterion to the unit_assessment_criterion table and get the new id
+                cursor.execute(
+                    f"""
+                    INSERT INTO {database_name}.unit_assessment_criterion (
+                        collection_unit_id, criterion_id, assessor_id,
+                        date_assessed, date_from, current
+                    ) VALUES (%s, %s, %s, NOW(), NOW(), 'yes')
+                    """,
+                    (new_unit_id, criterion_id, user_id),
+                )
+                unit_assessment_criterion_id = cursor.lastrowid
+                for rank in criterion:
+                    rank_id = rank['rank_id']
+                    percentage = rank['percentage']
+                    comment = rank['comment']
+                    cursor.execute(
+                        f"""
+                        INSERT INTO {database_name}.unit_assessment_rank (
+                            unit_assessment_criterion_id, rank_id, percentage, comment
+                        ) VALUES (%s, %s, %s, %s)
+                        """,
+                        (
+                            unit_assessment_criterion_id,
+                            rank_id,
+                            percentage,
+                            comment,
+                        ),
+                    )
+
+        # Commit the transaction queries
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        return jsonify({'collection_unit_id': new_unit_id, 'success': True}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 def column_exists(field_name, new_value):
@@ -634,8 +731,8 @@ def submit_field():
 
     if not field_name:
         return jsonify({'error': 'field_name is required'}), 400
-    if new_value is None:
-        return jsonify({'error': 'new_value is required'}), 400
+    # if new_value is None:
+    #     return jsonify({'error': 'new_value is required'}), 400
     if not collection_unit_id:
         return jsonify({'error': 'collection_unit_id is required'}), 400
 
@@ -655,6 +752,153 @@ def submit_field():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/split-unit', methods=['POST'])
+@jwt_required()
+def split_unit():
+    data = request.get_json()
+    unit_id = data.get('unit_id')
+    new_count = data.get('new_count')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    if not unit_id:
+        return jsonify({'error': 'unit_id is required'}), 400
+    if not new_count:
+        return jsonify({'error': 'new_count is required'}), 400
+
+    new_units = []
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Create new units
+        for i in range(new_count):
+            # Copy the original primary unit
+            new_unit_id = copy_unit(
+                cursor=cursor,
+                unit_id_to_copy=unit_id,
+                user_id=user_id,
+                unit_name_addition=(' ' + str(i + 1)),
+            )
+            new_units.append(new_unit_id)
+        cursor.execute(
+            f"""
+                    UPDATE {database_name}.collection_unit
+                        SET unit_active = 'no'
+                        WHERE collection_unit_id = %s;
+                    """,
+            (unit_id,),
+        )
+        # Commit the transaction queries
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'new_units': new_units, 'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/combine-unit', methods=['POST'])
+@jwt_required()
+def combine_unit():
+    data = request.get_json()
+    primary_unit_id = data.get('primary_unit_id')
+    unit_id_list = data.get('unit_id_list')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    if not primary_unit_id:
+        return jsonify({'error': 'primary_unit_id is required'}), 400
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Copy the original primary unit
+        new_unit_id = copy_unit(
+            cursor=cursor, unit_id_to_copy=primary_unit_id, user_id=user_id
+        )
+
+        # Mark old units as not active
+        for unit_id in unit_id_list:
+            cursor.execute(
+                f"""
+                    UPDATE {database_name}.collection_unit
+                        SET unit_active = 'no'
+                        WHERE collection_unit_id = %s;
+                    """,
+                (unit_id,),
+            )
+
+        # Commit the transaction queries
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return jsonify({'new_unit_id': new_unit_id, 'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=''):
+    # Create a new unit
+    cursor.execute(
+        f"""
+                    INSERT INTO {database_name}.collection_unit
+                        (unit_name,public_unit_name, section_id, unit_active, responsible_curator_id, curatorial_unit_definition_id, taxon_life_science_id, taxon_palaeontology_id, storage_room_id, storage_container_id, geographic_origin_id, library_and_archives_function_id, geological_time_period_from_id, geological_time_period_to_id, type_collection_flag, publish_flag, informal_taxon, named_collection, es_recent_specimen_flag, archives_fond_ref, count_curatorial_units_flag, sort_order)
+                    SELECT CONCAT(unit_name, '{unit_name_addition}') ,public_unit_name, section_id, unit_active, responsible_curator_id, curatorial_unit_definition_id, taxon_life_science_id, taxon_palaeontology_id, storage_room_id, storage_container_id, geographic_origin_id, library_and_archives_function_id, geological_time_period_from_id, geological_time_period_to_id, type_collection_flag, publish_flag, informal_taxon, named_collection, es_recent_specimen_flag, archives_fond_ref, count_curatorial_units_flag, sort_order
+                    FROM {database_name}.collection_unit
+                    WHERE collection_unit_id = %s
+                        """,
+        (unit_id_to_copy,),
+    )
+    new_unit_id = cursor.lastrowid
+    # Assign unit to current user
+    cursor.execute(
+        f"""INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id) VALUES (%s, %s)
+                        """,
+        (user_id, new_unit_id),
+    )
+    # Insert the comment
+    cursor.execute(
+        f"""INSERT INTO {database_name}.unit_comment (collection_unit_id, unit_comment, date_added)
+                        SELECT %s AS collection_unit_id, unit_comment, date_added
+                        FROM {database_name}.unit_comment
+                        WHERE collection_unit_id = %s
+                    """,
+        (new_unit_id, unit_id_to_copy),
+    )
+    # Insert current assessment criterion
+    cursor.execute(
+        f"""INSERT INTO {database_name}.unit_assessment_criterion (collection_unit_id, criterion_id, assessor_id, criteria_assessment, date_assessed, date_from, date_to, `current`)
+                        SELECT %s AS collection_unit_id, criterion_id, assessor_id, criteria_assessment, date_assessed, date_from, date_to, `current`
+                        FROM {database_name}.unit_assessment_criterion
+                        WHERE collection_unit_id = %s AND `current` = 'yes'
+                    """,
+        (new_unit_id, unit_id_to_copy),
+    )
+    # Get the last id
+    last_unit_assessment_criterion_id = cursor.lastrowid
+    # Insert assessment rank
+    cursor.execute(
+        f"""INSERT INTO {database_name}.unit_assessment_rank (unit_assessment_criterion_id, rank_id, percentage, comment)
+                        SELECT %s AS unit_assessment_criterion_id, rank_id, percentage, comment
+                        FROM {database_name}.unit_assessment_rank uar
+                        JOIN {database_name}.unit_assessment_criterion uac ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
+                        WHERE uac.collection_unit_id = %s AND uac.`current` = 'yes'
+                    """,
+        (last_unit_assessment_criterion_id, unit_id_to_copy),
+    )
+    # Insert Unit Metrics
+    cursor.execute(
+        f"""INSERT INTO {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id, metric_value, confidence_level, date_from, date_to, `current`)
+                        SELECT %s AS collection_unit_id, collection_unit_metric_definition_id, metric_value, confidence_level, date_from, date_to, `current`
+                        FROM {database_name}.collection_unit_metric
+                        WHERE collection_unit_id = %s AND `current` = 'yes'
+                    """,
+        (new_unit_id, unit_id_to_copy),
+    )
+    return new_unit_id
 
 
 @data_bp.route('/unit-department', methods=['GET'])
@@ -711,6 +955,20 @@ def get_criterion():
     return jsonify(data)
 
 
+@data_bp.route('/units-metrics/<unit_id>', methods=['GET'])
+@jwt_required()
+def get_units_metrics(unit_id):
+    data = fetch_data(
+        """SELECT cum.*, cumd.*
+                        FROM {database_name}.collection_unit_metric cum
+                        JOIN {database_name}.collection_unit_metric_definition cumd ON cum.collection_unit_metric_definition_id  = cumd.collection_unit_metric_definition_id
+                        WHERE cum.current = 'yes' AND cum.collection_unit_id = %s;
+                      """,
+        (unit_id,),
+    )
+    return jsonify(data)
+
+
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
 def get_category():
@@ -732,7 +990,7 @@ def get_metric_definitions():
 @data_bp.route('/all-sections', methods=['GET'])
 @jwt_required()
 def get_all_sections():
-    data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name
+    data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name, sect.section_id AS value, sect.section_name AS label
                    FROM {database_name}.section sect
                     LEFT JOIN {database_name}.division divis ON divis.division_id = sect.division_id
                     LEFT JOIN {database_name}.department dept ON dept.department_id = divis.department_id;
@@ -743,7 +1001,7 @@ def get_all_sections():
 @data_bp.route('/all-geographic-origin', methods=['GET'])
 @jwt_required()
 def get_all_geographic_origin():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, geographic_origin_name AS label, geographic_origin_id AS value
                    FROM {database_name}.geographic_origin;
                    """)
     return jsonify(data)
@@ -752,7 +1010,7 @@ def get_all_geographic_origin():
 @data_bp.route('/all-geological-time-period', methods=['GET'])
 @jwt_required()
 def get_all_geological_time_period():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, geological_time_period_id AS value, period_name AS label
                    FROM {database_name}.geological_time_period;
                    """)
     return jsonify(data)
@@ -779,7 +1037,7 @@ def get_all_departments():
 @data_bp.route('/container-data', methods=['GET'])
 @jwt_required()
 def get_all_containers():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, storage_container_id AS value, container_name AS label
                    FROM {database_name}.storage_container ;
                    """)
     return jsonify(data)
@@ -788,7 +1046,7 @@ def get_all_containers():
 @data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
 def get_all_taxon():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, taxon_id AS value, CONCAT(taxon_name, ' ', taxon_rank) AS label
                    FROM {database_name}.taxon ;
                    """)
     return jsonify(data)
@@ -797,7 +1055,7 @@ def get_all_taxon():
 @data_bp.route('/all-curtorial-definition', methods=['GET'])
 @jwt_required()
 def get_all_curtorial_definition():
-    data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*
+    data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*, cud.curatorial_unit_definition_id as value, cud.description as label
                     FROM {database_name}.curatorial_unit_definition cud
                     LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id
                     LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id
@@ -809,7 +1067,7 @@ def get_all_curtorial_definition():
 @data_bp.route('/room-data', methods=['GET'])
 @jwt_required()
 def get_all_rooms():
-    data = fetch_data("""SELECT sr.*, f.*, b.*, s.*
+    data = fetch_data("""SELECT sr.*, f.*, b.*, s.*, sr.storage_room_id AS value, sr.room_code AS label
                         FROM {database_name}.storage_room sr
                         JOIN {database_name}.floor f ON f.floor_id = sr.floor_id
                         JOIN {database_name}.building b ON b.building_id = f.building_id
@@ -821,7 +1079,7 @@ def get_all_rooms():
 @data_bp.route('/all-lib-function', methods=['GET'])
 @jwt_required()
 def get_all_lib_function():
-    data = fetch_data("""SELECT *
+    data = fetch_data("""SELECT *, library_and_archives_function_id AS value, function_name AS label
                         FROM {database_name}.library_and_archives_function;
                    """)
     return jsonify(data)

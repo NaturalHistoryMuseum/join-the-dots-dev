@@ -142,6 +142,7 @@
       :rescore="rescore && !bulk_edit"
       :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
       :changeCatComplete="() => changeCatComplete([cat.category_id])"
+      :error="checkCategoryErrors(cat.category_id)"
     >
       <div class="">
         <!-- last edited date for this whole category -->
@@ -176,7 +177,7 @@
                 v-if="rescore"
                 v-model="rank.percentage"
                 :label="`Rank ${rank.rank_value} (%)`"
-                :error="checkErrors(crit.criterion_id)"
+                :error="bulk_edit ? [] : checkErrors(crit.criterion_id)"
                 :submit="submitRankChanges"
                 :rank="rank"
                 :ranks="editedRanks[crit.criterion_id]"
@@ -191,7 +192,9 @@
                 />
                 <p class="view-field">
                   <!-- Only show where there are scores -->
-                  {{ rank.percentage ? rank.percentage * 100 : '' }}
+                  <strong>{{
+                    rank.percentage ? rank.percentage * 100 : ''
+                  }}</strong>
                 </p>
               </div>
             </div>
@@ -201,7 +204,13 @@
             }} -->
           </div>
           <!-- Container for other criterion interations -->
-          <div class="row">
+          <div
+            class="row"
+            v-if="
+              !bulk_edit &&
+              (rescore || countCriterionComments(crit.criterion_id) > 0)
+            "
+          >
             <!-- Show comments asigned to ranks in this criterion -->
             <div class="show-comments">
               <div
@@ -267,6 +276,7 @@
                   <EditCommentsModal
                     v-if="rescore && !bulk_edit"
                     :criterion_id="crit.criterion_id"
+                    :criterion_name="`${crit.criterion_code}: ${crit.criterion_name.split('/').join(' / ')}`"
                     :ranks="editedRanks[crit.criterion_id]"
                     :submit="submitRankChanges"
                   />
@@ -335,16 +345,23 @@ export default {
       ranks: this.unit.ranks_json,
       editedRanks: {},
       metric_definitions: [],
+      saving_criterion_id: 0,
     };
   },
   watch: {
     unit: {
       immediate: true,
-      handler(newVal) {
+      handler(new_val, old_val) {
         const currentAccordion = this.expanded_accordion;
-        this.local_unit = { ...newVal };
-        this.initializeEditedRanks(newVal);
-        this.fetchMetrics();
+        this.local_unit = { ...new_val };
+        // Only reinitialize if ranks_json changed
+        if (
+          !old_val ||
+          JSON.stringify(new_val.ranks_json) !==
+            JSON.stringify(old_val.ranks_json)
+        ) {
+          this.initializeEditedRanks(new_val);
+        }
         // Keep accordion open on unit change
         this.expanded_accordion = currentAccordion;
       },
@@ -354,7 +371,10 @@ export default {
   mounted() {
     this.fetchCriterionData();
     this.fetchCategoryData();
-    // this.fetchMetrics()
+    this.fetchMetrics();
+    if (!this.editedRanks || Object.keys(this.editedRanks).length === 0) {
+      this.initializeEditedRanks(this.unit);
+    }
   },
   methods: {
     fieldNameCalc,
@@ -463,6 +483,13 @@ export default {
       }
     },
     commentsTitle(criterion_id) {
+      const count_comments = this.countCriterionComments(criterion_id);
+      if (count_comments == 0) {
+        return 'Add comments';
+      }
+      return `Show comments (${count_comments})`;
+    },
+    countCriterionComments(criterion_id) {
       if (this.editedRanks[criterion_id]) {
         const ranks_comments = this.editedRanks[criterion_id].filter(
           (rank) =>
@@ -470,47 +497,65 @@ export default {
             rank.comment !== null &&
             rank.comment.length > 0,
         );
-        if (ranks_comments.length == 0) {
-          return 'Add comments';
-        }
-        return `Show comments (${ranks_comments.length})`;
+        return ranks_comments.length;
       }
+      return 0;
     },
     checkCatComplete(cat) {
-      const category_tracking = this.local_unit.category_tracking;
-      const category = category_tracking.filter((category) => {
-        return category.category_id == cat.category_id;
-      });
-      if (category.length > 0) {
-        return category[0].complete == 1;
+      // Get the tracking data in JSON format
+      const category_tracking = Array.isArray(this.local_unit.category_tracking)
+        ? this.local_unit.category_tracking
+        : JSON.parse(this.local_unit.category_tracking);
+      // Check there is tracking
+      if (category_tracking) {
+        // Filter and check if category is complete
+        const category = category_tracking.filter((category) => {
+          return category.category_id == cat.category_id;
+        });
+        if (category.length > 0) {
+          return category[0].complete == 1;
+        }
       }
     },
     changeCatComplete(category_ids_arr, new_val = null) {
+      // Set variables
       let submit_change = false;
       let val = null;
-      const category_tracking = this.unit.category_tracking;
+      let submit_category_ids_arr = [];
+      // Get the tracking data in JSON format
+      const category_tracking = Array.isArray(this.local_unit.category_tracking)
+        ? this.local_unit.category_tracking
+        : JSON.parse(this.local_unit.category_tracking);
+      // Go through each category and check if it is included in the array of ids listed
       category_tracking.forEach((category) => {
         if (category_ids_arr.includes(category.category_id)) {
-          if (new_val != null) {
-            category.complete = new_val;
-            val = new_val;
+          // If a specific value is set, set the categories completed status to that specific value (either complete or not complete)
+          let submit_value =
+            new_val != null ? new_val : category.complete == 1 ? 0 : 1;
+          // If the new value is true and there is an error - do not submit it
+          if (submit_value && this.checkCategoryErrors(category.category_id)) {
+            return;
           } else {
-            category.complete = category.complete == 1 ? 0 : 1;
-            val = category.complete;
+            // Add id to the array to be submited and change the values for it
+            submit_category_ids_arr.push(category.category_id);
+
+            category.complete = submit_value;
+            val = submit_value;
           }
+
           submit_change = true;
         }
       });
-      if (submit_change) {
+      if (submit_change && submit_category_ids_arr.length > 0) {
         completeCats(
           this.unit.rescore_session_units_id,
-          category_ids_arr,
+          submit_category_ids_arr,
           val,
         ).then(() => {
-          this.fetchUnitsData();
+          // this.fetchUnitsData();
         });
       }
-      this.local_unit.category_tracking = JSON.stringify(category_tracking);
+      // this.local_unit.category_tracking = JSON.stringify(category_tracking);
     },
 
     submitMetricsChanges(collection_unit_metric_definition_id) {
@@ -533,18 +578,26 @@ export default {
         ).is_draft = true;
         this.returnBulkEdit();
       } else {
-        submitDataGeneric('submit-draft-metrics', {
-          rescore_session_units_id: this.unit.rescore_session_units_id,
-          collection_unit_id: this.unit.collection_unit_id,
-          metric_json: this.metric_definitions.filter(
-            (metric) =>
-              metric.collection_unit_metric_definition_id ==
-              collection_unit_metric_definition_id,
-          ),
-        }).then(() => {
-          // Fetch the updated data after submitting the metrics changes
-          this.fetchUnitsData();
-        });
+        const edited_metric = this.metric_definitions.find(
+          (metric) =>
+            metric.collection_unit_metric_definition_id ==
+            collection_unit_metric_definition_id,
+        );
+        // Check the the metric value and confidence is valid
+        if (
+          edited_metric.metric_value >= 0 &&
+          edited_metric.confidence_level !== null
+        ) {
+          // Submit the metric change
+          submitDataGeneric('submit-draft-metrics', {
+            rescore_session_units_id: this.unit.rescore_session_units_id,
+            collection_unit_id: this.unit.collection_unit_id,
+            metric_json: [edited_metric],
+          }).then(() => {
+            // Fetch the updated data after submitting the metrics changes
+            this.fetchUnitsData();
+          });
+        }
       }
     },
     returnBulkEdit() {
@@ -557,17 +610,24 @@ export default {
       });
     },
 
-    submitRankChanges(ranks, criterion_id) {
+    async submitRankChanges(ranks, criterion_id) {
       if (this.bulk_edit) {
         this.returnBulkEdit();
       } else {
         try {
           // Check if there are any errors before submitting
           const errors = this.checkErrors(criterion_id);
-          if (errors.length > 0 && !errors.some((e) => e.allow_submit)) {
+          // Check if the ranks was actually changed
+          const was_changed = this.checkChanged(criterion_id);
+          if (
+            (errors.length > 0 && !errors.some((e) => e.allow_submit)) ||
+            !was_changed
+          ) {
             // If there are errors, do not submit
             return;
           } else {
+            // Set that this criterion is being saved
+            this.saving_criterion_id = criterion_id;
             // If no errors, proceed to submit the rank changes
             const category_draft_id = this.getCatDraftId(criterion_id);
             const rank_draft = {
@@ -581,10 +641,11 @@ export default {
                 comment: rank.comment || null,
               })),
             };
-            submitDraftRrank(rank_draft).then(() => {
-              // Fetch the updated data after submitting the rank changes
-              this.fetchUnitsData();
-            });
+            await submitDraftRrank(rank_draft);
+            // Fetch the updated data after submitting the rank changes
+            await this.fetchUnitsData();
+            // Set that this criterion is done saving saved
+            this.saving_criterion_id = 0;
           }
         } catch (error) {
           console.error('Submission error:', error);
@@ -627,6 +688,20 @@ export default {
       );
       return category.category_draft_id;
     },
+    // Function to check for errors in a while category
+    checkCategoryErrors(category_id) {
+      const criterions = this.criterion.filter(
+        (criteria) => criteria.category_id == category_id,
+      );
+      let is_error = false;
+      criterions.forEach((criterion) => {
+        let errors = this.checkErrors(criterion.criterion_id);
+        if (errors.some((error) => error.type == 'error')) {
+          is_error = true;
+        }
+      });
+      return is_error;
+    },
     // Function to check for errors in ranks
     checkErrors(criterion_id) {
       const errors = [];
@@ -655,36 +730,82 @@ export default {
           type: 'warning',
         });
       }
-      // Check if the score has changed but not saved - only if no other messages
-      if (this.unit && errors.length == 0) {
-        const original_data_edited_ranks = this.getInitialEditedRanks(
-          this.unit,
-        );
-        if (original_data_edited_ranks) {
-          const original_data_ranks_filtered =
-            original_data_edited_ranks[criterion_id] || [];
-          // Check if there is a difference between original data and current data
-          for (let i = 0; i < ranks_filtered.length; i++) {
-            const original = original_data_ranks_filtered[i];
-            const current = ranks_filtered[i];
-
-            if (
-              original.percentage !== current.percentage ||
-              original.comment !== current.comment
-            ) {
-              errors.push({
-                message: 'Change not saved!',
-                type: 'error',
-                allow_submit: true,
-              });
-              // Stop if difference found
-              break;
-            }
-          }
+      if (this.checkScoreDecimal(ranks_filtered)) {
+        errors.push({
+          message: 'Score contains a decimal',
+          type: 'error',
+        });
+      }
+      // Check if the score has changed but not saved - only if no other messages and if this criterion is not currently saving
+      if (
+        this.unit &&
+        errors.length == 0 &&
+        this.saving_criterion_id !== criterion_id
+      ) {
+        // Check that there was a change
+        const was_changed = this.checkChanged(criterion_id);
+        if (was_changed) {
+          errors.push({
+            message: 'Change not saved!',
+            type: 'error',
+            allow_submit: true,
+          });
         }
+      } else if (
+        errors.length == 0 &&
+        this.saving_criterion_id === criterion_id
+      ) {
+        // Show that there is a change and it is saving
+        errors.push({
+          message: 'Saving change...',
+          type: 'warning',
+          allow_submit: true,
+        });
       }
 
       return errors;
+    },
+    checkScoreDecimal(array) {
+      return array.some((item) => {
+        const value = item['percentage'];
+        if (typeof value === 'number' && !isNaN(value)) {
+          const percentage = value * 100;
+          return !Number.isInteger(percentage);
+        }
+        return false;
+      });
+    },
+    checkChanged(criterion_id) {
+      // Get filtered ranks
+      const ranks_filtered = this.editedRanks[criterion_id] || [];
+      // Sort ranks
+      const sorted_current = [...ranks_filtered].sort(
+        (a, b) => a.rank_id - b.rank_id,
+      );
+      // Get original data
+      const original_data_edited_ranks = this.getInitialEditedRanks(this.unit);
+      if (original_data_edited_ranks) {
+        const original_data_ranks_filtered =
+          original_data_edited_ranks[criterion_id] || [];
+        const sorted_original = [...original_data_ranks_filtered].sort(
+          (a, b) => a.rank_id - b.rank_id,
+        );
+        // Check if there is a difference between original data and current data
+        for (let i = 0; i < sorted_current.length; i++) {
+          const original = sorted_original[i];
+          const current = sorted_current[i];
+          //Check if the current rank is the same as the original
+          if (
+            original.percentage !== current.percentage ||
+            original.comment !== current.comment
+          ) {
+            // Change found
+            return true;
+          }
+        }
+        // No changes found
+        return false;
+      }
     },
     checkEdited(ranks) {
       if (ranks == undefined) return false;

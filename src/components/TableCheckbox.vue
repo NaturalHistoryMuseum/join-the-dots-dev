@@ -42,7 +42,7 @@
             class="check"
             zoa-type="checkbox"
             label=""
-            label-position="right"
+            label-position="none"
             v-model="selectAll"
             @change="(newValue) => toggleSelectAll(newValue)"
           />

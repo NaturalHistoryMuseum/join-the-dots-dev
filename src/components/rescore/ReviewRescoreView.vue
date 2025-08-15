@@ -9,7 +9,7 @@
       <zoa-input
         class="check"
         zoa-type="checkbox"
-        label="Confirm changes"
+        label="Confirm changes?"
         label-position="left"
         v-model="confirm_changes"
       />
@@ -44,7 +44,7 @@ export default {
     units: Array,
   },
   data() {
-    return {};
+    return { confirm_changes: false };
   },
   methods: {
     async handleSaveChanges() {

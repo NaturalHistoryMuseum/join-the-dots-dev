@@ -1,0 +1,47 @@
+@startuml
+skinparam componentStyle rectangle
+
+/'actor "Developer" as Dev'/
+
+node "Kubernetes Cluster" {
+    node "Pod: Vue.js Frontend" as VuePod {
+        component "Vue.js App" as VueApp
+    }
+
+    node "Pod: Flask Backend" as FlaskPod {
+        component "Flask API" as FlaskApp
+    }
+    database "MySQL Database" as MySQL
+}
+
+node "Local Machine" {
+    component "Local Vue.js App" as LocalVueApp
+    component "Local Flask API" as LocalFlaskApp
+    database "Local MySQL Database" as LocalMySQL
+}
+
+cloud "Docker Registry (GitLab)" as DockerRegistry
+cloud "GitHub" as GitHubRepo
+cloud "GitLab CI/CD" as GitLabCI
+
+' K8s App interactions
+VueApp --> FlaskApp : REST API
+FlaskApp --> MySQL : SQL Queries
+
+' Local App interactions
+LocalVueApp --> LocalFlaskApp : REST API
+LocalFlaskApp --> LocalMySQL : SQL Queries
+
+' Docker image flow
+DockerRegistry --> VueApp : Docker Image
+DockerRegistry --> FlaskApp : Docker Image
+
+' Dev pushes to GitHub
+LocalVueApp --> GitHubRepo : git push
+LocalFlaskApp --> GitHubRepo : git push
+
+' GitHub triggers GitLab CI/CD or GitLab mirrors/has access
+GitHubRepo --> GitLabCI : Webhook / Mirror / CI Trigger
+GitLabCI --> DockerRegistry : Build & Push Image
+
+@enduml
