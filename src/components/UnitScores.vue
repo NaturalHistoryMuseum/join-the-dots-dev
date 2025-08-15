@@ -192,7 +192,9 @@
                 />
                 <p class="view-field">
                   <!-- Only show where there are scores -->
-                  {{ rank.percentage ? rank.percentage * 100 : '' }}
+                  <strong>{{
+                    rank.percentage ? rank.percentage * 100 : ''
+                  }}</strong>
                 </p>
               </div>
             </div>
@@ -202,7 +204,13 @@
             }} -->
           </div>
           <!-- Container for other criterion interations -->
-          <div class="row" v-if="!bulk_edit">
+          <div
+            class="row"
+            v-if="
+              !bulk_edit &&
+              (rescore || countCriterionComments(crit.criterion_id) > 0)
+            "
+          >
             <!-- Show comments asigned to ranks in this criterion -->
             <div class="show-comments">
               <div
@@ -475,6 +483,13 @@ export default {
       }
     },
     commentsTitle(criterion_id) {
+      const count_comments = this.countCriterionComments(criterion_id);
+      if (count_comments == 0) {
+        return 'Add comments';
+      }
+      return `Show comments (${count_comments})`;
+    },
+    countCriterionComments(criterion_id) {
       if (this.editedRanks[criterion_id]) {
         const ranks_comments = this.editedRanks[criterion_id].filter(
           (rank) =>
@@ -482,11 +497,9 @@ export default {
             rank.comment !== null &&
             rank.comment.length > 0,
         );
-        if (ranks_comments.length == 0) {
-          return 'Add comments';
-        }
-        return `Show comments (${ranks_comments.length})`;
+        return ranks_comments.length;
       }
+      return 0;
     },
     checkCatComplete(cat) {
       // Get the tracking data in JSON format
