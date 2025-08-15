@@ -27,6 +27,8 @@ class Config:
     JWT_TOKEN_LOCATION = ['headers', 'cookies']
     JWT_ACCESS_COOKIE_NAME = 'access_token'
     JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_SECURE = True
+    JWT_COOKIE_SAMESITE = 'None'
     JWT_CSRF_HEADER_NAME = 'X-CSRF-TOKEN'
     JWT_REFRESH_COOKIE_NAME = 'refresh_token'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
