@@ -141,7 +141,10 @@
                   :key="sub.sub_section_id"
                 >
                   <h4 class="subheading">{{ sub.sub_section_name }}</h4>
-                  <div v-if="sub.fields.length > 0" class="fields-box">
+                  <div
+                    v-if="sub.fields && sub.fields.length > 0"
+                    class="fields-box"
+                  >
                     <div
                       v-for="field in sub.fields"
                       :key="field.field_name"
@@ -154,6 +157,60 @@
                         @dataChange="handleFieldChange"
                         @updateValue="unit[field.field_name] = $event"
                       />
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="
+                      sub.component == 'edit-editors' &&
+                      curators_options.length > 0
+                    "
+                    class=""
+                  >
+                    <zoa-input
+                      class="field-container"
+                      zoa-type="multiselect"
+                      label="Please select editors"
+                      v-model="assinged_users"
+                      @change="handleEditorChange($event)"
+                      help="The users who will be able to edit this unit"
+                      help-position="right"
+                      :config="{
+                        options: curators_options,
+                        itemName: 'Curator',
+                        itemNamePlural: 'Curators',
+                        placeholder: 'Please select....',
+                        enableSearch: true,
+                      }"
+                    />
+                    <div class="fields-box">
+                      <div
+                        v-for="user_id in assinged_users"
+                        :key="user_id.value"
+                        class="field-editor"
+                      >
+                        <div>
+                          <div class="editor-title">
+                            {{
+                              curators_options.find((u) => u.value == user_id)
+                                .label
+                            }}
+                          </div>
+                          <div class="editor-title">
+                            {{
+                              curators_options.find((u) => u.value == user_id)
+                                .email
+                            }}
+                          </div>
+                        </div>
+                        <div v-if="user_id != unit.responsible_curator_id">
+                          <zoa-button
+                            class="remove-btn"
+                            @click="removeEditor(user_id)"
+                          >
+                            <i class="bi bi-x-lg"></i>
+                          </zoa-button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -236,6 +293,8 @@ export default {
       scored_unit: [],
       unit_create_success: false,
       unit_sections: [],
+      assinged_users: [],
+      curators_options: [],
     };
   },
   setup() {
@@ -262,16 +321,27 @@ export default {
       this.fetchUnitData();
     }
     this.fetchSectionOptions();
+    this.fetchAssignedUsers();
+    this.fetchAllCurators();
   },
   methods: {
     async setUnitSections() {
       const data = await import('../utils/unit_sections.json');
       this.unit_sections = data.default;
     },
+    async fetchAssignedUsers() {
+      const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
+      this.assinged_users = resp.map((user) => user.user_id);
+      console.log(this.assinged_users);
+    },
+    async fetchAllCurators() {
+      this.curators_options = await getGeneric(`all-curators`);
+    },
     async fetchUnitData() {
       if (!this.add_unit_mode && this.unit_id) {
         let unitData = await getGeneric(`full-unit/${this.unit_id}`);
         this.unit = unitData[0];
+        this.handleEditorChange();
         // Check if the unit is assigned to the current user
         if (this.currentUser.assigned_units) {
           this.allow_edit = JSON.parse(
@@ -280,6 +350,16 @@ export default {
         } else {
           this.allow_edit = false;
         }
+      }
+    },
+    removeEditor(user_id) {
+      this.assinged_users = this.assinged_users.filter(
+        (user) => user != user_id,
+      );
+    },
+    handleEditorChange() {
+      if (!this.assinged_users.includes(this.unit.responsible_curator_id)) {
+        this.assinged_users.push(this.unit.responsible_curator_id);
       }
     },
     fetchSectionOptions() {
@@ -476,6 +556,26 @@ export default {
 .required-tag {
   color: red;
   margin-bottom: -1.5rem;
+}
+
+.field-editor {
+  margin: 0.5rem 0;
+  padding: 0 0.5rem;
+  width: 25vw;
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.remove-btn {
+  background-color: #ff5957 !important;
+  color: white !important ;
+}
+
+.editor-title {
+  margin: 0.5rem;
 }
 
 .error-field .zoa__textbox__input {

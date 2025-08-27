@@ -1,4 +1,5 @@
 import AdminView from '@/views/AdminView.vue';
+import AssignmentManagement from '@/views/AssignmentManagement.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { currentUser, loadUser } from '../services/authService';
 import AboutView from '../views/AboutView.vue';
@@ -87,6 +88,15 @@ const router = createRouter({
       meta: { requiresAuth: true },
       beforeEnter: (to, from, next) => {
         checkAuth(4, from, next);
+      },
+    },
+    {
+      path: '/assignment-management',
+      name: 'assignment management',
+      component: AssignmentManagement,
+      meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        checkAuth(2, from, next);
       },
     },
   ],

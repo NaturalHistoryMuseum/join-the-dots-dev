@@ -945,6 +945,70 @@ def get_full_unit(unit_id):
     return jsonify(data)
 
 
+@data_bp.route('/all-assigned-users/<unit_id>', methods=['GET'])
+@jwt_required()
+def get_assigned_users(unit_id):
+    data = fetch_data(
+        """SELECT au.user_id, u.name AS user_name
+        FROM {database_name}.assigned_units au
+        JOIN {database_name}.users u ON u.user_id = au.user_id
+        WHERE au.collection_unit_id = %s
+                   """
+        % int(unit_id)
+    )
+    return jsonify(data)
+
+
+@data_bp.route('/units-assigned', methods=['GET'])
+@jwt_required()
+def get_units_assigned():
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    try:
+        # Fetch user level
+        user = fetch_data(
+            """SELECT *
+            FROM {database_name}.users
+            WHERE user_id = %s
+                    """,
+            (user_id,),
+        )
+        match user[0]['role_id']:
+            case 1:
+                return jsonify({'error': 'You are not autorised.'}), 500
+            case 2:
+                data = fetch_data(
+                    """SELECT u.*, cu.*
+                    FROM {database_name}.assigned_units au
+                    JOIN {database_name}.users u ON u.user_id = au.user_id
+                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
+                    WHERE au.user_id = %s AND cu.unit_active = 'yes'
+                            """,
+                    (user_id,),
+                )
+            case 3:
+                data = fetch_data(
+                    """SELECT cu.*,
+                    FROM {database_name}.collection_unit cu
+                    JOIN {database_name}.section s ON s.section_id = cu.section_id
+                    JOIN {database_name}.division d ON d.division_id = s.division_id
+                    WHERE d.division_id = %s AND cu.unit_active = 'yes'
+                            """,
+                    (user['division_id'],),
+                )
+            case 4:
+                data = fetch_data(
+                    """SELECT cu.*,
+                    FROM {database_name}.collection_unit cu
+                    WHERE cu.unit_active = 'yes'
+                            """
+                )
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @data_bp.route('/criterion', methods=['GET'])
 @jwt_required()
 def get_criterion():
@@ -1082,6 +1146,17 @@ def get_all_lib_function():
     data = fetch_data("""SELECT *, library_and_archives_function_id AS value, function_name AS label
                         FROM {database_name}.library_and_archives_function;
                    """)
+    return jsonify(data)
+
+
+@data_bp.route('/all-curators', methods=['GET'])
+@jwt_required()
+def get_all_curators():
+    data = fetch_data("""
+        SELECT u.name AS label, u.user_id AS value, u.email
+        FROM {database_name}.users u
+        WHERE u.role_id = 2 OR u.role_id = 2 OR 3
+        """)
     return jsonify(data)
 
 

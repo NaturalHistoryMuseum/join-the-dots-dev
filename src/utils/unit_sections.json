@@ -91,8 +91,30 @@
       },
       {
         "sub_section_id": 2,
-        "sub_section_name": "Responsible Curator",
-        "fields": []
+        "sub_section_name": "Section",
+        "fields": [
+          {
+            "field_name": "section_id",
+            "field_type": "dropdown",
+            "label": "Section Name",
+            "required": true,
+            "editable": true,
+            "options_source": "all-sections",
+            "help_text": "The short name of the section.",
+            "dependant_fields": [
+              {
+                "field_name": "division_name",
+                "label": "Division Name",
+                "help_text": "The official name of the NHM division."
+              },
+              {
+                "field_name": "department_name",
+                "label": "Department Name",
+                "help_text": "The official name of the NHM department."
+              }
+            ]
+          }
+        ]
       },
       {
         "sub_section_id": 3,
@@ -150,34 +172,34 @@
   },
   {
     "section_id": 1,
-    "section_name": "Section",
+    "section_name": "Curators",
     "sub_sections": [
       {
         "sub_section_id": 1,
-        "sub_section_name": "Section",
+        "sub_section_name": "Responsible Curator",
         "fields": [
           {
-            "field_name": "section_id",
+            "field_name": "responsible_curator_id",
             "field_type": "dropdown",
-            "label": "Section Name",
+            "label": "Responsible Curator",
             "required": true,
             "editable": true,
-            "options_source": "all-sections",
-            "help_text": "The short name of the section.",
+            "options_source": "all-curators",
+            "help_text": "The name of the curator responsible for the collection unit.",
             "dependant_fields": [
               {
-                "field_name": "division_name",
-                "label": "Division Name",
-                "help_text": "The official name of the NHM division."
-              },
-              {
-                "field_name": "department_name",
-                "label": "Department Name",
-                "help_text": "The official name of the NHM department."
+                "field_name": "email",
+                "label": "Responsible Curator Email",
+                "help_text": "The email address of the curator."
               }
             ]
           }
         ]
+      },
+      {
+        "sub_section_id": 2,
+        "sub_section_name": "Assigned Editors",
+        "component": "edit-editors"
       }
     ]
   },
