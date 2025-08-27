@@ -6,6 +6,7 @@
   <div class="content">
     <div class="filters-row">
       <zoa-input
+        v-if="currentUser.role_id > 2"
         zoa-type="dropdown"
         label="Assign by..."
         labelPosition="left"
@@ -21,44 +22,55 @@
       />
     </div>
     <div v-if="assign_by == 'units'" class="units-assignment">
-      <div
-        v-for="unit in units"
-        :key="unit.collection_unit_id"
-        class="unit-row"
-      >
-        <div class="unit-col">
-          {{ unit.unit_name }}
-          {{ unit.section_id }}
-        </div>
-        <zoa-input
-          class="unit-col"
-          zoa-type="dropdown"
-          label="Responsible Curator"
-          :config="{ options: curators_options }"
-        />
-        <zoa-input
-          class="unit-col"
-          zoa-type="multiselect"
-          label="Assigned Editors"
-          :config="{ options: curators_options }"
-        />
-      </div>
+      <TableCheckbox :units="units" :fields="fields">
+        <template #cell(responsible_curator_id)="row">
+          <zoa-input
+            class="unit-col"
+            zoa-type="dropdown"
+            label="Responsible Curator"
+            v-model="row.item.responsible_curator_id"
+            :config="{ options: curators_options }"
+          />
+        </template>
+        <template #cell(assigned_editors)="row">
+          <zoa-input
+            class="unit-col"
+            zoa-type="multiselect"
+            label="Assigned Editors"
+            v-model="row.item.assigned_editors"
+            :config="{ options: curators_options }"
+          />
+        </template>
+      </TableCheckbox>
     </div>
   </div>
 </template>
 
 <script>
+import TableCheckbox from '@/components/TableCheckbox.vue';
+import { currentUser } from '@/services/authService';
 import { getGeneric } from '@/services/dataService';
 
 export default {
   name: 'AssignmentManagement',
+  components: {
+    TableCheckbox,
+  },
   data() {
     return {
+      currentUser,
       assign_by_options: ['units', 'users'],
       assign_by: 'units',
       sections: [],
       units: [],
       curators_options: [],
+      fields: [
+        { label: 'Collection Unit ID', key: 'collection_unit_id' },
+        { label: 'Unit Name', key: 'unit_name' },
+        { label: 'Section', key: 'section_name' },
+        { label: 'Responsible Curator', key: 'responsible_curator_id' },
+        { label: 'Assigned Editors', key: 'assigned_editors' },
+      ],
     };
   },
   mounted() {
@@ -70,7 +82,11 @@ export default {
       this.curators_options = await getGeneric(`all-curators`);
     },
     async fetchAllUnits() {
-      this.units = await getGeneric(`units-assigned`);
+      const response = await getGeneric(`units-assigned`);
+      this.units = response.map((unit) => ({
+        ...unit,
+        assigned_editors: JSON.parse(unit.assigned_editors || '[]'),
+      }));
     },
   },
 };
@@ -92,5 +108,13 @@ export default {
 .unit-col {
   width: 20rem;
   text-align: left;
+}
+
+.table-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  width: 100%;
 }
 </style>

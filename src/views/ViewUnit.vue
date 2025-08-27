@@ -162,7 +162,8 @@
                   <div
                     v-else-if="
                       sub.component == 'edit-editors' &&
-                      curators_options.length > 0
+                      curators_options.length > 0 &&
+                      allow_edit
                     "
                     class=""
                   >
@@ -171,7 +172,7 @@
                       zoa-type="multiselect"
                       label="Please select editors"
                       v-model="assinged_users"
-                      @change="handleEditorChange($event)"
+                      @change="handleEditorChange(true)"
                       help="The users who will be able to edit this unit"
                       help-position="right"
                       :config="{
@@ -341,7 +342,7 @@ export default {
       if (!this.add_unit_mode && this.unit_id) {
         let unitData = await getGeneric(`full-unit/${this.unit_id}`);
         this.unit = unitData[0];
-        this.handleEditorChange();
+        this.handleEditorChange(false);
         // Check if the unit is assigned to the current user
         if (this.currentUser.assigned_units) {
           this.allow_edit = JSON.parse(
@@ -356,10 +357,30 @@ export default {
       this.assinged_users = this.assinged_users.filter(
         (user) => user != user_id,
       );
+      this.handleEditorChange(true);
     },
-    handleEditorChange() {
+    async handleEditorChange(submit = false) {
       if (!this.assinged_users.includes(this.unit.responsible_curator_id)) {
         this.assinged_users.push(this.unit.responsible_curator_id);
+      }
+      if (submit) {
+        const response = await submitDataGeneric('submit-unit-assigned', {
+          unit_id: this.unit.collection_unit_id,
+          assinged_users: this.assinged_users,
+        });
+        if (response.success) {
+          this.messages.push({
+            message_text: 'Change saved!',
+            message_type: 'success',
+          });
+          this.removeMessage();
+        } else {
+          this.messages.push({
+            message_text: 'Change not saved!',
+            message_type: 'error',
+          });
+          this.removeMessage();
+        }
       }
     },
     fetchSectionOptions() {
