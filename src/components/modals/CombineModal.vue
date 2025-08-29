@@ -18,8 +18,6 @@
     <div class="flex flex-col center gap-4 action-modal-content">
       <div v-if="selected_units && !success && !loading">
         <p>Unit selected to be combined:</p>
-        <!-- <ul> -->
-        <!-- <li v-for="unit in selected_units" :key="unit.collection_unit_id"> -->
         <div
           v-for="unit in selected_units"
           :key="unit.collection_unit_id"
@@ -30,8 +28,6 @@
             {{ unit.unit_name }}
           </strong>
         </div>
-        <!-- </li> -->
-        <!-- </ul> -->
         <p class="message">
           Please select the unit that you would like to be the primary unit.
           (The combination will take on all data from this unit and you will
@@ -50,14 +46,6 @@
           class="col-md-6 new-count"
         />
         <div class="confrim-container" v-if="primary_unit_id">
-          <!-- <p>Please confirm the change</p>
-          <zoa-input
-            class="check"
-            zoa-type="checkbox"
-            label="Confirm change"
-            label-position="left"
-            v-model="confirm_changes"
-          /> -->
           <zoa-button
             class="confirm-btn"
             label="Save Changes"
@@ -72,7 +60,7 @@
         <p>Merge successful! The new unit ID is: {{ new_unit_id }}</p>
         <p>
           Make sure to amend the new unit as required. The unit has been
-          automatically assinged to you.
+          automatically assigned to you.
         </p>
       </div>
       <div v-if="!success && loading">

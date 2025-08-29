@@ -1040,13 +1040,13 @@ def get_units_assigned():
 def set_unit_assigned():
     data = request.get_json()
     unit_id = data.get('unit_id')
-    assinged_users = data.get('assinged_users')
+    assigned_users = data.get('assigned_users')
 
     if not unit_id:
         return jsonify({'error': 'unit_id is required'}), 400
 
-    if not assinged_users:
-        return jsonify({'error': 'assinged_users is required'}), 400
+    if not assigned_users:
+        return jsonify({'error': 'assigned_users is required'}), 400
 
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
@@ -1063,10 +1063,10 @@ def set_unit_assigned():
         current_assigned = set(
             row['user_id'] for row in current_assigned
         )  # if fetch_data returns dicts
-        assinged_users = set(assinged_users)
+        assigned_users = set(assigned_users)
         # Compare lists
-        users_to_add = assinged_users - current_assigned
-        users_to_remove = current_assigned - assinged_users
+        users_to_add = assigned_users - current_assigned
+        users_to_remove = current_assigned - assigned_users
         # Insert new assigned users
         if users_to_add:
             for user_id in users_to_add:
@@ -1197,9 +1197,9 @@ def get_all_taxon():
     return jsonify(data)
 
 
-@data_bp.route('/all-curtorial-definition', methods=['GET'])
+@data_bp.route('/all-curatorial-definition', methods=['GET'])
 @jwt_required()
-def get_all_curtorial_definition():
+def get_all_curatorial_definition():
     data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*, cud.curatorial_unit_definition_id as value, cud.description as label
                     FROM {database_name}.curatorial_unit_definition cud
                     LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id

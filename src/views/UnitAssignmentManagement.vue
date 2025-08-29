@@ -109,7 +109,7 @@ export default {
       if (submit) {
         const response = await submitDataGeneric('submit-unit-assigned', {
           unit_id: unit.collection_unit_id,
-          assinged_users: user_ids,
+          assigned_users: user_ids,
         });
         this.store.handleChangeResponse(response);
       }

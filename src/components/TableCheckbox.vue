@@ -118,7 +118,7 @@ export default {
   },
   methods: {
     toggleSelectAll(newValue) {
-      // Only update currently visible (filtered + paginated + assinged to user) rows
+      // Only update currently visible (filtered + paginated + assigned to user) rows
       const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
       this.paginatedUnits.forEach((unit) => {
         if (assignedUnitIds.includes(unit.collection_unit_id)) {

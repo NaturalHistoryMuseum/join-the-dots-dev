@@ -33,13 +33,13 @@
         </div>
         <div class="col-md-3">
           <div class="required-message">
-            Required fields completion:
+            Required fields completed?
             <div class="round-prog-bar">
               <RoundProgressBar :progress="countRequiredFields()" />
             </div>
           </div>
           <div class="required-message">
-            Scoring completion:
+            Scoring completed?
             <div class="round-prog-bar">
               <RoundProgressBar :progress="scores_percentage" />
             </div>
@@ -157,11 +157,12 @@
                     "
                     class=""
                   >
+                    <div class="required-tag">*</div>
                     <zoa-input
                       class="field-container"
                       zoa-type="multiselect"
                       label="Please select editors"
-                      v-model="assinged_users"
+                      v-model="assigned_users"
                       @change="handleEditorChange(true)"
                       help="The users who will be able to edit this unit"
                       help-position="right"
@@ -173,9 +174,9 @@
                         enableSearch: true,
                       }"
                     />
-                    <div class="fields-box">
+                    <div class="fields-box" v-if="assigned_users.length > 0">
                       <div
-                        v-for="user_id in assinged_users"
+                        v-for="user_id in assigned_users"
                         :key="user_id.value"
                         class="field-editor"
                       >
@@ -284,7 +285,7 @@ export default {
       scored_unit: [],
       unit_create_success: false,
       unit_sections: [],
-      assinged_users: [],
+      assigned_users: [],
       curators_options: [],
     };
   },
@@ -308,6 +309,7 @@ export default {
         publish_flag: 'yes',
         unit_active: 'yes',
       };
+      this.assigned_users = [this.currentUser.user_id];
     } else {
       this.add_unit_mode = false;
       this.fetchUnitData();
@@ -322,8 +324,10 @@ export default {
       this.unit_sections = data.default;
     },
     async fetchAssignedUsers() {
-      const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
-      this.assinged_users = resp.map((user) => user.user_id);
+      if (this.unit_id) {
+        const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
+        this.assigned_users = resp.map((user) => user.user_id);
+      }
     },
     async fetchAllCurators() {
       this.curators_options = await getGeneric(`all-curators`);
@@ -344,19 +348,22 @@ export default {
       }
     },
     removeEditor(user_id) {
-      this.assinged_users = this.assinged_users.filter(
+      this.assigned_users = this.assigned_users.filter(
         (user) => user != user_id,
       );
-      this.handleEditorChange(true);
+      this.handleEditorChange(!this.add_unit_mode && this.allow_edit);
     },
     async handleEditorChange(submit = false) {
-      if (!this.assinged_users.includes(this.unit.responsible_curator_id)) {
-        this.assinged_users.push(this.unit.responsible_curator_id);
+      if (
+        this.unit.responsible_curator_id &&
+        !this.assigned_users.includes(this.unit.responsible_curator_id)
+      ) {
+        this.assigned_users.push(this.unit.responsible_curator_id);
       }
-      if (submit) {
+      if (submit && !this.add_unit_mode && this.allow_edit) {
         const response = await submitDataGeneric('submit-unit-assigned', {
           unit_id: this.unit.collection_unit_id,
-          assinged_users: this.assinged_users,
+          assigned_users: this.assigned_users,
         });
         this.store.handleChangeResponse(response);
       }
@@ -391,7 +398,8 @@ export default {
       }
     },
     countRequiredFields() {
-      let total_fields = this.required_fields.length;
+      // Add one to the total for the assigned editors field
+      let total_fields = this.required_fields.length + 1;
       let filled_fields = 0;
       // Go through each key of the unit object
       for (const property in this.unit) {
@@ -403,6 +411,10 @@ export default {
         ) {
           filled_fields++;
         }
+      }
+      // Check if there is at least one assigned editor
+      if (this.assigned_users.length > 0) {
+        filled_fields++;
       }
       // Return percentage of required fields completed
       return ((filled_fields / total_fields) * 100 || 0).toFixed(2);
@@ -443,7 +455,7 @@ export default {
         }
       }
     },
-    submitUnit() {
+    async submitUnit() {
       // If not allowed to edit or in add mode, do nothing
       if (!this.allow_edit || !this.add_unit_mode) return;
       // Check if all required fields are filled
@@ -453,25 +465,37 @@ export default {
         return;
       }
       // Submit the unit data
-      submitDataGeneric('submit-unit', {
+      const unit_repsonse = await submitDataGeneric('submit-unit', {
         unit_data: this.unit,
         score_data: this.scored_unit,
-      }).then((response) => {
+      });
+      if (unit_repsonse.success) {
+        const response = await submitDataGeneric('submit-unit-assigned', {
+          unit_id: unit_repsonse.collection_unit_id,
+          assigned_users: this.assigned_users,
+        });
         if (response.success) {
           this.unit_create_success = true;
-          this.new_unit_id = response.collection_unit_id;
+          this.new_unit_id = unit_repsonse.collection_unit_id;
         } else {
-          this.store.addMessage('Error saving unit', 'error');
+          this.store.addMessage('Error assigning editors to new unit', 'error');
         }
-      });
+      } else {
+        this.store.addMessage('Error saving unit', 'error');
+      }
     },
     navNewUnit() {
-      this.$router.push({
-        path: '/view-unit',
-        query: {
-          unit_id: this.new_unit_id,
-        },
-      });
+      // Navigate to the new unit and reload the page
+      this.$router
+        .push({
+          path: '/view-unit',
+          query: {
+            unit_id: this.new_unit_id,
+          },
+        })
+        .then(() => {
+          window.location.reload();
+        });
     },
   },
   computed: {},

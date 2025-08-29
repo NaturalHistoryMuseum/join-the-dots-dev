@@ -118,7 +118,7 @@
       },
       {
         "sub_section_id": 3,
-        "sub_section_name": "Curtorial Unit Definition",
+        "sub_section_name": "Curatorial Unit Definition",
         "fields": [
           {
             "field_name": "curatorial_unit_definition_id",
@@ -126,7 +126,7 @@
             "label": "Curatorial Unit Definition",
             "required": true,
             "editable": true,
-            "options_source": "all-curtorial-definition",
+            "options_source": "all-curatorial-definition",
             "help_text": "A short description of the curatorial unit type that reflects the terminology used by the curators.",
             "dependant_fields": [
               {

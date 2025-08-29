@@ -266,7 +266,7 @@
     </div>
   </div>
   <div class="row">
-    <h4 class="subheading">Curtorial Unit Definition</h4>
+    <h4 class="subheading">Curatorial Unit Definition</h4>
     <div class="col-md-4 field">
       <div class="required-tag">*</div>
       <zoa-input
@@ -482,7 +482,7 @@ export default {
   },
   methods: {
     async fetchData() {
-      getGeneric(`all-curtorial-definition`).then((response) => {
+      getGeneric(`all-curatorial-definition`).then((response) => {
         this.curatorial_def_options = response.map((curatorial_def) => ({
           ...curatorial_def,
           value: curatorial_def.curatorial_unit_definition_id,

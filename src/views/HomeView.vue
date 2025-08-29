@@ -5,7 +5,7 @@
       <div v-if="currentUser">
         <p>Welcome, {{ currentUser.name }}</p>
       </div>
-      <HomeStats />
+      <!-- <HomeStats /> -->
     </div>
     <div class="boader-header">
       <h2 class="boader-header-title">Actions</h2>
@@ -14,7 +14,7 @@
       <div v-if="currentUser.level > 1" class="home-card col-md-4">
         <i class="bi bi-clipboard-check card-icon"></i>
         <h2>Rescore</h2>
-        <p>Perform a re-scoring on your assigned units.</p>
+        <p>Perform a rescore on your assigned units.</p>
         <zoa-button
           label="Rescore"
           @click="navigate('/rescore')"
@@ -36,7 +36,7 @@
         <i class="bi bi-table card-icon"></i>
         <h2>View Units</h2>
         <p>
-          Explore all units or just your assinged units and make changes to
+          Explore all units or just your assigned units and make changes to
           them.
         </p>
         <zoa-button
@@ -50,7 +50,7 @@
         <i class="bi bi-graph-up card-icon"></i>
         <h2>Reports</h2>
         <p>
-          Generate reports on your assinged units or whole divisions
+          Generate reports on your assigned units or whole division's
           performance.
         </p>
         <zoa-button
@@ -66,14 +66,14 @@
 </template>
 
 <script>
-import HomeStats from '@/components/HomeStats.vue';
+// import HomeStats from '@/components/HomeStats.vue';
 import { currentUser } from '../services/authService';
 
 export default {
   setup() {
     return { currentUser };
   },
-  components: { HomeStats },
+  // components: { HomeStats },
   data() {
     return {};
   },
@@ -123,7 +123,6 @@ export default {
 }
 .home-card {
   background-color: var(--secondary-col);
-  /* margin: 0 5px 10px; */
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -140,10 +139,11 @@ export default {
 }
 
 .card-btn {
-  margin-top: 1rem;
+  margin-top: auto;
   align-self: end;
   justify-self: end;
   bottom: 0;
+  height: auto;
   top: auto;
 }
 .boader-header {
