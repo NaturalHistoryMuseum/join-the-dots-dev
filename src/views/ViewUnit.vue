@@ -1,16 +1,5 @@
 <template>
-  <!-- <div class="unit-save-msg-container">
-    <transition-group name="fade" tag="div" class="message-stack">
-      <div v-for="(message, index) in messages" :key="index">
-        <SmallMessages
-          :message_text="message.message_text"
-          :message_type="message.message_type"
-          class="unit-save-msg"
-        />
-      </div>
-    </transition-group>
-  </div> -->
-  <OverlayMessage :messages="messages" />
+  <OverlayMessage />
   <div v-if="unit_create_success" class="main-page">
     <zoa-flash kind="success" header="Unit Successfully Created">
       <p>
@@ -252,6 +241,7 @@ import SplitModal from '@/components/modals/SplitModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import RoundProgressBar from '@/components/RoundProgressBar.vue';
 import CustomField from '@/components/unit sections/CustomField.vue';
+import { useMessagesStore } from '@/stores/messages';
 
 export default {
   name: 'ViewUnit',
@@ -280,7 +270,6 @@ export default {
       current_section: {},
       unit_id: null,
 
-      messages: [],
       errors: [],
       required_fields: [
         'unit_name',
@@ -300,7 +289,8 @@ export default {
     };
   },
   setup() {
-    return { currentUser };
+    const store = useMessagesStore();
+    return { currentUser, store };
   },
   created() {
     this.setUnitSections();
@@ -368,19 +358,7 @@ export default {
           unit_id: this.unit.collection_unit_id,
           assinged_users: this.assinged_users,
         });
-        if (response.success) {
-          this.messages.push({
-            message_text: 'Change saved!',
-            message_type: 'success',
-          });
-          this.removeMessage();
-        } else {
-          this.messages.push({
-            message_text: 'Change not saved!',
-            message_type: 'error',
-          });
-          this.removeMessage();
-        }
+        this.store.handleChangeResponse(response);
       }
     },
     fetchSectionOptions() {
@@ -442,11 +420,7 @@ export default {
           field: field_name,
           error: 'This field is required',
         });
-        this.messages.push({
-          message_text: 'Field is required! Not saved',
-          message_type: 'error',
-        });
-        this.removeMessage();
+        this.store.addMessage('Field is required! Not saved', 'error');
       } else {
         try {
           // Set data for the field
@@ -458,46 +432,24 @@ export default {
           // Submit the data
           const resp = await submitDataGeneric('submit-field', data);
           // If the data is saved correctly
-          if (resp.success) {
-            this.messages.push({
-              message_text: 'Change saved!',
-              message_type: 'success',
-            });
-            this.removeMessage();
-          } else {
-            this.messages.push({
-              message_text: 'Change not saved',
-              message_type: 'error',
-            });
-            this.removeMessage();
-          }
+          this.store.handleChangeResponse(resp);
           this.fetchUnitData();
         } catch (error) {
           console.error('Submission error:', error);
-
-          this.messages.push({
-            message_text: 'Error saving change. Please try again.',
-            message_type: 'error',
-          });
-          this.removeMessage();
+          this.store.addMessage(
+            'Error saving change. Please try again.',
+            'error',
+          );
         }
       }
-    },
-    removeMessage() {
-      setTimeout(() => {
-        this.messages.shift();
-      }, 3000);
     },
     submitUnit() {
       // If not allowed to edit or in add mode, do nothing
       if (!this.allow_edit || !this.add_unit_mode) return;
       // Check if all required fields are filled
       if (this.countRequiredFields() < 100) {
-        this.messages.push({
-          message_text: 'Please fill all required fields',
-          message_type: 'error',
-        });
-        this.removeMessage();
+        this.store.addMessage('Please fill all required fields', 'error');
+
         return;
       }
       // Submit the unit data
@@ -509,11 +461,7 @@ export default {
           this.unit_create_success = true;
           this.new_unit_id = response.collection_unit_id;
         } else {
-          this.messages.push({
-            message_text: 'Error saving unit',
-            message_type: 'error',
-          });
-          this.removeMessage();
+          this.store.addMessage('Error saving unit', 'error');
         }
       });
     },

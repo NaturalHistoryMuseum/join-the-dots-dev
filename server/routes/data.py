@@ -73,7 +73,7 @@ def get_mark_rescore_open():
                 cursor.execute(query, (rescore_session_units_id, category_id))
 
         connection.commit()
-        return jsonify({'rescore_session_id': rescore_session_id}), 201
+        return jsonify({'rescore_session_id': rescore_session_id, 'success': True}), 201
 
     except Exception as e:
         connection.rollback()
@@ -371,7 +371,9 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
                     """,
                     (category_draft_id, criterion_id, rank_id, percentage, comment),
                 )
-        return jsonify({'message': 'Draft rank submitted successfully'}), 201
+        return jsonify(
+            {'message': 'Draft rank submitted successfully', 'success': True}
+        ), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -393,7 +395,9 @@ def submit_draft_metrics():
         return jsonify({'error': 'metric_json are required'}), 400
 
     handle_draft_metrics(rescore_session_units_id, metric_json)
-    return jsonify({'message': 'Draft metrics submitted successfully'}), 201
+    return jsonify(
+        {'message': 'Draft metrics submitted successfully', 'success': True}
+    ), 201
 
 
 def handle_draft_metrics(rescore_session_units_id, metric_json):
@@ -459,7 +463,9 @@ def submit_draft_comment():
         return jsonify({'error': 'unit_comment is required'}), 400
 
     handle_draft_comment(rescore_session_units_id, unit_comment)
-    return jsonify({'message': 'Draft comment submitted successfully'}), 201
+    return jsonify(
+        {'message': 'Draft comment submitted successfully', 'success': True}
+    ), 201
 
 
 def handle_draft_comment(rescore_session_units_id, unit_comment):
@@ -545,6 +551,7 @@ def bulk_upload_rescore():
             'message': 'Bulk drafts submitted successfully',
             'success_count': success_count,
             'total_units': len(units),
+            'success': True,
         }
     ), 201
 

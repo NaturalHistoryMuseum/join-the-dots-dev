@@ -1,5 +1,5 @@
 <template>
-  <OverlayMessage :messages="messages" />
+  <OverlayMessage />
   <div class="main-header">
     <div class="col-md-5">
       <h1>Manage Units Permissions</h1>
@@ -47,6 +47,7 @@ import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { currentUser } from '@/services/authService';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
+import { useMessagesStore } from '@/stores/messages';
 
 export default {
   name: 'AssignmentManagement',
@@ -68,9 +69,12 @@ export default {
         { label: 'Responsible Curator', key: 'responsible_curator_id' },
         { label: 'Assigned Editors', key: 'assigned_editors' },
       ],
-      messages: [],
       filtered_units: [],
     };
+  },
+  setup() {
+    const store = useMessagesStore();
+    return { store };
   },
   mounted() {
     this.fetchAllCurators();
@@ -93,7 +97,7 @@ export default {
         field_name: 'responsible_curator_id',
         new_value: user_id,
       });
-      this.handleChangeResponse(response);
+      this.store.handleChangeResponse(response);
       if (response.success && !unit.assigned_editors.includes(user_id)) {
         this.handleEditorsChange(unit, unit.assigned_editors, true);
       }
@@ -107,28 +111,8 @@ export default {
           unit_id: unit.collection_unit_id,
           assinged_users: user_ids,
         });
-        this.handleChangeResponse(response);
+        this.store.handleChangeResponse(response);
       }
-    },
-    handleChangeResponse(response) {
-      if (response.success) {
-        this.messages.push({
-          message_text: 'Change saved!',
-          message_type: 'success',
-        });
-        this.removeMessage();
-      } else {
-        this.messages.push({
-          message_text: 'Change not saved',
-          message_type: 'error',
-        });
-        this.removeMessage();
-      }
-    },
-    removeMessage() {
-      setTimeout(() => {
-        this.messages.shift();
-      }, 3000);
     },
     handleFilteredUnits(filtered_units) {
       // Only reset pagination if actual filter logic triggered

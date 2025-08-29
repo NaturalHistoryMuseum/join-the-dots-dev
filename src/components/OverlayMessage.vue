@@ -1,7 +1,7 @@
 <template>
   <div class="unit-save-msg-container">
     <transition-group name="fade" tag="div" class="message-stack">
-      <div v-for="(message, index) in messages" :key="index">
+      <div v-for="(message, index) in store.messages" :key="index">
         <SmallMessages
           :message_text="message.message_text"
           :message_type="message.message_type"
@@ -13,15 +13,17 @@
 </template>
 
 <script>
+import { useMessagesStore } from '@/stores/messages';
 import SmallMessages from './SmallMessages.vue';
 
 export default {
   name: 'OverlayMessage',
-  props: {
-    messages: Array,
-  },
   components: {
     SmallMessages,
+  },
+  setup() {
+    const store = useMessagesStore();
+    return { store };
   },
 };
 </script>

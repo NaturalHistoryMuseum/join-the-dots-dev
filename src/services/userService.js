@@ -52,30 +52,30 @@ export async function getUser() {
   return;
 }
 
-export async function editRole(role) {
-  if (currentUser) {
-    try {
-      const response = await api
-        .put(
-          `${API_URL}/edit-user-role`,
-          {
-            user_id: currentUser.value.user_id,
-            role_id: role,
-          },
-          { headers: { 'Content-Type': 'application/json' } },
-        )
-        .then((response) => {
-          return response.data;
-        });
-      // Reload user to get new role
-      await loadUser(true);
-      return response;
-    } catch (error) {
-      console.error('Error updating role:', error);
-      throw error;
-    }
-  }
-}
+// export async function editRole(role) {
+//   if (currentUser) {
+//     try {
+//       const response = await api
+//         .put(
+//           `${API_URL}/edit-user-role`,
+//           {
+//             user_id: currentUser.value.user_id,
+//             role_id: role,
+//           },
+//           { headers: { 'Content-Type': 'application/json' } },
+//         )
+//         .then((response) => {
+//           return response.data;
+//         });
+//       // Reload user to get new role
+//       await loadUser(true);
+//       return response;
+//     } catch (error) {
+//       console.error('Error updating role:', error);
+//       throw error;
+//     }
+//   }
+// }
 
 export async function assignUnits(units) {
   if (currentUser) {
