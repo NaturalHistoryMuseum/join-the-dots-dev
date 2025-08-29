@@ -915,7 +915,8 @@ def get_units_and_departments():
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
-                    LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id;
+                    LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id
+                      WHERE unit.unit_active = 'yes';
                    """)
     return jsonify(data)
 

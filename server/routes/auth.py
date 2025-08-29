@@ -154,7 +154,8 @@ def auth_status():
             (
                 SELECT JSON_ARRAYAGG( au.collection_unit_id )
                 FROM jtd_live.assigned_units au
-                where au.user_id = u.user_id
+                JOIN jtd_live.collection_unit cu ON au.collection_unit_id = cu.collection_unit_id
+                WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
             ) AS assigned_units
             FROM jtd_live.users u
             LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
