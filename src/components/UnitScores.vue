@@ -142,7 +142,9 @@
       :rescore="rescore && !bulk_edit"
       :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
       :changeCatComplete="() => changeCatComplete([cat.category_id])"
-      :error="checkCategoryErrors(cat.category_id)"
+      :error="
+        rescore && !bulk_edit ? checkCategoryErrors(cat.category_id) : false
+      "
     >
       <div class="">
         <!-- last edited date for this whole category -->
