@@ -1,5 +1,5 @@
 <template>
-  <div class="unit-save-msg-container">
+  <!-- <div class="unit-save-msg-container">
     <transition-group name="fade" tag="div" class="message-stack">
       <div v-for="(message, index) in messages" :key="index">
         <SmallMessages
@@ -9,7 +9,8 @@
         />
       </div>
     </transition-group>
-  </div>
+  </div> -->
+  <OverlayMessage :messages="messages" />
   <div v-if="unit_create_success" class="main-page">
     <zoa-flash kind="success" header="Unit Successfully Created">
       <p>
@@ -239,7 +240,6 @@ import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
 // import CommentsTab from '@/components/unit sections/CommentsTab.vue'
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
-import SmallMessages from '@/components/SmallMessages.vue';
 // import DetailsTab from '@/components/unit sections/DetailsTab.vue';
 // import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
@@ -249,6 +249,7 @@ import { currentUser } from '@/services/authService';
 
 import DeleteModal from '@/components/modals/DeleteModal.vue';
 import SplitModal from '@/components/modals/SplitModal.vue';
+import OverlayMessage from '@/components/OverlayMessage.vue';
 import RoundProgressBar from '@/components/RoundProgressBar.vue';
 import CustomField from '@/components/unit sections/CustomField.vue';
 
@@ -262,12 +263,12 @@ export default {
     // PropertiesTab,
     // SectionTab,
     // DetailsTab,
-    SmallMessages,
     ActionsBtnGroup,
     RoundProgressBar,
     CustomField,
     SplitModal,
     DeleteModal,
+    OverlayMessage,
   },
   data() {
     return {
@@ -333,7 +334,6 @@ export default {
     async fetchAssignedUsers() {
       const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
       this.assinged_users = resp.map((user) => user.user_id);
-      console.log(this.assinged_users);
     },
     async fetchAllCurators() {
       this.curators_options = await getGeneric(`all-curators`);
@@ -607,31 +607,12 @@ export default {
   border: 1px solid red !important;
   border-radius: 10px;
 }
-.unit-save-msg {
-  margin-top: 1rem;
-  margin-bottom: -3rem;
-}
-
-.unit-save-msg-container {
-  position: fixed;
-  /* padding-top: 30rem; */
-  left: 85%;
-  z-index: 1;
-  pointer-events: none;
-  gap: 1rem;
-}
 
 .required-message {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin: 1rem;
-}
-
-.message-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
 }
 
 .fade-enter-active,

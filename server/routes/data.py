@@ -979,7 +979,7 @@ def get_units_assigned():
                 return jsonify({'error': 'You are not autorised.'}), 500
             case 2:
                 data = fetch_data(
-                    """SELECT u.*, cu.*, s.section_name,
+                    """SELECT u.*, cu.*, s.section_name, d.division_name,
                     (
                         SELECT JSON_ARRAYAGG(
 	                        au.user_id
@@ -992,13 +992,14 @@ def get_units_assigned():
                     JOIN {database_name}.users u ON u.user_id = au.user_id
                     JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
                     JOIN {database_name}.section s ON s.section_id = cu.section_id
+                    JOIN {database_name}.division d ON d.division_id = s.division_id
                     WHERE au.user_id = %s AND cu.unit_active = 'yes'
                             """,
                     (user_id,),
                 )
             case 3:
                 data = fetch_data(
-                    """SELECT cu.*, s.section_name,
+                    """SELECT cu.*, s.section_name, d.division_name,
                     (
                         SELECT JSON_ARRAYAGG(
 	                        au.user_id

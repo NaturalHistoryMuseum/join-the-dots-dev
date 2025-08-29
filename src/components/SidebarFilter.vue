@@ -5,7 +5,10 @@
       width: is_collapsed ? collapsed_width : expanded_width,
     }"
   >
-    <div class="sidebar-header">
+    <div
+      v-if="!minimal"
+      :class="column_direction ? 'sidebar-header-col' : 'sidebar-header-row'"
+    >
       <zoa-button @click="toggleSidebar" class="toggle-btn">
         <!-- {{ is_collapsed ? <i class="bi bi-list"></i> : '<' }} -->
         <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
@@ -24,6 +27,7 @@
     </div>
     <div
       class="tab-container"
+      v-if="show_filters.includes('departments')"
       :style="{
         width: is_collapsed ? collapsed_width : expanded_width,
       }"
@@ -46,42 +50,46 @@
       </button>
     </div>
     <div v-if="!is_collapsed">
-      <div class="filters">
-        <h4>Filters</h4>
+      <div :class="column_direction ? 'filters-column' : 'filters-row'">
+        <h4 v-if="!minimal">Filters</h4>
 
         <zoa-input
+          v-if="show_filters.includes('show_own')"
           zoa-type="checkbox"
-          class="filter"
+          :class="minimal ? '' : 'filter'"
           label="Show Only My Assigned Units"
           label-position="right"
           v-model="filter_assigned"
         />
         <!-- <zoa-input
           zoa-type="checkbox"
-          class="filter"
+          :class="minimal ? '' : 'filter'"
           label="Show Inactive"
           label-position="right"
           v-model="filter_inactive"
         /> -->
         <zoa-input
+          v-if="show_filters.includes('unit_id')"
           zoa-type="textbox"
-          class="filter"
+          :class="minimal ? '' : 'filter'"
           label="Search: Unit ID"
           label-position="above"
           v-model="search_id_query"
           :config="{ placeholder: 'Search...' }"
         />
         <zoa-input
+          v-if="show_filters.includes('unit_name')"
           zoa-type="textbox"
-          class="filter"
+          :class="minimal ? '' : 'filter'"
           label="Search: Unit Name"
           label-position="above"
           v-model="search_name_query"
           :config="{ placeholder: 'Search...' }"
         />
         <zoa-input
+          v-if="show_filters.includes('division')"
           :zoa-type="'multiselect'"
-          class="filter"
+          :class="minimal ? '' : 'filter'"
           label="Search: Division"
           label-position="above"
           :config="{
@@ -94,8 +102,9 @@
           v-model="search_division"
         />
         <zoa-input
+          v-if="show_filters.includes('section')"
           :zoa-type="'multiselect'"
-          class="filter"
+          :class="minimal ? '' : 'filter'"
           label="Search: Section"
           label-position="above"
           :config="{
@@ -119,6 +128,9 @@ export default {
   name: 'SidebarFilter',
   props: {
     units: Array,
+    show_filters: Array,
+    column_direction: Boolean,
+    minimal: Boolean,
   },
   setup() {
     return { currentUser };
@@ -127,7 +139,7 @@ export default {
     return {
       active_tab: 0,
       is_collapsed: false,
-      expanded_width: '325px',
+      expanded_width: this.column_direction ? '325px' : '100%',
       collapsed_width: '50px',
       dropdown_char_limit: 38,
       search_name_query: '',
@@ -135,7 +147,10 @@ export default {
       search_section: [],
       search_division: [],
       filter_inactive: false,
-      filter_assigned: this.currentUser.assigned_units ? true : false,
+      // filter_assigned: this.currentUser.assigned_units ? true : false,
+      filter_assigned:
+        this.currentUser.assigned_units &&
+        this.show_filters.includes('show_own'),
       filter_tabs: [
         { id: 0, label: 'All' },
         { id: 1, label: 'Earth Sciences' },
@@ -269,10 +284,7 @@ export default {
   display: flex;
   flex-direction: column;
   margin: 10px;
-  width: 50px;
-}
-.sidebar-header {
-  margin-bottom: 1rem;
+  /* width: 50px; */
 }
 
 .toggle-btn {
@@ -315,16 +327,33 @@ export default {
   color: black;
 }
 
-.sidebar-header {
+.sidebar-header-col {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1rem;
 }
 
-.filters {
+.sidebar-header-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 5rem;
+}
+
+.filters-column {
   margin-top: 1rem;
   text-align: left;
   color: black;
+}
+
+.filters-row {
+  margin-top: 1rem;
+  text-align: left;
+  color: black;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
 }
 
 .filter {

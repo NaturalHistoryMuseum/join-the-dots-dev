@@ -42,7 +42,10 @@
       />
     </div>
     <div v-if="current_step === 3">
-      <ReviewRescoreView :units="units" />
+      <ReviewRescoreView
+        :rescore_session_id="rescore_session_id"
+        :units="units"
+      />
     </div>
     <!-- </div> -->
   </div>

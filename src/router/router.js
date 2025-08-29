@@ -1,5 +1,5 @@
 import AdminView from '@/views/AdminView.vue';
-import AssignmentManagement from '@/views/AssignmentManagement.vue';
+import AssignmentManagement from '@/views/UnitAssignmentManagement.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { currentUser, loadUser } from '../services/authService';
 import AboutView from '../views/AboutView.vue';
@@ -91,8 +91,8 @@ const router = createRouter({
       },
     },
     {
-      path: '/assignment-management',
-      name: 'assignment management',
+      path: '/manage-unit-permissions',
+      name: 'manage unit permissions',
       component: AssignmentManagement,
       meta: { requiresAuth: true },
       beforeEnter: (to, from, next) => {
