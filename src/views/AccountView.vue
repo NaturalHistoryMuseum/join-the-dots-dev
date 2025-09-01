@@ -131,7 +131,7 @@ export default {
       // Get all units
       getGeneric('unit-department').then((response) => {
         this.units = response.map((unit) => ({
-          value: unit.collection_unit_id,
+          value: unit.collection_unit_id.toString(),
           label: unit.unit_name,
           order: unit.collection_unit_id,
           division_id: unit.division_id,
@@ -140,7 +140,7 @@ export default {
       getGeneric('all-divisions').then((response) => {
         this.division_options = response.map((division) => ({
           ...division,
-          value: division.division_id,
+          value: division.division_id.toString(),
           label: division.division_name,
           order: division.division_id,
         }));

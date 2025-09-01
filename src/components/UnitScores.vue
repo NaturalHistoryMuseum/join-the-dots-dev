@@ -48,7 +48,12 @@
               <zoa-input
                 v-if="rescore"
                 zoa-type="number"
-                :label="fieldNameCalc(metric.metric_name)"
+                :label="
+                  fieldNameCalc(metric.metric_name) +
+                  (metric.metric_units == '%'
+                    ? ' (' + metric.metric_units + ')'
+                    : '')
+                "
                 v-model="metric.metric_value"
                 @change="
                   submitMetricsChanges(
@@ -771,7 +776,7 @@ export default {
       return array.some((item) => {
         const value = item['percentage'];
         if (typeof value === 'number' && !isNaN(value)) {
-          const percentage = value * 100;
+          const percentage = Math.round(value * 100 * 100) / 100;
           return !Number.isInteger(percentage);
         }
         return false;
