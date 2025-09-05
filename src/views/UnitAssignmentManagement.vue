@@ -1,7 +1,7 @@
 <template>
   <OverlayMessage />
   <div class="main-header">
-    <div class="col-md-5">
+    <div class="">
       <h1>Manage Units Permissions</h1>
       <p>Manage who can edit units under you.</p>
     </div>

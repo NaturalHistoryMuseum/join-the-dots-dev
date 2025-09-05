@@ -223,6 +223,10 @@ export default {
   width: 100%;
 }
 
+.unit-table {
+  min-height: 70vh;
+}
+
 @media (max-width: 768px) {
   .table-options {
     margin: 1rem 0;

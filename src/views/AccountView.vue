@@ -4,73 +4,88 @@
     <h1>Account</h1>
 
     <div v-if="currentUser" class="content">
-      <div class="account-fields-box">
-        <div class="account-field">
-          <zoa-input
-            zoa-type="empty"
-            label="User ID"
-            class="comments-title"
-            help="The unique ID assigned to this account"
-            help-position="right"
-          />
-          <p class="view-field">{{ currentUser.user_id }}</p>
+      <div class="account-section">
+        <h2>User Details</h2>
+        <div class="account-fields-box">
+          <div class="account-field">
+            <zoa-input
+              zoa-type="empty"
+              label="User ID"
+              class="comments-title"
+              help="The unique ID assigned to this account"
+              help-position="right"
+            />
+            <p class="view-field">{{ currentUser.user_id }}</p>
+          </div>
+          <div class="account-field">
+            <zoa-input
+              zoa-type="empty"
+              label="Name"
+              class="comments-title"
+              help="Name linked to your Microsoft account"
+              help-position="right"
+            />
+            <p class="view-field">{{ currentUser.name }}</p>
+          </div>
+          <div class="account-field">
+            <zoa-input
+              zoa-type="empty"
+              label="Email"
+              class="comments-title"
+              help="Email address linked to your Microsoft account"
+              help-position="right"
+            />
+            <p class="view-field">{{ currentUser.email }}</p>
+          </div>
+          <div class="account-field">
+            <zoa-input
+              zoa-type="dropdown"
+              label="Role"
+              :config="{ options, placeholder }"
+              @change="(value) => handleRoleChange(value)"
+              v-model="role_id"
+              help="The access role assigned to your account for this JtD application"
+              help-position="right"
+            />
+          </div>
+          <div class="account-field">
+            <zoa-input
+              zoa-type="dropdown"
+              label="Division"
+              :config="{ options: division_options }"
+              v-model="division_id"
+              help="The division of the organisation you belong to"
+              help-position="right"
+              @change="handleDivisionSave()"
+            />
+          </div>
+          <div class="account-field">
+            <zoa-input
+              zoa-type="multiselect"
+              label="Units Assigned"
+              :config="{
+                options: filteredUnits,
+                placeholder,
+                enableSearch: true,
+              }"
+              v-model="assigned_units"
+              help="The collection units that are assigned to you"
+              help-position="right"
+            />
+          </div>
         </div>
-        <div class="account-field">
-          <zoa-input
-            zoa-type="empty"
-            label="Name"
-            class="comments-title"
-            help="Name linked to your Microsoft account"
-            help-position="right"
-          />
-          <p class="view-field">{{ currentUser.name }}</p>
-        </div>
-        <div class="account-field">
-          <zoa-input
-            zoa-type="empty"
-            label="Email"
-            class="comments-title"
-            help="Email address linked to your Microsoft account"
-            help-position="right"
-          />
-          <p class="view-field">{{ currentUser.email }}</p>
-        </div>
-        <div class="account-field">
-          <zoa-input
-            zoa-type="dropdown"
-            label="Role"
-            :config="{ options, placeholder }"
-            @change="(value) => handleRoleChange(value)"
-            v-model="role_id"
-            help="The access role assigned to your account for this JtD application"
-            help-position="right"
-          />
-        </div>
-        <div class="account-field">
-          <zoa-input
-            zoa-type="dropdown"
-            label="Division"
-            :config="{ options: division_options }"
-            v-model="division_id"
-            help="The division of the organisation you belong to"
-            help-position="right"
-            @change="handleDivisionSave()"
-          />
-        </div>
-        <div class="account-field">
-          <zoa-input
-            zoa-type="multiselect"
-            label="Units Assigned"
-            :config="{
-              options: filteredUnits,
-              placeholder,
-              enableSearch: true,
-            }"
-            v-model="assigned_units"
-            help="The collection units that are assigned to you"
-            help-position="right"
-          />
-        </div>
+      </div>
+      <div v-if="role_id >= 3" class="account-section">
+        <h2>Manager Actions</h2>
+        <zoa-button
+          label="Manage User Permissions"
+          @click="$router.push('/user-management')"
+        />
+        <zoa-button
+          kind="alt"
+          label="Manage Units Permissions"
+          @click="$router.push({ path: '/manage-unit-permissions' })"
+        />
       </div>
     </div>
     <div v-else>
@@ -204,6 +219,10 @@ export default {
 .account-page {
   text-align: left;
   margin: 1rem 4rem;
+}
+
+.account-section {
+  margin-bottom: 2rem;
 }
 
 .account-fields-box {

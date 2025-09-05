@@ -1035,6 +1035,69 @@ def get_units_assigned():
         return jsonify({'error': str(e)}), 500
 
 
+@data_bp.route('/units-by-division/<division_id>', methods=['GET'])
+@jwt_required()
+def get_units_by_division(division_id):
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        data = fetch_data(
+            """SELECT *
+        FROM {database_name}.collection_unit cu
+        JOIN {database_name}.section s ON s.section_id = cu.section_id
+        WHERE cu.unit_active = 'yes' AND s.division_id = %s
+                """,
+            (division_id,),
+        )
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/division-users', methods=['GET'])
+@jwt_required()
+def get_division_users():
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    # Fetch user level
+    user = fetch_data(
+        """SELECT *
+        FROM {database_name}.users
+        WHERE user_id = %s
+                """,
+        (user_id,),
+    )
+    role_id = user[0]['role_id']
+    if role_id >= 3:
+        data = fetch_data(
+            """SELECT u.user_id, u.role_id, u.name, u.email, d.division_name, u.division_id, r.role,
+            (
+                SELECT JSON_ARRAYAGG(
+                    au.collection_unit_id
+                )
+                FROM {database_name}.assigned_units au
+                JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
+                WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
+            ) AS assigned_units,
+            (
+                SELECT JSON_ARRAYAGG(
+                    cu.collection_unit_id
+                )
+                FROM {database_name}.collection_unit cu
+                WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
+            ) AS responsible_units
+            FROM {database_name}.users u
+            JOIN {database_name}.roles r ON r.role_id = u.role_id
+            JOIN {database_name}.division d ON d.division_id = u.division_id
+            WHERE u.division_id = %s
+                    """,
+            (user[0]['division_id'],),
+        )
+        return jsonify(data)
+    else:
+        return jsonify({'error': 'You are not autorised.'}), 500
+
+
 @data_bp.route('/submit-unit-assigned', methods=['POST'])
 @jwt_required()
 def set_unit_assigned():
@@ -1116,9 +1179,18 @@ def get_units_metrics(unit_id):
 
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
-def get_category():
+def get_roles():
     data = fetch_data("""SELECT cat.*
                    FROM {database_name}.category cat;
+                   """)
+    return jsonify(data)
+
+
+@data_bp.route('/all-roles', methods=['GET'])
+@jwt_required()
+def get_category():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.roles;
                    """)
     return jsonify(data)
 
