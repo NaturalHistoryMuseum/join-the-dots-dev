@@ -53,7 +53,7 @@
             "label": "Unit Active?",
             "required": false,
             "editable": true,
-            "help_text": "Flag to define whether the collection unit is currently active."
+            "help_text": "Defines whether the collection unit is currently active."
           },
           {
             "field_name": "publish_flag",
@@ -61,7 +61,7 @@
             "label": "Publish Unit?",
             "required": true,
             "editable": true,
-            "help_text": "A flag to indicate whether the collection unit should be included in the public JtD dataset published in the NHM Data Portal."
+            "help_text": "Indicates whether the collection unit should be included in the public JtD dataset published in the NHM Data Portal."
           },
           {
             "field_name": "type_collection_flag",
@@ -69,7 +69,7 @@
             "label": "Type Collection?",
             "required": false,
             "editable": true,
-            "help_text": "A flag to indicate that a collection unit is a specific collection of type specimens."
+            "help_text": "Indicates if a collection unit is a specific collection of type specimens."
           },
           {
             "field_name": "es_recent_specimen_flag",
@@ -77,7 +77,7 @@
             "label": "ES Recent Specimen?",
             "required": false,
             "editable": true,
-            "help_text": "A flag to indicate that the items in an Earth Sciences unit are recent biological specimens. Some ES divisions have collections of recent (unfossilised) items, and this flag can be used to indicate that they may need to be treated similarly to Life Sciences collection units."
+            "help_text": "Indicates if the items in an Earth Sciences unit are recent biological specimens. Some ES divisions have collections of recent (unfossilised) items, and this flag can be used to indicate that they may need to be treated similarly to Life Sciences collection units."
           },
           {
             "field_name": "count_curatorial_units_flag",
@@ -85,7 +85,7 @@
             "label": "Count Curatorial Units?",
             "required": false,
             "editable": true,
-            "help_text": "A flag to indicate that the 'curatorial unit count' metric should be used to calculate the 'reporting count' rather than the 'item count' for this collection unit."
+            "help_text": "Indicates if the 'curatorial unit count' metric should be used to calculate the 'reporting count' rather than the 'item count' for this collection unit."
           }
         ]
       },
@@ -147,7 +147,7 @@
               {
                 "field_name": "items_unestimatable_flag",
                 "label": "Items Unestimatable Flag",
-                "help_text": "A flag to indicate that it isn't possible to even estimate the number of items in a curatorial unit. If set to 'Yes', this will indicate that the collection unit is expected to have a curatorial unit count but not an item count."
+                "help_text": "Indicates that it isn't possible to even estimate the number of items in a curatorial unit. If set to 'Yes', this will indicate that the collection unit is expected to have a curatorial unit count but not an item count."
               }
             ]
           }
@@ -349,7 +349,7 @@
             "required": true,
             "editable": true,
             "options_source": "room-data",
-            "help_text": "The name of the storage container (fridge/freezer).",
+            "help_text": "The room in which items in the collection unit are physically located.",
             "dependant_fields": [
               {
                 "field_name": "floor_name",
