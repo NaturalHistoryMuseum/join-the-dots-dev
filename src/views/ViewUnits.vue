@@ -47,6 +47,7 @@
             'unit_name',
             'section',
             'division',
+            'curators',
           ]"
           :column_direction="true"
           @update:filteredUnits="handleFilteredUnits"

@@ -116,6 +116,21 @@
           }"
           v-model="search_section"
         />
+        <zoa-input
+          v-if="show_filters.includes('curators')"
+          :zoa-type="'multiselect'"
+          :class="minimal ? '' : 'filter'"
+          label="Search: Responsible Curator"
+          label-position="above"
+          :config="{
+            options: responsibleCurators,
+            itemName: 'curator',
+            itemNamePlural: 'curators',
+            enableSearch: true,
+            itemHeight: 50,
+          }"
+          v-model="search_curators"
+        />
       </div>
     </div>
   </div>
@@ -146,6 +161,7 @@ export default {
       search_id_query: '',
       search_section: [],
       search_division: [],
+      search_curators: [],
       filter_inactive: false,
       // filter_assigned: this.currentUser.assigned_units ? true : false,
       filter_assigned:
@@ -209,6 +225,27 @@ export default {
       // Covert to array
       return Array.from(uniqueDivision.values());
     },
+    responsibleCurators() {
+      //Use map to get unique curators
+      const uniqueCurators = new Map();
+      this.units.forEach((unit) => {
+        if (
+          !uniqueCurators.has(unit.responsible_curator_id) &&
+          unit.curator_name
+        ) {
+          uniqueCurators.set(unit.responsible_curator_id, {
+            label:
+              unit.curator_name.length > this.dropdown_char_limit
+                ? unit.curator_name.substring(0, this.dropdown_char_limit) +
+                  '...'
+                : unit.curator_name,
+            value: unit.responsible_curator_id,
+          });
+        }
+      });
+      // Covert to array
+      return Array.from(uniqueCurators.values());
+    },
     filteredUnits() {
       // Filter the units based on the search queries and selected filters
       return this.units.filter(
@@ -240,6 +277,12 @@ export default {
             : unit.department_name.includes(
                 this.filter_tabs[this.active_tab].label,
               )) &&
+          // Filter by responsible curator
+          (this.search_curators.length > 0
+            ? this.search_curators.includes(
+                unit.responsible_curator_id ? unit.responsible_curator_id : '',
+              )
+            : true) &&
           // Filter by active/inactive status
           (this.filter_inactive ? true : unit.unit_active == 'yes'),
       );

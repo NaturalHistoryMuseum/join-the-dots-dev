@@ -10,7 +10,7 @@
     <div class="units-assignment">
       <SidebarFilter
         :units="units"
-        :show_filters="['unit_id', 'unit_name', 'section']"
+        :show_filters="['unit_id', 'unit_name', 'section', 'curators']"
         :column_direction="false"
         :minimal="true"
         @update:filteredUnits="handleFilteredUnits"
