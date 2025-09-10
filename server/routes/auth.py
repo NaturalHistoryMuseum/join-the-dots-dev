@@ -70,7 +70,6 @@ def auth_redirect():
     if 'access_token' in token_response:
         user_info = token_response.get('id_token_claims')
         # Get user from db
-
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
@@ -86,7 +85,7 @@ def auth_redirect():
         if not user:
             # Add user if not present
             cursor.execute(
-                'INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s)',
+                'INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s);',
                 (
                     user_info['oid'],
                     user_info['name'],
@@ -105,6 +104,20 @@ def auth_redirect():
                 (str(user_info['oid']),),
             )
             user = cursor.fetchone()
+        else:
+            # Check if name and email are up to date
+            if user['name'] != user_info['name']:
+                cursor.execute(
+                    'UPDATE jtd_live.users SET name = %s WHERE user_id = %s',
+                    (user_info['name'], user['user_id']),
+                )
+                connection.commit()
+            if user['email'] != user_info['preferred_username']:
+                cursor.execute(
+                    'UPDATE jtd_live.users SET email = %s WHERE user_id = %s',
+                    (user_info['preferred_username'], user['user_id']),
+                )
+                connection.commit()
         # Store user info in session
         session['user'] = user
         session.modified = True
