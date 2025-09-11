@@ -14,6 +14,7 @@
         responsive
         :items="stats.category_percent"
       ></b-table>
+      <p v-if="!stats.category_percent">loading...</p>
     </div>
     <div class="col-md-4 stats-summary">
       <!-- <h4>Stats Summary</h4> -->
@@ -234,7 +235,7 @@ export default {
     },
     // Fetch data
     fetchData() {
-      console.log(this.chart_data);
+      // console.log(this.chart_data);
       // Fetch data
       getStatsGeneric('home-stats').then((response) => {
         this.stats = response;
@@ -245,7 +246,7 @@ export default {
             .toISOString()
             .split('T')[0];
         }
-        console.log('stats : ', this.stats);
+        // console.log('stats : ', this.stats);
         if (
           this.stats.scored_in_last_year &&
           this.stats.scored_in_last_year.length > 0

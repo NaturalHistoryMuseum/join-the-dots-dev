@@ -1,7 +1,6 @@
 <template>
   <div class="main-header">
-    <h1>Manage Rescore</h1>
-    <p>Latest Rescore : {{ latestRescore() }}</p>
+    <p class="last-rescore">Latest Rescore : {{ latestRescore() }}</p>
   </div>
   <div
     v-if="Object.keys(open_rescore).length && !is_loading"
@@ -53,14 +52,18 @@ import {
   markRescoreComplete,
   markRescoreOpen,
 } from '@/services/dataService';
-import TableCheckbox from '../components/TableCheckbox.vue';
-import { currentUser } from '../services/authService';
+import { currentUser } from '../../services/authService';
+import TableCheckbox from '../TableCheckbox.vue';
 
 export default {
   name: 'ManageRescoreView',
   components: { TableCheckbox },
   setup() {
     return { currentUser };
+  },
+  props: {
+    open_rescore: Object,
+    fetchUnitsData: Function,
   },
   data() {
     return {
@@ -72,8 +75,6 @@ export default {
         { label: 'Last Rescored', key: 'last_rescored' },
         { label: 'Actions', key: 'actions' },
       ],
-
-      open_rescore: {},
       is_loading: false,
     };
   },
@@ -86,35 +87,25 @@ export default {
       this.is_loading = true;
       // Fetch data
       this.units = await getGeneric('units-by-user');
-      const rescoreResp = await getGeneric('open-rescore');
       // End loading state
       this.is_loading = false;
-      // Check if there is an open rescore session
-      this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
     },
-    navigateRescore(rescore_session_id) {
-      // Navigate to the rescore page with the session ID as a query parameter
-      const temp_id =
-        rescore_session_id || this.open_rescore.rescore_session_id;
-      this.$router.push({
-        name: 'rescore',
-        query: {
-          rescore_session_id: temp_id,
-        },
-      });
+    navigateRescore() {
+      // Emit the next step in stepper
+      this.$emit('update:current_step', 2);
     },
 
     async createRescore() {
       // Create rescore session with selected units
-      markRescoreOpen(this.selected_unit_ids).then((response) => {
-        this.open_rescore = response.rescore_session_id;
-        this.navigateRescore(response.rescore_session_id);
-      });
+      await markRescoreOpen(this.selectedUnitIds);
+      this.fetchUnitsData();
+      // this.navigateRescore();
     },
-    closeRescore() {
+    async closeRescore() {
       // Close the rescore session
-      markRescoreComplete(this.open_rescore.rescore_session_id);
-      this.open_rescore = {};
+      await markRescoreComplete(this.open_rescore.rescore_session_id);
+      this.fetchUnitsData();
+      this.fetchData();
     },
     latestRescore() {
       // Initialize to a very old date
@@ -144,6 +135,14 @@ export default {
       return date ? new Date(date).toISOString().split('T')[0] : 'No Data';
     },
   },
+  computed: {
+    selectedUnitIds() {
+      // Return the IDs of the selected units
+      return this.units
+        .filter((unit) => unit.selected)
+        .map((unit) => unit.collection_unit_id);
+    },
+  },
 };
 </script>
 
@@ -162,5 +161,9 @@ export default {
   justify-content: center;
   margin: 1rem;
   gap: 1rem;
+}
+
+.last-rescore {
+  text-align: end;
 }
 </style>

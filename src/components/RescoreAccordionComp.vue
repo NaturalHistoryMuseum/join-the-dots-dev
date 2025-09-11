@@ -2,7 +2,7 @@
   <div class="accordion-container">
     <!-- Accordion button -->
     <button
-      class="accordion"
+      :class="['accordion', error ? 'accordion-error' : '']"
       :style="{
         borderRadius:
           expanded_accordion == accordion_id ? '10px 10px 0px 0px' : '10px',
@@ -35,7 +35,7 @@
     <!-- Accordion content -->
     <transition name="fade">
       <div v-show="expanded_accordion === accordion_id">
-        <div class="accordion-content">
+        <div :class="['accordion-content ', error ? 'accordion-error' : '']">
           <!-- Insert content -->
           <slot></slot>
         </div>
@@ -46,6 +46,7 @@
 
 <script>
 export default {
+  name: 'RescoreAccordionComp',
   props: {
     accordion_id: Number,
     toggleAccordion: Function,
@@ -55,65 +56,10 @@ export default {
     rescore: Boolean,
     complete: Boolean,
     changeCatComplete: Function,
+    error: Boolean,
   },
   methods: {},
 };
 </script>
 
-<style scoped>
-.accordion {
-  border-width: 2px;
-  border-radius: 10px;
-  border-style: solid;
-  border-color: #87999e;
-  background-color: white;
-  width: 100%;
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-  padding: 0.5rem 2rem;
-}
-
-.accordion-btn {
-  margin-left: auto;
-  z-index: 1;
-  min-width: 8rem;
-}
-
-.accordion-content {
-  border-width: 1px;
-  border-color: #87999e;
-  border-style: solid;
-  border-radius: 0px 0px 10px 10px;
-  margin-top: -2;
-  padding: 0.5rem 2rem;
-  text-align: left;
-}
-
-.accordion-header {
-  padding: 0;
-  margin: 0;
-  width: 30%;
-  text-align: left;
-  font-weight: bold;
-}
-
-.accordion-complete {
-  padding: 0;
-  margin: 0;
-  /* font-weight: bold; */
-}
-
-.accordion-icon {
-  font-size: 1.5rem;
-}
-
-.accordion-container {
-  margin-bottom: 1rem;
-}
-
-.accordion-arrow {
-  margin-left: auto;
-  margin-right: 0;
-}
-</style>
+<style></style>

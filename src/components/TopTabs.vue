@@ -9,7 +9,7 @@
         backgroundColor: active_tab === index ? '#f2bab0' : '#e0e0e0',
       }"
     >
-      <span class="tab-title">{{ tab.label }}</span>
+      <span class="tab-title">{{ tab.section_name }}</span>
     </button>
   </div>
   <slot></slot>
@@ -17,6 +17,7 @@
 
 <script>
 export default {
+  name: 'TopTabs',
   components: {},
   props: {
     tabs: Array,

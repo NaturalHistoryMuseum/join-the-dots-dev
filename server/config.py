@@ -1,30 +1,35 @@
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class Config:
     # Force load .env file
     load_dotenv(override=True)
 
-    # FOR LOCAL TESTING
-    SECRET_KEY = os.getenv('SECRET_KEY')
-
-    # FOR K8S
-    # SECRET_KEY = os.environ.get("SECRET_KEY")
+    SECRET_KEY = os.environ.get('SECRET_KEY')
 
     # Database Configuration
+    MYSQL_HOST = os.environ.get('MYSQL_HOST')
+    MYSQL_USER = os.environ.get('MYSQL_USER')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+    MYSQL_DB = os.environ.get('MYSQL_DATABASE')
 
-    # FOR LOCAL TESTING
-    MYSQL_HOST = os.getenv('SECONDARY_DB_HOST')
-    MYSQL_USER = os.getenv('SECONDARY_DB_USER')
-    MYSQL_PASSWORD = os.getenv('SECONDARY_DB_PASSWORD')
-    MYSQL_DB = os.getenv('SECONDARY_DB_NAME')
+    # Azure Configuration
+    CLIENT_ID = os.environ.get('AZURE_CLIENT_ID')
+    CLIENT_SECRET = os.environ.get('AZURE_CLIENT_SECRET')
+    TENANT_ID = os.environ.get('AZURE_TENANT_ID')
+    REDIRECT_URI = os.environ.get('AZURE_REDIRECT_URI')
 
-    # FOR K8S
-    # MYSQL_HOST = os.environ.get("MYSQL_HOST")
-    # MYSQL_USER = os.environ.get("MYSQL_USER")
-    # MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD")
-    # MYSQL_DB = os.environ.get("MYSQL_DATABASE")
+    # JWT Configuration
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET')
+    JWT_TOKEN_LOCATION = ['headers', 'cookies']
+    JWT_ACCESS_COOKIE_NAME = 'access_token'
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_SECURE = True
+    JWT_COOKIE_SAMESITE = 'None'
+    JWT_CSRF_HEADER_NAME = 'X-CSRF-TOKEN'
+    JWT_REFRESH_COOKIE_NAME = 'refresh_token'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)

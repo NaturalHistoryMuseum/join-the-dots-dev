@@ -1,0 +1,392 @@
+[
+  {
+    "table": "bibliographic_level",
+    "col_name": "bibliographic_level",
+    "description": "Description of how the items in the collection unit are defined according to current cataloguing standards. These labels indicate the bibliographic level of the record, i.e., mode of issuance, relationship of component part.â€‹",
+    "notes": ""
+  },
+  {
+    "table": "building",
+    "col_name": "building_name",
+    "description": "Name of the NHM building.",
+    "notes": ""
+  },
+  {
+    "table": "category",
+    "col_name": "category_code",
+    "description": "Short code for the criterion category.",
+    "notes": ""
+  },
+  {
+    "table": "category",
+    "col_name": "description",
+    "description": "Description of the criterion category.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "unit_name",
+    "description": "A short descriptive name which reflects how curators describe and understand that part of the collection. This may duplicate some information that is specified as other attributes (see examples), but is used for descriptive purposes rather than any formal categorisation.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "public_unit_name",
+    "description": "A short descriptive name for the collection unit which is used for the JtD dataset published on the NHM Data Portal instead of the `unit_name`. This may be the same value as the `unit_name`, or a version that's more suitable for public consumption.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "unit_active",
+    "description": "Flag to define whether the collection unit is currently active.",
+    "notes": "All 'deletions' of collection units (for data management purposes, reorganisations of the data or collections in splits/merges, disposal etc) should be handled by setting this flag to 'no' rather than deleting the row from the table. If set to 'no', the collection unit should be filtered out of any dataset or report which should represent current JtD units. "
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "type_collection_flag",
+    "description": "A flag to indicate that a collection unit is a specific collection of type specimens.",
+    "notes": "This should be used to indicate that a collection unit is either entirely or predominately composed of types. It canâ€™t be used to indicate the proportion of types in a mixed collection unit.â€‹"
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "publish_flag",
+    "description": "A flag to indicate whether the collection unit should be included in the public JtD dataset published in the NHM Data Portal.",
+    "notes": "Data for any collection units where this flag is set to 'no' should not be shared outside of the NHM."
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "informal_taxon",
+    "description": "An informal description of the taxon or taxa represented by the collection unit. This is a free text attribute which allows details to be added of multiple taxa, different taxon concepts, historical taxa and common names.â€‹",
+    "notes": "This attribute is used for descriptive purposes only in addition to, rather than instead of, the formal taxon attributes. The informal taxonomy canâ€™t be parsed or used to link to taxonomic hierarchies.â€‹"
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "named_collection",
+    "description": "A colloquial, informal or historical name for the collection to which the collection unit belongs. This will commonly reflect the donor, collector or historical source of the specimens.",
+    "notes": "A collection unit may not have more than one named collection (although multiple units can be part of the same named collection).â€‹"
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "es_recent_specimen_flag",
+    "description": "A flag to indicate that the items in an Earth Sciences unit are recent biological specimens. Some ES divisions have collections of recent (unfossilised) items, and this flag can be used to indicate that they may need to be treated similarly to Life Sciences collection units.",
+    "notes": "This should be used to indicate that a collection unit is either entirely or predominately composed of recent specimens. It canâ€™t be used to indicate the proportion of recent specimens in a mixed collection unit.â€‹"
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "archives_fond_ref",
+    "description": "The reference for the fond into which the collection unit is organised in CALM, the archives management system.",
+    "notes": "A collection unit may not have more than one archives fond reference."
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "count_curatorial_units_flag",
+    "description": "A flag to indicate that the 'curatorial unit count' metric should be used to calculate the 'reporting count' rather than the 'item count' for this collection unit.",
+    "notes": "This is to handle collection units where it is possible to estimate the number of items, but this would not be in line with community norms for reporting on collection size. Applies to a small number of cases for collection units containing very large numbers of very small things (e.g. diatoms)."
+  },
+  {
+    "table": "collection_unit",
+    "col_name": "sort_order",
+    "description": "The sort order of the collection units for displaying in rescore forms.",
+    "notes": "Only currently used by LS Birds, who sort taxonomically but not alphabetically."
+  },
+  {
+    "table": "collection_unit_metric",
+    "col_name": "metric_value",
+    "description": "The value of the metric.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit_metric",
+    "col_name": "date_from",
+    "description": "The start datetime of the period to which the metric value applies.",
+    "notes": "When there are historic records for the same collection unit/metric combination, the `date_from` should correspond to the `date_to` of the previous record plus 1 second, creating a continuous time series without gaps."
+  },
+  {
+    "table": "collection_unit_metric",
+    "col_name": "date_to",
+    "description": "The end datetime of the period to which the metric value applies.",
+    "notes": "If the metric record is historic, this will be a valid date. If it is the current record, this will default to '9999-12-31 23:59:59' (which works nicely in time range queries without having to handle nulls, and is hard to mistake with a valid date)."
+  },
+  {
+    "table": "collection_unit_metric",
+    "col_name": "current",
+    "description": "A flag to indicate whether the metric value is the current value for that metric for the collection unit.",
+    "notes": "There should only be one record per collection unit/metric combination where `current` = 'yes', but can be multiple where `current` = 'no'."
+  },
+  {
+    "table": "collection_unit_metric_definition",
+    "col_name": "metric_name",
+    "description": "The name of the metric.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit_metric_definition",
+    "col_name": "metric_definition",
+    "description": "A longer description of the metric.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit_metric_definition",
+    "col_name": "metric_units",
+    "description": "The units in which the metric is measured.",
+    "notes": ""
+  },
+  {
+    "table": "collection_unit_metric_definition",
+    "col_name": "metric_datatype",
+    "description": "The datatype of the metric.",
+    "notes": ""
+  },
+  {
+    "table": "criterion",
+    "col_name": "criterion_code",
+    "description": "The short code for the criterion.",
+    "notes": ""
+  },
+  {
+    "table": "criterion",
+    "col_name": "criterion_name",
+    "description": "The short name of the criterion.",
+    "notes": ""
+  },
+  {
+    "table": "criterion",
+    "col_name": "definition",
+    "description": "A detailed definition of the criterion.",
+    "notes": ""
+  },
+  {
+    "table": "criterion",
+    "col_name": "referenced_standards",
+    "description": "A short description of and/or reference to any formal NHM or external standards to which the criterion relates.",
+    "notes": ""
+  },
+  {
+    "table": "curatorial_unit_definition",
+    "col_name": "description",
+    "description": "A short description of the curatorial unit type that reflects the terminology used by the curators.â€‹",
+    "notes": "Unique within the collection-wide list of curatorial unit types"
+  },
+  {
+    "table": "curatorial_unit_definition",
+    "col_name": "items_unestimatable_flag",
+    "description": "A flag to indicate that it isnâ€™t possible to even estimate the number of items in a curatorial unit. If set to â€˜Yesâ€™, this will indicate that the collection unit is expected to have a curatorial unit count but not an item count.â€‹",
+    "notes": "This should only be applied to extreme examples where there are huge numbers of very small items in the curatorial unit (e.g. diatoms on a slide, colonial organisms, sediments). For all other cases, it should be possible to at least make a very rough estimate of the number of items, even if only to an order of magnitude.â€‹"
+  },
+  {
+    "table": "department",
+    "col_name": "department_name",
+    "description": "The official name of the NHM department.",
+    "notes": ""
+  },
+  {
+    "table": "division",
+    "col_name": "division_name",
+    "description": "The official name of the NHM division.",
+    "notes": ""
+  },
+  {
+    "table": "floor",
+    "col_name": "floor_name",
+    "description": "The name of the floor.",
+    "notes": ""
+  },
+  {
+    "table": "geographic_origin",
+    "col_name": "geographic_origin_name",
+    "description": "The name of the geographic region.",
+    "notes": ""
+  },
+  {
+    "table": "geographic_origin",
+    "col_name": "region_type",
+    "description": "The type of geographic region.",
+    "notes": ""
+  },
+  {
+    "table": "geological_time_period",
+    "col_name": "period_name",
+    "description": "The name of the chronostratigraphic period.",
+    "notes": ""
+  },
+  {
+    "table": "geological_time_period",
+    "col_name": "rank",
+    "description": "The rank of the chronostratigraphic period.",
+    "notes": ""
+  },
+  {
+    "table": "geological_time_period",
+    "col_name": "rank_sort_order",
+    "description": "The chronological sort order of the chronostratigraphic period within its rank.",
+    "notes": ""
+  },
+  {
+    "table": "item_type",
+    "col_name": "item_type",
+    "description": "The short name of the type of collection item.",
+    "notes": ""
+  },
+  {
+    "table": "library_and_archives_function",
+    "col_name": "function_name",
+    "description": "The short name of the LA function.",
+    "notes": ""
+  },
+  {
+    "table": "person",
+    "col_name": "first_name",
+    "description": "The person's first name.",
+    "notes": ""
+  },
+  {
+    "table": "person",
+    "col_name": "last_name",
+    "description": "The person's last/family name.",
+    "notes": ""
+  },
+  {
+    "table": "person",
+    "col_name": "job_title",
+    "description": "The person's official job title within the NHM.",
+    "notes": ""
+  },
+  {
+    "table": "preservation_method",
+    "col_name": "preservation_method",
+    "description": "The short name of the preservation method.",
+    "notes": ""
+  },
+  {
+    "table": "rank",
+    "col_name": "rank_value",
+    "description": "The value of the rank (from 1 to 5).",
+    "notes": ""
+  },
+  {
+    "table": "rank",
+    "col_name": "definition",
+    "description": "A clear definition of what the rank means with respect to the criterion, to enable curators to assess the proportion of the collection unit that corresponds to the rank.",
+    "notes": ""
+  },
+  {
+    "table": "rank",
+    "col_name": "assessment",
+    "description": "A short classification of what it means when a collection unit is wholly or partially assigned to the rank.",
+    "notes": ""
+  },
+  {
+    "table": "section",
+    "col_name": "section_name",
+    "description": "The short name of the section.",
+    "notes": ""
+  },
+  {
+    "table": "site",
+    "col_name": "site_name",
+    "description": "The name of the NHM site.",
+    "notes": ""
+  },
+  {
+    "table": "storage_container",
+    "col_name": "container_name",
+    "description": "The name of the storage container (fridge/freezer).",
+    "notes": ""
+  },
+  {
+    "table": "storage_container",
+    "col_name": "temperature",
+    "description": "The normal temperature of the storage container.",
+    "notes": ""
+  },
+  {
+    "table": "storage_room",
+    "col_name": "room_code",
+    "description": "The official room code.",
+    "notes": "From the Estates master list in Archibus, c. 2018."
+  },
+  {
+    "table": "taxon_life_science",
+    "col_name": "taxon_name",
+    "description": "The name of the taxon.",
+    "notes": ""
+  },
+  {
+    "table": "taxon_life_science",
+    "col_name": "taxon_rank",
+    "description": "The rank of the taxon.",
+    "notes": ""
+  },
+  {
+    "table": "taxon_life_science",
+    "col_name": "external_ref_name",
+    "description": "The name of the external reference or authority that is the source of the `external_ref_id`.",
+    "notes": ""
+  },
+  {
+    "table": "taxon_palaeontology",
+    "col_name": "taxon_name",
+    "description": "The name of the taxon.",
+    "notes": ""
+  },
+  {
+    "table": "taxon_palaeontology",
+    "col_name": "taxon_rank",
+    "description": "The rank of the taxon.",
+    "notes": ""
+  },
+  {
+    "table": "taxon_palaeontology",
+    "col_name": "external_ref_name",
+    "description": "The name of the external reference or authority that is the source of the `external_ref_id`.",
+    "notes": ""
+  },
+  {
+    "table": "unit_assessment_criterion",
+    "col_name": "date_assessed",
+    "description": "The effective date when the assessment was made.",
+    "notes": ""
+  },
+  {
+    "table": "unit_assessment_criterion",
+    "col_name": "date_from",
+    "description": "The start datetime of the period to which the criterion assessment applies.",
+    "notes": "When there are historic records for the same collection unit/criterion combination, the `date_from` should correspond to the `date_to` of the previous record plus 1 second, creating a continuous time series without gaps."
+  },
+  {
+    "table": "unit_assessment_criterion",
+    "col_name": "date_to",
+    "description": "The end datetime of the period to which the criterion assessment applies.",
+    "notes": "If the criterion assessment record is historic, this will be a valid date. If it is the current record, this will default to '9999-12-31 23:59:59' (which works nicely in time range queries without having to handle nulls, and is hard to mistake with a valid date)."
+  },
+  {
+    "table": "unit_assessment_criterion",
+    "col_name": "current",
+    "description": "A flag to indicate whether the criterion assessment value is the current assessment for that criterion for the collection unit.",
+    "notes": "There should only be one record per collection unit/criterion combination where `current` = 'yes', but can be multiple where `current` = 'no'."
+  },
+  {
+    "table": "unit_assessment_rank",
+    "col_name": "percentage",
+    "description": "The percentage of the collection unit that corresponds to the rank under the relevant criterion.",
+    "notes": ""
+  },
+  {
+    "table": "unit_assessment_rank",
+    "col_name": "comment",
+    "description": "Comments or notes about the allocation of material in the collection unit to the specific rank for the relevant criterion.",
+    "notes": "For example, an explanation of why n% of the unit is deemed to be rank 4, or narrative about why there has been reallocation from rank 1 to rank 3."
+  },
+  {
+    "table": "unit_comment",
+    "col_name": "unit_comment",
+    "description": "A text comment about the collection unit as a whole.",
+    "notes": ""
+  },
+  {
+    "table": "unit_comment",
+    "col_name": "date_added",
+    "description": "The effective date when the comment was added to the collection unit.",
+    "notes": ""
+  }
+]

@@ -32,7 +32,7 @@ coverage
 *.tsbuildinfo
 
 # Microsoft Environment Keys
-/server/.env
+*.env
 
 # Remove Flask Cache
 __pycache__/

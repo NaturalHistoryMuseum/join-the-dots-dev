@@ -1,18 +1,15 @@
-import axios from 'axios';
 import { ref } from 'vue';
+import router from '../router/router';
+import api from './api';
+import { getCookie } from './cookies';
 
 export const currentUser = ref(null);
 let userLoaded = false;
 
-// FOR LOCAL TESTING
-const API_URL = 'http://localhost:5000/api/auth';
-// FOR K8S
-// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/auth'
-
 export async function login() {
   try {
     // Get the auth URL from the server
-    const response = await axios.get(`${API_URL}/login`, {
+    const response = await api.get(`auth/login`, {
       withCredentials: true,
     });
     if (response.data.auth_url) {
@@ -21,22 +18,21 @@ export async function login() {
       // Poll to check when login completes - every second
       const pollInterval = setInterval(async () => {
         try {
-          const userResponse = await axios.get(`${API_URL}/auth/status`, {
+          const userResponse = await api.get('auth/status', {
             withCredentials: true,
           });
-
-          if (userResponse.data.token) {
+          // Check if user was returned
+          if (userResponse.data.user) {
             // Stop polling
             clearInterval(pollInterval);
             // Close the pop-up
             authWindow.close();
             // Store user globally
             currentUser.value = userResponse.data.user;
-            // Store JWT token in localStorage
-            localStorage.setItem('jwt', userResponse.data.token);
-
-            // Contains the JWT token and user info
-            return userResponse.data.user;
+            this.$router.push({
+              path: '/',
+            });
+            return;
           }
         } catch (err) {
           console.error('Polling error:', err);
@@ -50,9 +46,10 @@ export async function login() {
 
 export async function logout() {
   try {
-    localStorage.removeItem('jwt');
+    // Navigate to login page
+    router.push('/login');
     currentUser.value = null;
-    await axios.get(`${API_URL}/logout`, { withCredentials: true });
+    await api.get(`auth/logout`, { withCredentials: true });
   } catch (error) {
     console.error('Logout failed:', error);
   }
@@ -65,12 +62,12 @@ export function loadUser(reloadUser = false) {
       resolve(currentUser.value);
       return;
     }
-
-    const storedToken = localStorage.getItem('jwt');
-    if (storedToken) {
-      axios
-        .get(`${API_URL}/auth/status`, {
-          headers: { Authorization: `Bearer ${storedToken}` },
+    // Check if the CSRF Token is stored in the cookies
+    const csrfToken = getCookie('csrf_access_token');
+    if (csrfToken) {
+      // Get the current logged in user if user is logged in
+      api
+        .get(`auth/status`, {
           withCredentials: true,
         })
         .then((response) => {

@@ -5,37 +5,7 @@
       <div v-if="currentUser">
         <p>Welcome, {{ currentUser.name }}</p>
       </div>
-      <HomeStats />
-      <!-- <p>
-        Sed dictum tincidunt dolor quis finibus. Donec in tincidunt augue. Curabitur dapibus vel
-        mauris nec varius. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per
-        inceptos himenaeos. Nunc cursus auctor dui, vel cursus nunc cursus a. Aenean eu sem et dui
-      </p>
-      <p>to include per user:</p>
-      Viewer:
-      <ul>
-        <li>General overview of numbers</li>
-        <li></li>
-        <li></li>
-      </ul>
-      Editor:
-      <ul>
-        <li>Num units assigned to them</li>
-        <li>Last time changes were made</li>
-        <li></li>
-      </ul>
-      Manager:
-      <ul>
-        <li>Overview of division changes</li>
-        <li>Division statistics</li>
-        <li></li>
-      </ul>
-      Admin:
-      <ul>
-        <li>General overview of numbers</li>
-        <li></li>
-        <li></li>
-      </ul> -->
+      <!-- <HomeStats /> -->
     </div>
     <div class="boader-header">
       <h2 class="boader-header-title">Actions</h2>
@@ -44,10 +14,10 @@
       <div v-if="currentUser.level > 1" class="home-card col-md-4">
         <i class="bi bi-clipboard-check card-icon"></i>
         <h2>Rescore</h2>
-        <p>Perform a re-scoring on your assigned sections.</p>
+        <p>Perform a rescore on your assigned units.</p>
         <zoa-button
           label="Rescore"
-          @click="navigate('/manage-rescore')"
+          @click="navigate('/rescore')"
           class="card-btn"
         />
       </div>
@@ -65,7 +35,10 @@
       <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
         <h2>View Units</h2>
-        <p>Explore all units in your section and make changes to them.</p>
+        <p>
+          Explore all units or just your assigned units and make changes to
+          them.
+        </p>
         <zoa-button
           label="View units"
           @click="navigate('/view-units')"
@@ -76,7 +49,10 @@
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
         <h2>Reports</h2>
-        <p>Generate reports on your section's performance.</p>
+        <p>
+          Generate reports on your assigned units or whole division's
+          performance.
+        </p>
         <zoa-button
           label="Reports"
           @click="navigate('/reports')"
@@ -90,14 +66,14 @@
 </template>
 
 <script>
-import HomeStats from '@/components/HomeStats.vue';
+// import HomeStats from '@/components/HomeStats.vue';
 import { currentUser } from '../services/authService';
 
 export default {
   setup() {
     return { currentUser };
   },
-  components: { HomeStats },
+  // components: { HomeStats },
   data() {
     return {};
   },
@@ -147,7 +123,6 @@ export default {
 }
 .home-card {
   background-color: var(--secondary-col);
-  /* margin: 0 5px 10px; */
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -164,10 +139,11 @@ export default {
 }
 
 .card-btn {
-  margin-top: 1rem;
+  margin-top: auto;
   align-self: end;
   justify-self: end;
   bottom: 0;
+  height: auto;
   top: auto;
 }
 .boader-header {

@@ -2,13 +2,13 @@
   <!-- Actions button group -->
   <div class="actions">
     <div class="actions-group">
-      <zoa-button @click="toggleActions()" class="open-btn">
+      <zoa-button @click="toggleActions()" class="open-btn" kind="alt">
         Actions
         <div v-if="show_actions">
-          <i class="bi bi-chevron-right accordion-icon"></i>
+          <i class="bi bi-chevron-right"></i>
         </div>
         <div v-else>
-          <i class="bi bi-chevron-left accordion-icon"></i>
+          <i class="bi bi-chevron-left"></i>
         </div>
       </zoa-button>
       <transition name="fade">

@@ -1,14 +1,14 @@
-import axios from 'axios';
 import { currentUser, loadUser } from '../services/authService';
+import api from './api';
 
 // FOR LOCAL TESTING
 const API_URL = 'http://localhost:5000/api/user';
 // FOR K8S
-// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user'
+// const API_URL = 'https://jtd-qa.nhm.ac.uk/api/user';
 
 export async function getGenericUser(route) {
   try {
-    const resp = await axios
+    const resp = await api
       .get(`${API_URL}/${route}`, { withCredentials: true })
       .then((response) => {
         return response.data;
@@ -22,7 +22,7 @@ export async function getGenericUser(route) {
 
 export async function postGenericUser(route, data, reloadUser = false) {
   try {
-    const resp = await axios
+    const resp = await api
       .post(`${API_URL}/${route}`, data, { withCredentials: true })
       .then((response) => {
         return response.data;
@@ -42,7 +42,7 @@ export async function getUser() {
   if (storedUser) {
     // Use stored user data if available
     const user = JSON.parse(storedUser);
-    const user_details = await axios
+    const user_details = await api
       .get(`${API_URL}/user/${user.azure_id}`, { withCredentials: true })
       .then((response) => {
         return response.data;
@@ -52,35 +52,35 @@ export async function getUser() {
   return;
 }
 
-export async function editRole(role) {
-  if (currentUser) {
-    try {
-      const response = await axios
-        .put(
-          `${API_URL}/edit-user-role`,
-          {
-            user_id: currentUser.value.user_id,
-            role_id: role,
-          },
-          { headers: { 'Content-Type': 'application/json' } },
-        )
-        .then((response) => {
-          return response.data;
-        });
-      // Reload user to get new role
-      await loadUser(true);
-      return response;
-    } catch (error) {
-      console.error('Error updating role:', error);
-      throw error;
-    }
-  }
-}
+// export async function editRole(role) {
+//   if (currentUser) {
+//     try {
+//       const response = await api
+//         .put(
+//           `${API_URL}/edit-user-role`,
+//           {
+//             user_id: currentUser.value.user_id,
+//             role_id: role,
+//           },
+//           { headers: { 'Content-Type': 'application/json' } },
+//         )
+//         .then((response) => {
+//           return response.data;
+//         });
+//       // Reload user to get new role
+//       await loadUser(true);
+//       return response;
+//     } catch (error) {
+//       console.error('Error updating role:', error);
+//       throw error;
+//     }
+//   }
+// }
 
 export async function assignUnits(units) {
   if (currentUser) {
     try {
-      const response = await axios
+      const response = await api
         .post(
           `${API_URL}/assign-units`,
           {
@@ -105,7 +105,7 @@ export async function assignUnits(units) {
 // export async function addSections(sections) {
 //   if (currentUser) {
 //     try {
-//       const response = await axios
+//       const response = await api
 //         .post(
 //           `${API_URL}/add-sections`,
 //           {
@@ -130,7 +130,7 @@ export async function assignUnits(units) {
 // export async function getSections() {
 //   if (currentUser) {
 //     try {
-//       const response = await axios
+//       const response = await api
 //         .get(`${API_URL}/get-sections/${currentUser.value.user_id}`)
 //         .then((response) => {
 //           return response.data

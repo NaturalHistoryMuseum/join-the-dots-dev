@@ -4,7 +4,7 @@
     zoa-type="number"
     :label="label"
     v-model="percentageValue"
-    :config="{ placeholder: 0, min: 0, max: 100, step: 0.001 }"
+    :config="{ placeholder: 0, min: 0, max: 100, step: 1 }"
     @change="handleChange"
   />
 </template>

@@ -54,7 +54,7 @@ export default {
     logoutUser() {
       logout();
       // Navigate to login page
-      this.$router.push('/login');
+      // this.$router.push('/login');
     },
     navigateAccount() {
       // Navigate to account page

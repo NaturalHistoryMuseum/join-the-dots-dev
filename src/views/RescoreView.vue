@@ -1,136 +1,146 @@
 <template>
-  <div class="rescore">
-    <div class="main-header">
-      <div class="row">
-        <!-- Rescore Details -->
-        <div class="col-md-4">
-          <h1>Rescore</h1>
-          <div v-if="units.length > 0">
-            <h5>Units assigned: {{ units.length }}</h5>
-            <h5>Units completed: {{ countUnitsCompleted(units) }}</h5>
-          </div>
-        </div>
-        <!-- Actions button group -->
-        <div class="col-md-8 actions">
-          <ActionsBtnGroup>
-            <BulkEditScoreModal :units="units" />
-            <zoa-button kind="alt">See History</zoa-button>
-            <zoa-button kind="primary">Other Action</zoa-button>
-            <zoa-button kind="alt">Third Action</zoa-button></ActionsBtnGroup
-          >
-        </div>
-      </div>
-    </div>
+  <div class="rescore" v-show="!loading">
+    <div class="row">
+      <!-- <h1 class="col-md-3 rescore-title">Rescore</h1> -->
+      <div class="col-md-3"></div>
 
-    <!-- Add Collapsible Tabs to show units -->
-    <CollapsibleTabs :units="units" :fetchUnitsData="fetchUnitsData" />
+      <StepperComp
+        :steps="steps"
+        :current_step="current_step"
+        class="col-md-6"
+      />
+      <div class="col-md-3"></div>
+    </div>
+    <div class="stepper-navigation" v-if="rescore_session_id">
+      <zoa-button
+        v-if="current_step > 1"
+        label="Previous"
+        @click="current_step--"
+        class="stepper-btn left-btn"
+      />
+      <div v-else></div>
+      <zoa-button
+        v-if="current_step < steps.length"
+        label="Continue"
+        @click="current_step++"
+        class="stepper-btn right-btn"
+      />
+    </div>
+    <!-- <div v-show="!loading"> -->
+    <div v-if="current_step === 1">
+      <ManageRescoreView
+        @update:current_step="current_step++"
+        :open_rescore="open_rescore"
+        :fetchUnitsData="fetchUnitsData"
+      />
+    </div>
+    <div v-if="current_step === 2">
+      <EditRescoreView
+        :rescore_session_id="rescore_session_id"
+        :units="units"
+        :fetchUnitsData="fetchUnitsData"
+      />
+    </div>
+    <div v-if="current_step === 3">
+      <ReviewRescoreView
+        :rescore_session_id="rescore_session_id"
+        :units="units"
+      />
+    </div>
+    <!-- </div> -->
   </div>
+  <div v-show="loading">loading...</div>
 </template>
 
 <script>
-import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
-import BulkEditScoreModal from '@/components/BulkEditScoreModal.vue';
-import CollapsibleTabs from '@/components/CollapsibleTabs.vue';
+import StepperComp from '@/components/StepperComp.vue';
 import { getGeneric } from '@/services/dataService';
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import EditRescoreView from '../components/rescore/EditRescoreView.vue';
+import ManageRescoreView from '../components/rescore/ManageRescoreView.vue';
+import ReviewRescoreView from '../components/rescore/ReviewRescoreView.vue';
 
 export default {
   name: 'RescoreView',
   components: {
-    CollapsibleTabs,
-    ActionsBtnGroup,
-    BulkEditScoreModal,
-  },
-  setup() {
-    const route = useRoute();
-
-    // Access query parameters
-    const rescore_session_id = ref(null);
-    onMounted(() => {
-      rescore_session_id.value = route.query.rescore_session_id;
-    });
-
-    return {
-      rescore_session_id,
-    };
+    StepperComp,
+    ManageRescoreView,
+    EditRescoreView,
+    ReviewRescoreView,
   },
   data() {
     return {
       units: [],
-      show_actions: false,
+      steps: [
+        {
+          step: 1,
+          title: 'Select Units',
+          description: 'Choose the units you want to rescore.',
+        },
+        {
+          step: 2,
+          title: 'Edit Scores',
+          description: 'Adjust the scores for the selected units.',
+        },
+        {
+          step: 3,
+          title: 'Review Changes',
+          description: 'Review your changes before submiting.',
+        },
+      ],
+      current_step: 1,
+      rescore_session_id: null,
+      open_rescore: {},
+      loading: true,
     };
   },
   mounted() {
     this.fetchUnitsData();
   },
   methods: {
-    fetchUnitsData() {
-      // Fetch units in this rescore session
-      getGeneric(`rescore-units/${this.rescore_session_id}`).then(
-        (response) => {
-          this.units = response.map((unit) => {
-            // Parse category tracking JSON
-            unit.category_tracking = JSON.parse(unit.category_tracking);
-            unit.ranks_json = JSON.parse(unit.ranks_json);
-            unit.metric_json = JSON.parse(unit.metric_json);
-            return unit;
-          });
-        },
-      );
-    },
-    // Function to toggle the visibility of the actions button group
-    toggleActions() {
-      this.show_actions = !this.show_actions;
-    },
-    // Function to count the number of completed units
-    countUnitsCompleted(units) {
-      let completed_count = 0;
-      // Loop through each unit and check if all categories are complete
-      units.forEach((unit) => {
-        const categories_json = unit.category_tracking;
-        const completed = categories_json.every((category) => {
-          return category.complete == 1;
-        });
-        if (completed) {
-          completed_count++;
-        }
-      });
-      return completed_count;
+    async fetchUnitsData() {
+      // this.loading = true;
+      const rescoreResp = await getGeneric('open-rescore');
+      // Check if there is an open rescore session
+      this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
+      if (Object.keys(this.open_rescore).length > 0) {
+        // Set the rescore session id
+        this.rescore_session_id = this.open_rescore.rescore_session_id;
+        // Fetch units in this rescore session
+        await getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+          (response) => {
+            this.units = response.map((unit) => {
+              // Parse category tracking JSON
+              unit.category_tracking = JSON.parse(unit.category_tracking);
+              unit.ranks_json = JSON.parse(unit.ranks_json);
+              unit.metric_json = JSON.parse(unit.metric_json);
+              return unit;
+            });
+          },
+        );
+        // Move to the editing page after loading
+        this.current_step = 2;
+      }
+      this.loading = false;
     },
   },
 };
 </script>
 
-<style>
-.prog-bar {
-  margin-top: 1rem;
-  width: 20rem;
+<style scoped>
+.rescore-title {
+  align-self: center;
 }
-
-/* .main-page {
+.stepper-navigation {
   display: flex;
-  flex-direction: column;
-  padding: 0.5rem 2rem;
-} */
-
-.flash-box {
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 10px;
-  border-color: #0dedf7;
-  padding: 0px !important;
-}
-.flash-header {
-  background-color: #e6fdfd;
-  border-radius: 10px 10px 0 0;
-  width: 100%;
-  padding: 0.5rem;
-  text-align: center;
-  font-weight: 600;
+  justify-content: space-between;
+  margin-top: 0.5rem;
 }
 
-.flash-content {
-  padding: 1rem;
+.left-btn {
+  margin-left: 30%;
+}
+
+.right-btn {
+  margin-right: 30%;
 }
 </style>

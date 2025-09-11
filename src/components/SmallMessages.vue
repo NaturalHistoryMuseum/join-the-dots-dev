@@ -42,7 +42,7 @@ export default {
 }
 
 .error-msg {
-  border: 1px solid red;
+  border: 1px solid #fa3608;
   background-color: #feeae6;
 }
 

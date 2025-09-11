@@ -11,7 +11,12 @@
         label="Unit Name"
         v-model="unit_value.unit_name"
         @change="handleFieldChange('unit_name', unit_value.unit_name)"
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input zoa-type="empty" label="Unit Name" class="comments-title" />
+        <p class="view-field">{{ unit_value.unit_name }}</p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <div class="required-tag">*</div>
@@ -27,7 +32,16 @@
         @change="
           handleFieldChange('public_unit_name', unit_value.public_unit_name)
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Public Unit Name"
+          class="comments-title"
+        />
+        <p class="view-field">{{ unit_value.public_unit_name }}</p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input
@@ -37,7 +51,16 @@
         @change="
           handleFieldChange('named_collection', unit_value.named_collection)
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Named Collection"
+          class="comments-title"
+        />
+        <p class="view-field">{{ unit_value.named_collection }}</p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input
@@ -47,7 +70,16 @@
         @change="
           handleFieldChange('archives_fond_ref', unit_value.archives_fond_ref)
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Archives Fond Ref"
+          class="comments-title"
+        />
+        <p class="view-field">{{ unit_value.archives_fond_ref }}</p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input
@@ -55,7 +87,12 @@
         label="Sort Order"
         v-model="unit_value.sort_order"
         @change="handleFieldChange('sort_order', unit_value.sort_order)"
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input zoa-type="empty" label="Sort Order" class="comments-title" />
+        <p class="view-field">{{ unit_value.sort_order }}</p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input zoa-type="empty" label="Unit Active?" class="comments-title" />
@@ -70,7 +107,18 @@
         label-position="right"
         v-model="unitIsActive"
         @change="handleFieldChange('unit_active', unit_value.unit_active)"
+        v-if="allow_edit"
       />
+      <div v-else>
+        <p class="view-field">
+          {{
+            unit_value.unit_active != null
+              ? unit_value.unit_active.charAt(0).toUpperCase() +
+                unit_value.unit_active.slice(1)
+              : 'No'
+          }}
+        </p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <div class="required-tag">*</div>
@@ -90,7 +138,18 @@
         label-position="right"
         v-model="publishFlag"
         @change="handleFieldChange('publish_flag', unit_value.publish_flag)"
+        v-if="allow_edit"
       />
+      <div v-else>
+        <p class="view-field">
+          {{
+            unit_value.publish_flag != null
+              ? unit_value.publish_flag.charAt(0).toUpperCase() +
+                unit_value.publish_flag.slice(1)
+              : 'No'
+          }}
+        </p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input
@@ -114,7 +173,18 @@
             unit_value.type_collection_flag,
           )
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <p class="view-field">
+          {{
+            unit_value.type_collection_flag != null
+              ? unit_value.type_collection_flag.charAt(0).toUpperCase() +
+                unit_value.type_collection_flag.slice(1)
+              : 'No'
+          }}
+        </p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input
@@ -138,7 +208,18 @@
             unit_value.es_recent_specimen_flag,
           )
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <p class="view-field">
+          {{
+            unit_value.es_recent_specimen_flag != null
+              ? unit_value.es_recent_specimen_flag.charAt(0).toUpperCase() +
+                unit_value.es_recent_specimen_flag.slice(1)
+              : 'No'
+          }}
+        </p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input
@@ -162,7 +243,18 @@
             unit_value.count_curatorial_units_flag,
           )
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <p class="view-field">
+          {{
+            unit_value.count_curatorial_units_flag != null
+              ? unit_value.count_curatorial_units_flag.charAt(0).toUpperCase() +
+                unit_value.count_curatorial_units_flag.slice(1)
+              : 'No'
+          }}
+        </p>
+      </div>
     </div>
   </div>
 
@@ -174,7 +266,7 @@
     </div>
   </div>
   <div class="row">
-    <h4 class="subheading">Curtorial Unit Definition</h4>
+    <h4 class="subheading">Curatorial Unit Definition</h4>
     <div class="col-md-4 field">
       <div class="required-tag">*</div>
       <zoa-input
@@ -196,7 +288,29 @@
             );
           }
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Curatorial Unit Definition"
+          class="comments-title"
+        />
+        <p
+          v-if="
+            curatorial_def_options.length > 0 &&
+            unit_value.curatorial_unit_definition_id
+          "
+          class="view-field"
+        >
+          {{
+            curatorial_def_options.find(
+              (option) =>
+                option.value == unit_value.curatorial_unit_definition_id,
+            ).label
+          }}
+        </p>
+      </div>
     </div>
     <div class="col-md-4 field">
       <zoa-input zoa-type="empty" label="Item Type" class="comments-title" />
@@ -246,7 +360,29 @@
             );
           }
         "
+        v-if="allow_edit"
       />
+      <div v-else>
+        <zoa-input
+          zoa-type="empty"
+          label="Library and Archives Function"
+          class="comments-title"
+        />
+        <p
+          v-if="
+            lib_function_options.length > 0 &&
+            unit_value.library_and_archives_function_id
+          "
+          class="view-field"
+        >
+          {{
+            lib_function_options.find(
+              (option) =>
+                option.value == unit_value.library_and_archives_function_id,
+            ).label
+          }}
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -261,6 +397,7 @@ export default {
     department_id: Number,
     handleFieldChange: Function,
     errors: Array,
+    allow_edit: Boolean,
   },
   data() {
     return {
@@ -345,7 +482,7 @@ export default {
   },
   methods: {
     async fetchData() {
-      getGeneric(`all-curtorial-definition`).then((response) => {
+      getGeneric(`all-curatorial-definition`).then((response) => {
         this.curatorial_def_options = response.map((curatorial_def) => ({
           ...curatorial_def,
           value: curatorial_def.curatorial_unit_definition_id,

@@ -1,10 +1,18 @@
-import os
+# import jwt
+import secrets
 
-import jwt
 import msal
-from flask import Blueprint, jsonify, request, session
-
-# Test user database
+from flask import Blueprint, jsonify, make_response, request, session
+from flask import current_app as app
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+    set_access_cookies,
+    set_refresh_cookies,
+)
+from server.config import Config
 from server.database import get_db_connection
 
 auth_bp = Blueprint('auth', __name__)
@@ -12,9 +20,7 @@ auth_bp = Blueprint('auth', __name__)
 
 # Database connection
 def fetch_data(query, params=None):
-    """
-    Helper function to execute a database query.
-    """
+    """Helper function to execute a database query."""
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params or ())
@@ -24,57 +30,39 @@ def fetch_data(query, params=None):
     return result
 
 
-# Azure AD Config
-# FOR K8S
-# CLIENT_ID = os.environ.get("AZURE_CLIENT_ID")
-# CLIENT_SECRET = os.environ.get("AZURE_CLIENT_SECRET")
-# TENANT_ID = os.environ.get("AZURE_TENANT_ID")
-# REDIRECT_URI = os.environ.get("AZURE_REDIRECT_URI")
-# FOR LOCAL TESTING
-CLIENT_ID = os.getenv('AZURE_CLIENT_ID')
-CLIENT_SECRET = os.getenv('AZURE_CLIENT_SECRET')
-TENANT_ID = os.getenv('AZURE_TENANT_ID')
-REDIRECT_URI = os.getenv('AZURE_REDIRECT_URI')
-
-AUTHORITY = f'https://login.microsoftonline.com/{TENANT_ID}'
+AUTHORITY = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
 
 SCOPES = []
 
-# JWT Secret Key
-JWT_SECRET = os.getenv('JWT_SECRET', 'super-secret-key')
-
 # Initialize MSAL
 msal_app = msal.ConfidentialClientApplication(
-    CLIENT_ID, authority=AUTHORITY, client_credential=CLIENT_SECRET
+    Config.CLIENT_ID, authority=AUTHORITY, client_credential={Config.CLIENT_SECRET}
 )
 
 
 @auth_bp.route('/login')
 def login():
-    """
-    Redirects user to Microsoft Login page.
-    """
-    auth_url = msal_app.get_authorization_request_url(SCOPES, redirect_uri=REDIRECT_URI)
+    """Redirects user to Microsoft Login page."""
+    auth_url = msal_app.get_authorization_request_url(
+        SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
+    )
     return jsonify({'auth_url': auth_url})
 
 
 @auth_bp.route('/login/azure/authorized')
 def auth_redirect():
-    """
-    Handles Azure AD login redirect.
-    """
+    """Handles Azure AD login redirect."""
     code = request.args.get('code')
     if not code:
         return jsonify({'error': 'No auth code provided'}), 400
 
     token_response = msal_app.acquire_token_by_authorization_code(
-        code, SCOPES, redirect_uri=REDIRECT_URI
+        code, scopes=SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
 
     if 'access_token' in token_response:
         user_info = token_response.get('id_token_claims')
         # Get user from db
-
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
@@ -90,7 +78,7 @@ def auth_redirect():
         if not user:
             # Add user if not present
             cursor.execute(
-                'INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s)',
+                'INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s);',
                 (
                     user_info['oid'],
                     user_info['name'],
@@ -109,72 +97,119 @@ def auth_redirect():
                 (str(user_info['oid']),),
             )
             user = cursor.fetchone()
+        else:
+            # Check if name and email are up to date
+            if user['name'] != user_info['name']:
+                cursor.execute(
+                    'UPDATE jtd_live.users SET name = %s WHERE user_id = %s',
+                    (user_info['name'], user['user_id']),
+                )
+                connection.commit()
+            if user['email'] != user_info['preferred_username']:
+                cursor.execute(
+                    'UPDATE jtd_live.users SET email = %s WHERE user_id = %s',
+                    (user_info['preferred_username'], user['user_id']),
+                )
+                connection.commit()
         # Store user info in session
         session['user'] = user
         session.modified = True
         # Generate JWT token
-        jwt_payload = {
-            'user_id': user['user_id'],
-            'name': user['name'],
-            'email': user['email'],
-            'role_id': user['role_id'],
-            'role': user['role'],
-            'division_id': user['division_id'],
-            'level': user['level'],
-        }
-        jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm='HS256')
 
-        session['jwt_token'] = jwt_token  # Store in session for later retrieval
+        # Create access token with user identity and extra claims
+        jwt_token = create_access_token(
+            identity=str(user['user_id']),
+            additional_claims={
+                'name': user['name'],
+                'email': user['email'],
+                'role_id': user['role_id'],
+                'role': user['role'],
+                'division_id': user['division_id'],
+                'level': user['level'],
+            },
+        )
+        # Create refresh token
+        refresh_token = create_refresh_token(identity=str(user['user_id']))
+        # Store in session for later retrieval
+        session['jwt_token'] = jwt_token
 
-        return jsonify({'message': 'Login successful'}), 200
+        # Generate CSRF token
+        csrf_access_token = secrets.token_urlsafe(32)
+        response = make_response(jsonify({'message': 'Login successful'}))
+        # Set jwt token as access token in cookies
+        set_access_cookies(response, jwt_token)
+        set_refresh_cookies(response, refresh_token)
+
+        return response
 
     return jsonify({'error': 'Authentication failed'}), 401
 
 
-@auth_bp.route('/auth/status')
+@auth_bp.route('/status')
+@jwt_required()
 def auth_status():
-    """
-    Check if the user has logged in and return their JWT token.
-    """
-    # Get JWT token from session or request headers
-    token = session.get('jwt_token') or request.headers.get('Authorization')
-    # If no token is found, return an error
-    if not token:
-        return jsonify({'error': 'Not authenticated'}), 401
-    # If token is in header remove 'Bearer' prefix
-    if token.startswith('Bearer '):
-        token = token.split(' ')[1]
+    """Check if the user has logged in and return their JWT token."""
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
-    decode_token = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
-
-    user_id = decode_token.get('user_id')
     # Get current user details
     user_details = fetch_data(
         """SELECT u.*, r.role, r.`level`,
-                        (
-                            SELECT JSON_ARRAYAGG( au.collection_unit_id )
-                            FROM jtd_live.assigned_units au
-                            where au.user_id = u.user_id
-                        ) AS assigned_units
-                      FROM jtd_live.users u
-                      LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
-                      WHERE user_id = %s""",
+            (
+                SELECT JSON_ARRAYAGG( au.collection_unit_id )
+                FROM jtd_live.assigned_units au
+                JOIN jtd_live.collection_unit cu ON au.collection_unit_id = cu.collection_unit_id
+                WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
+            ) AS assigned_units
+            FROM jtd_live.users u
+            LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
+            WHERE user_id = %s;""",
         (user_id,),
     )
     # If no user is found, return an error
     if not user_details:
         return jsonify({'error': 'User not found'}), 404
     # Return token and user details
-    return jsonify({'token': token, 'user': user_details[0]}), 200
-
-    # if "jwt_token" in session:
-    #     return jsonify({"token": session["jwt_token"], "user": session["user"]}), 200
+    return jsonify({'user': user_details[0]}), 200
 
 
 @auth_bp.route('/logout')
 def logout():
-    """
-    Logs the user out by clearing the session.
-    """
+    """Logs the user out by clearing the session."""
     session.clear()
-    return jsonify({'message': 'Logged out'})
+    response = jsonify({'msg': 'Logout successful'})
+    # Remove the access tokens from the cookies
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
+    response.delete_cookie('csrf_access_token')
+    return response
+
+
+@auth_bp.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh_token():
+    user_id = get_jwt_identity()
+    new_access_token = create_access_token(identity=user_id)
+    response = jsonify({'msg': 'Token refreshed'})
+    response.set_cookie(
+        'access_token', new_access_token, httponly=True, secure=True, samesite='Lax'
+    )
+    return response
+
+
+# @auth_bp.after_request
+# def refresh_expiring_jwts(response):
+#     try:
+#         exp_timestamp = get_jwt()["exp"]
+#         now = datetime.now(timezone.utc)
+#         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+#         if target_timestamp > exp_timestamp:
+
+#             user_id = get_jwt_identity()
+#             new_access_token = create_access_token(identity=user_id)
+#             response = jsonify({"msg": "Token refreshed"})
+#             response.set_cookie("access_token", new_access_token, httponly=True, secure=True, samesite='Lax')
+#         return response
+#     except (RuntimeError, KeyError):
+#         # Case where there is not a valid JWT. Just return the original response
+#         return response
