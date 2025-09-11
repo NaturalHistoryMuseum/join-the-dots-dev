@@ -1,0 +1,57 @@
+
+[project.urls]
+repository = "https://github.com/NaturalHistoryMuseum/join-the-dots-dev"
+changelog = "https://github.com/NaturalHistoryMuseum/join-the-dots-dev/blob/main/CHANGELOG.md"
+
+
+
+
+[tool]
+[tool.setuptools]
+zip-safe = false
+
+
+
+[tool.commitizen]
+name = "cz_nhm"
+version = "0.1.0"
+tag_format = "v$version"
+update_changelog_on_bump = true
+changelog_incremental = true
+major_version_zero = true
+version_provider = "npm"
+version_files = [
+    "pyproject.toml:version"
+]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "D"
+]
+ignore = [
+    "D100",
+    "D104",
+    "D200",
+    "D202",
+    "D203",
+    "D205",
+    "D206",
+    "D212",
+    "D300",
+    "D401",
+    "E111",
+    "E114",
+    "E117"
+]
+
+[tool.docformatter]
+wrap-summaries = 88
+wrap-descriptions = 88
+pre-summary-newline = true
+make-summary-multi-line = true

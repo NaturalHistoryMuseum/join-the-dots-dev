@@ -3,10 +3,10 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from server.utils import execute_query, fetch_data
 
-user_bp = Blueprint("user", __name__)
+user_bp = Blueprint('user', __name__)
 
 
-@user_bp.route("/user/<azure_id>", methods=["GET"])
+@user_bp.route('/user/<azure_id>', methods=['GET'])
 @jwt_required()
 def get_user(azure_id):
     data = fetch_data(
@@ -17,22 +17,22 @@ def get_user(azure_id):
         % str(azure_id)
     )
     if data == []:
-        return jsonify({"message": "no user found"})
+        return jsonify({'message': 'no user found'})
     return jsonify(data)
 
 
-@user_bp.route("/add-user", methods=["POST"])
+@user_bp.route('/add-user', methods=['POST'])
 @jwt_required()
 def add_user():
     data = request.get_json()
 
     # Extract user details from request JSON
-    azure_id = data.get("azure_id")
-    name = data.get("name")
-    email = data.get("email")
+    azure_id = data.get('azure_id')
+    name = data.get('name')
+    email = data.get('email')
 
     if not azure_id or not name or not email:
-        return jsonify({"error": "Missing required fields"}), 400
+        return jsonify({'error': 'Missing required fields'}), 400
 
     try:
         execute_query(
@@ -43,21 +43,21 @@ def add_user():
             (azure_id, name, email),
         )
 
-        return jsonify({"message": "User added successfully", "success": True}), 201
+        return jsonify({'message': 'User added successfully', 'success': True}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@user_bp.route("/edit-user-role", methods=["POST"])
+@user_bp.route('/edit-user-role', methods=['POST'])
 @jwt_required()
 def edit_user_role():
     data = request.get_json()
-    role_id = data.get("role_id")
-    user_id = data.get("user_id")
+    role_id = data.get('role_id')
+    user_id = data.get('user_id')
 
     if not role_id:
-        return jsonify({"error": "Role is required"}), 400
+        return jsonify({'error': 'Role is required'}), 400
 
     # Update role and commit changes
     try:
@@ -73,23 +73,23 @@ def edit_user_role():
             ),
         )
 
-        return jsonify({"message": "Role successfully changed", "success": True}), 201
+        return jsonify({'message': 'Role successfully changed', 'success': True}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@user_bp.route("/assign-units", methods=["POST"])
+@user_bp.route('/assign-units', methods=['POST'])
 @jwt_required()
 def edit_assign_units():
     data = request.get_json()
-    user_id = data.get("user_id")
-    units = data.get("units")
+    user_id = data.get('user_id')
+    units = data.get('units')
 
     if not units:
-        return jsonify({"error": "Units are required"}), 400
+        return jsonify({'error': 'Units are required'}), 400
     if not user_id:
-        return jsonify({"error": "User is required"}), 400
+        return jsonify({'error': 'User is required'}), 400
 
     # Delete current user units
     try:
@@ -101,7 +101,7 @@ def edit_assign_units():
             (user_id,),
         )
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
     # Update current user units
     try:
@@ -114,13 +114,13 @@ def edit_assign_units():
                 (user_id, unit),
             )
 
-        return jsonify({"message": "Units successfully assigned"}), 201
+        return jsonify({'message': 'Units successfully assigned'}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e), "success": True}), 500
+        return jsonify({'error': str(e), 'success': True}), 500
 
 
-@user_bp.route("/all-roles", methods=["GET"])
+@user_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
 def get_all_roles():
     data = fetch_data("""SELECT r.*
@@ -129,11 +129,11 @@ def get_all_roles():
     return jsonify(data)
 
 
-@user_bp.route("/update-division", methods=["POST"])
+@user_bp.route('/update-division', methods=['POST'])
 @jwt_required()
 def edit_user_division():
     data = request.get_json()
-    division_id = data.get("division_id")
+    division_id = data.get('division_id')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -144,4 +144,4 @@ def edit_user_division():
                    """,
         (division_id, user_id),
     )
-    return jsonify({"data": data, "success": True}), 201
+    return jsonify({'data': data, 'success': True}), 201

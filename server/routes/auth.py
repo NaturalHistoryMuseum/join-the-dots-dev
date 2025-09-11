@@ -12,6 +12,7 @@ from flask_jwt_extended import (
     set_access_cookies,
     set_refresh_cookies,
 )
+
 from server.config import Config
 from server.database import get_db_connection
 
@@ -20,7 +21,9 @@ auth_bp = Blueprint('auth', __name__)
 
 # Database connection
 def fetch_data(query, params=None):
-    """Helper function to execute a database query."""
+    """
+    Helper function to execute a database query.
+    """
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params or ())
@@ -42,7 +45,9 @@ msal_app = msal.ConfidentialClientApplication(
 
 @auth_bp.route('/login')
 def login():
-    """Redirects user to Microsoft Login page."""
+    """
+    Redirects user to Microsoft Login page.
+    """
     auth_url = msal_app.get_authorization_request_url(
         SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
@@ -51,7 +56,9 @@ def login():
 
 @auth_bp.route('/login/azure/authorized')
 def auth_redirect():
-    """Handles Azure AD login redirect."""
+    """
+    Handles Azure AD login redirect.
+    """
     code = request.args.get('code')
     if not code:
         return jsonify({'error': 'No auth code provided'}), 400
@@ -148,7 +155,9 @@ def auth_redirect():
 @auth_bp.route('/status')
 @jwt_required()
 def auth_status():
-    """Check if the user has logged in and return their JWT token."""
+    """
+    Check if the user has logged in and return their JWT token.
+    """
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -175,7 +184,9 @@ def auth_status():
 
 @auth_bp.route('/logout')
 def logout():
-    """Logs the user out by clearing the session."""
+    """
+    Logs the user out by clearing the session.
+    """
     session.clear()
     response = jsonify({'msg': 'Logout successful'})
     # Remove the access tokens from the cookies

@@ -1,5 +1,6 @@
 import requests
 from flask import Blueprint, jsonify
+
 from server.config import Config
 
 report_bp = Blueprint('report', __name__)
@@ -9,7 +10,9 @@ POWER_BI_API = 'https://api.powerbi.com/v1.0/myorg'
 
 
 def get_access_token():
-    """Retrieve Power BI Access Token."""
+    """
+    Retrieve Power BI Access Token.
+    """
     data = {
         'grant_type': 'client_credentials',
         'client_id': Config.CLIENT_ID,
@@ -29,7 +32,9 @@ def get_access_token():
 
 @report_bp.route('/get-embed-url', methods=['GET'])
 def get_embed_url():
-    """Fetch Power BI Embed URL."""
+    """
+    Fetch Power BI Embed URL.
+    """
     token = get_access_token()
     headers = {'Authorization': f'Bearer {token}'}
     report_url = (

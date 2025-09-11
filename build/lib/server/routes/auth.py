@@ -16,12 +16,14 @@ from flask_jwt_extended import (
 from server.config import Config
 from server.database import get_db_connection
 
-auth_bp = Blueprint("auth", __name__)
+auth_bp = Blueprint('auth', __name__)
 
 
 # Database connection
 def fetch_data(query, params=None):
-    """Helper function to execute a database query."""
+    """
+    Helper function to execute a database query.
+    """
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     cursor.execute(query, params or ())
@@ -31,7 +33,7 @@ def fetch_data(query, params=None):
     return result
 
 
-AUTHORITY = f"https://login.microsoftonline.com/{Config.TENANT_ID}"
+AUTHORITY = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
 
 SCOPES = []
 
@@ -41,28 +43,32 @@ msal_app = msal.ConfidentialClientApplication(
 )
 
 
-@auth_bp.route("/login")
+@auth_bp.route('/login')
 def login():
-    """Redirects user to Microsoft Login page."""
+    """
+    Redirects user to Microsoft Login page.
+    """
     auth_url = msal_app.get_authorization_request_url(
-        SCOPES, redirect_uri=app.config.get("REDIRECT_URI")
+        SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
-    return jsonify({"auth_url": auth_url})
+    return jsonify({'auth_url': auth_url})
 
 
-@auth_bp.route("/login/azure/authorized")
+@auth_bp.route('/login/azure/authorized')
 def auth_redirect():
-    """Handles Azure AD login redirect."""
-    code = request.args.get("code")
+    """
+    Handles Azure AD login redirect.
+    """
+    code = request.args.get('code')
     if not code:
-        return jsonify({"error": "No auth code provided"}), 400
+        return jsonify({'error': 'No auth code provided'}), 400
 
     token_response = msal_app.acquire_token_by_authorization_code(
-        code, scopes=SCOPES, redirect_uri=app.config.get("REDIRECT_URI")
+        code, scopes=SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
 
-    if "access_token" in token_response:
-        user_info = token_response.get("id_token_claims")
+    if 'access_token' in token_response:
+        user_info = token_response.get('id_token_claims')
         # Get user from db
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
@@ -72,18 +78,18 @@ def auth_redirect():
                       LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
                       WHERE azure_id = %s
                    """,
-            (str(user_info["oid"]),),
+            (str(user_info['oid']),),
         )
         user = cursor.fetchone()
 
         if not user:
             # Add user if not present
             cursor.execute(
-                "INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s);",
+                'INSERT INTO jtd_live.users (azure_id, name, email, role_id) VALUES (%s, %s, %s, %s);',
                 (
-                    user_info["oid"],
-                    user_info["name"],
-                    user_info["preferred_username"],
+                    user_info['oid'],
+                    user_info['name'],
+                    user_info['preferred_username'],
                     1,
                 ),
             )
@@ -95,61 +101,63 @@ def auth_redirect():
                       LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
                       WHERE azure_id = %s
                    """,
-                (str(user_info["oid"]),),
+                (str(user_info['oid']),),
             )
             user = cursor.fetchone()
         else:
             # Check if name and email are up to date
-            if user["name"] != user_info["name"]:
+            if user['name'] != user_info['name']:
                 cursor.execute(
-                    "UPDATE jtd_live.users SET name = %s WHERE user_id = %s",
-                    (user_info["name"], user["user_id"]),
+                    'UPDATE jtd_live.users SET name = %s WHERE user_id = %s',
+                    (user_info['name'], user['user_id']),
                 )
                 connection.commit()
-            if user["email"] != user_info["preferred_username"]:
+            if user['email'] != user_info['preferred_username']:
                 cursor.execute(
-                    "UPDATE jtd_live.users SET email = %s WHERE user_id = %s",
-                    (user_info["preferred_username"], user["user_id"]),
+                    'UPDATE jtd_live.users SET email = %s WHERE user_id = %s',
+                    (user_info['preferred_username'], user['user_id']),
                 )
                 connection.commit()
         # Store user info in session
-        session["user"] = user
+        session['user'] = user
         session.modified = True
         # Generate JWT token
 
         # Create access token with user identity and extra claims
         jwt_token = create_access_token(
-            identity=str(user["user_id"]),
+            identity=str(user['user_id']),
             additional_claims={
-                "name": user["name"],
-                "email": user["email"],
-                "role_id": user["role_id"],
-                "role": user["role"],
-                "division_id": user["division_id"],
-                "level": user["level"],
+                'name': user['name'],
+                'email': user['email'],
+                'role_id': user['role_id'],
+                'role': user['role'],
+                'division_id': user['division_id'],
+                'level': user['level'],
             },
         )
         # Create refresh token
-        refresh_token = create_refresh_token(identity=str(user["user_id"]))
+        refresh_token = create_refresh_token(identity=str(user['user_id']))
         # Store in session for later retrieval
-        session["jwt_token"] = jwt_token
+        session['jwt_token'] = jwt_token
 
         # Generate CSRF token
         csrf_access_token = secrets.token_urlsafe(32)
-        response = make_response(jsonify({"message": "Login successful"}))
+        response = make_response(jsonify({'message': 'Login successful'}))
         # Set jwt token as access token in cookies
         set_access_cookies(response, jwt_token)
         set_refresh_cookies(response, refresh_token)
 
         return response
 
-    return jsonify({"error": "Authentication failed"}), 401
+    return jsonify({'error': 'Authentication failed'}), 401
 
 
-@auth_bp.route("/status")
+@auth_bp.route('/status')
 @jwt_required()
 def auth_status():
-    """Check if the user has logged in and return their JWT token."""
+    """
+    Check if the user has logged in and return their JWT token.
+    """
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -169,31 +177,33 @@ def auth_status():
     )
     # If no user is found, return an error
     if not user_details:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({'error': 'User not found'}), 404
     # Return token and user details
-    return jsonify({"user": user_details[0]}), 200
+    return jsonify({'user': user_details[0]}), 200
 
 
-@auth_bp.route("/logout")
+@auth_bp.route('/logout')
 def logout():
-    """Logs the user out by clearing the session."""
+    """
+    Logs the user out by clearing the session.
+    """
     session.clear()
-    response = jsonify({"msg": "Logout successful"})
+    response = jsonify({'msg': 'Logout successful'})
     # Remove the access tokens from the cookies
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    response.delete_cookie("csrf_access_token")
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
+    response.delete_cookie('csrf_access_token')
     return response
 
 
-@auth_bp.route("/refresh", methods=["POST"])
+@auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token():
     user_id = get_jwt_identity()
     new_access_token = create_access_token(identity=user_id)
-    response = jsonify({"msg": "Token refreshed"})
+    response = jsonify({'msg': 'Token refreshed'})
     response.set_cookie(
-        "access_token", new_access_token, httponly=True, secure=True, samesite="Lax"
+        'access_token', new_access_token, httponly=True, secure=True, samesite='Lax'
     )
     return response
 
