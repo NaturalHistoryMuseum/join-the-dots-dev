@@ -1,3 +1,9 @@
+## v0.2.1 (2025-09-11)
+
+### Build System(s)
+
+- adding package.find to pyproject
+
 ## v0.2.0 (2025-09-11)
 
 ### Feature
