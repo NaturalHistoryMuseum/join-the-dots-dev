@@ -1,3 +1,74 @@
+## v0.2.0 (2025-09-11)
+
+### Feature
+
+- name and email checked against o365 and will update if different
+- improving help text
+- user permissions functionality completed
+- user management page added for managers
+- account page dropdowns functional
+- account page reformmated, message overlay now based on store
+- unit permissions page completed and hooked in, fixed rescore not saving
+- assigning editors now submits to db
+- curator assignment added to view unit page
+- score viewability improved
+- rescore page improvements - review, errors and ui changed
+- remove vue js dev tools
+- unit actions will reload the view units table
+- unit actions added - improvement to viewing units
+- view unit fields rendered dynamically from config
+- adding units functionality added
+- minor improvements to rescore page and bulk edit modal
+- action button colour changed
+- **rescore-criterion**: criterion code added into rescore criterions
+- **bulk-edit**: adding selected units to bulk edit review
+- add stepper to rescore and other various changes
+- view unit mentions editing if user able to
+- **rescore-page**: review proccess added to rescore
+- **view-unit-editability**: unit fields will only be editable if the user is assinged the unit
+- **tablecheckbox**: table checkbox only allows assinged units to be selected
+- **tablecheckbox-rows-per-page-option**: rows per page for the table comp now stores the row number in local storage
+- testing commit
+
+### Fix
+
+- fix unit search on account page and mistaken decimals on rescore
+- removed red error when adding scores on new unit page
+- various fixes to spelling and functionality - new unit assigned editor now mandatory
+- adding extension to required list
+- only reset rank data if a change is made - fixes scores being overwritten by saving
+- token issue resolved
+- resolve csrf token issue
+- **login-system**: access token refresh issue temp changess
+- **sidebar-filter-and-account-page**: minor fixes to the search and select boxes
+- generic fixes to remove errors
+- typo in requirements
+- temporarily adding flask requirements back in
+- pagination with table checkbox fixed
+
+### Refactor
+
+- readded toml to project
+- refactored code formatting, adjusted pyproject
+- change endpoints for k8s
+- refaction config
+- removing unused add unit files
+- removed prints and console logs
+- removing commented code
+- code changes to attempt csrf fix
+- flask_jwt_extended added to improve route security
+- changed api to k8s endpoints
+- backend code improvements
+- **flask-config**: remove dot env import
+- config and extensions improved
+- pre-commit changes applied
+- k8s endpoints added
+- **view-units-table**: viewunits table split into separate components
+
+### Style
+
+- pre commit formatting
+
 ## v0.1.0 (2025-06-19)
 
 ### Feature
