@@ -628,7 +628,7 @@ def submit_unit():
     filter_unit_data = {
         key: value
         for key, value in unit_data.items()
-        if value is not None and key is not 'collection_unit_id'
+        if value is not None and key != 'collection_unit_id'
     }
     # Extract fields and values
     keys = list(filter_unit_data.keys())
