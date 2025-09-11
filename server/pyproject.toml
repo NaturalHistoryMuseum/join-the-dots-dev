@@ -23,6 +23,8 @@ dependencies = [
     "mysql-connector-python>=8.0.33",
     "pyjwt>=2.4.0",
     "requests>=2.27.1",
+    "flask_jwt_extended>=4.7.1",
+    "gunicorn>=23.0.0",
 ]
 
 [project.urls]

@@ -50,6 +50,7 @@
           </div>
           <div class="account-field">
             <zoa-input
+              v-if="role_id >= 4"
               zoa-type="dropdown"
               label="Division"
               :config="{ options: division_options }"
@@ -58,6 +59,21 @@
               help-position="right"
               @change="handleDivisionSave()"
             />
+            <div v-else-if="division_options.length > 0">
+              <zoa-input
+                zoa-type="empty"
+                label="Division"
+                class="comments-title"
+                help="The division of the organisation you belong to"
+                help-position="right"
+              />
+              <p class="view-field">
+                {{
+                  division_options.find((d) => d.division_id == division_id)
+                    .division_name
+                }}
+              </p>
+            </div>
           </div>
           <div class="account-field">
             <zoa-input
@@ -77,15 +93,17 @@
       </div>
       <div v-if="role_id >= 3" class="account-section">
         <h2>Manager Actions</h2>
-        <zoa-button
-          label="Manage User Permissions"
-          @click="$router.push('/user-management')"
-        />
-        <zoa-button
-          kind="alt"
-          label="Manage Units Permissions"
-          @click="$router.push({ path: '/manage-unit-permissions' })"
-        />
+        <div class="manager-actions">
+          <zoa-button
+            label="Manage User Permissions"
+            @click="$router.push('/user-management')"
+          />
+          <zoa-button
+            kind="alt"
+            label="Manage Units Permissions"
+            @click="$router.push({ path: '/manage-unit-permissions' })"
+          />
+        </div>
       </div>
     </div>
     <div v-else>
@@ -235,5 +253,12 @@ export default {
 
 .account-field {
   width: 30%;
+}
+
+.manager-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
 }
 </style>
