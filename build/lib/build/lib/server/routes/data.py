@@ -12,7 +12,7 @@ from server.database import get_db_connection
 from server.routes.queries.data_queries import *
 from server.utils import database_name, execute_query, fetch_data, refreshJWTToken
 
-data_bp = Blueprint("data", __name__)
+data_bp = Blueprint('data', __name__)
 
 
 # After a request, refresh the JWT token if it is about to expire
@@ -22,23 +22,23 @@ def refresh_expiring_jwts(response):
 
 
 # Rescore routes
-@data_bp.route("/unit-scores/<unitId>", methods=["GET"])
+@data_bp.route('/unit-scores/<unitId>', methods=['GET'])
 @jwt_required()
 def get_unit_scores(unitId):
     data = fetch_data(UNIT_SCORES % int(unitId))
     return jsonify(data)
 
 
-@data_bp.route("/mark-rescore-open", methods=["POST"])
+@data_bp.route('/mark-rescore-open', methods=['POST'])
 @jwt_required()
 def get_mark_rescore_open():
     data = request.get_json()
-    units = data.get("units")
+    units = data.get('units')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
     if not units:
-        return jsonify({"error": "Units are required"}), 400
+        return jsonify({'error': 'Units are required'}), 400
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
@@ -73,23 +73,23 @@ def get_mark_rescore_open():
                 cursor.execute(query, (rescore_session_units_id, category_id))
 
         connection.commit()
-        return jsonify({"rescore_session_id": rescore_session_id, "success": True}), 201
+        return jsonify({'rescore_session_id': rescore_session_id, 'success': True}), 201
 
     except Exception as e:
         connection.rollback()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
     finally:
         cursor.close()
         connection.close()
 
 
-@data_bp.route("/rescore-complete", methods=["POST"])
+@data_bp.route('/rescore-complete', methods=['POST'])
 @jwt_required()
 def submit_rescore_complete():
     data = request.get_json()
-    rescore_session_id = data.get("rescore_session_id")
+    rescore_session_id = data.get('rescore_session_id')
     if not rescore_session_id:
-        return jsonify({"error": "rescore_session_id is required"}), 400
+        return jsonify({'error': 'rescore_session_id is required'}), 400
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -210,7 +210,7 @@ def submit_rescore_complete():
         # Group rows by collection_unit_id and criterion_id
         grouped_assessment = defaultdict(list)
         for row in draft_rows:
-            key = (row["collection_unit_id"], row["criterion_id"])
+            key = (row['collection_unit_id'], row['criterion_id'])
             grouped_assessment[key].append(row)
         # Insert assessment_criterion rows
         inserted_ids = {}
@@ -233,7 +233,7 @@ def submit_rescore_complete():
 
         # Insert all ranks referencing the correct assessment_criterion_id
         for row in draft_rows:
-            criterion_key = (row["collection_unit_id"], row["criterion_id"])
+            criterion_key = (row['collection_unit_id'], row['criterion_id'])
             assessment_criterion_id = inserted_ids[criterion_key]
             cursor.execute(
                 f"""
@@ -243,9 +243,9 @@ def submit_rescore_complete():
             """,
                 (
                     assessment_criterion_id,
-                    row["rank_id"],
-                    row["percentage"],
-                    row["comment"],
+                    row['rank_id'],
+                    row['percentage'],
+                    row['comment'],
                 ),
             )
         # Remove draft ranks
@@ -280,17 +280,17 @@ def submit_rescore_complete():
         connection.commit()
 
         return jsonify(
-            {"message": "Rescore session marked as complete", "success": True}
+            {'message': 'Rescore session marked as complete', 'success': True}
         ), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
     finally:
         cursor.close()
         connection.close()
 
 
-@data_bp.route("/open-rescore", methods=["GET"])
+@data_bp.route('/open-rescore', methods=['GET'])
 @jwt_required()
 def get_open_rescore():
     # Get user_id from the jwt token
@@ -305,33 +305,33 @@ def get_open_rescore():
     return jsonify(data)
 
 
-@data_bp.route("/rescore-units/<rescore_session_id>", methods=["GET"])
+@data_bp.route('/rescore-units/<rescore_session_id>', methods=['GET'])
 @jwt_required()
 def get_rescore_units(rescore_session_id):
     data = fetch_data(RESCORE_UNITS % int(rescore_session_id))
     return jsonify(data)
 
 
-@data_bp.route("/submit-draft-rank", methods=["POST"])
+@data_bp.route('/submit-draft-rank', methods=['POST'])
 @jwt_required()
 def submit_draft_rank():
     data = request.get_json()
-    rescore_session_units_id = data.get("rescore_session_units_id")
-    collection_unit_id = data.get("collection_unit_id")
-    criterion_id = data.get("criterion_id")
-    ranks = data.get("ranks")
-    category_draft_id = data.get("category_draft_id")
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    collection_unit_id = data.get('collection_unit_id')
+    criterion_id = data.get('criterion_id')
+    ranks = data.get('ranks')
+    category_draft_id = data.get('category_draft_id')
 
     if not category_draft_id:
-        return jsonify({"error": "category_draft_id is required"}), 400
+        return jsonify({'error': 'category_draft_id is required'}), 400
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     if not rescore_session_units_id:
-        return jsonify({"error": "rescore_session_units_id is required"}), 400
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not criterion_id:
-        return jsonify({"error": "criterion_id is required"}), 400
+        return jsonify({'error': 'criterion_id is required'}), 400
     handle_draft_rank(criterion_id, ranks, category_draft_id)
-    return jsonify({"message": "Draft rank submitted successfully"}), 201
+    return jsonify({'message': 'Draft rank submitted successfully'}), 201
 
 
 def handle_draft_rank(criterion_id, ranks, category_draft_id):
@@ -348,12 +348,12 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
         # Loop through the ranks and update or insert them
         for sumbit_rank in ranks:
             in_db = False
-            rank_id = sumbit_rank["rank_id"]
-            percentage = sumbit_rank["percentage"]
-            comment = sumbit_rank["comment"]
+            rank_id = sumbit_rank['rank_id']
+            percentage = sumbit_rank['percentage']
+            comment = sumbit_rank['comment']
             # Check if the rank already exists in the database and update it if it does
             for db_rank in data:
-                if db_rank["rank_id"] == sumbit_rank["rank_id"]:
+                if db_rank['rank_id'] == sumbit_rank['rank_id']:
                     execute_query(
                         """UPDATE {database_name}.unit_rank_draft
                                 SET percentage = %s, comment = %s, updated_at = NOW()
@@ -372,31 +372,31 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
                     (category_draft_id, criterion_id, rank_id, percentage, comment),
                 )
         return jsonify(
-            {"message": "Draft rank submitted successfully", "success": True}
+            {'message': 'Draft rank submitted successfully', 'success': True}
         ), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/submit-draft-metrics", methods=["POST"])
+@data_bp.route('/submit-draft-metrics', methods=['POST'])
 @jwt_required()
 def submit_draft_metrics():
     data = request.get_json()
-    rescore_session_units_id = data.get("rescore_session_units_id")
-    collection_unit_id = data.get("collection_unit_id")
-    metric_json = data.get("metric_json")
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    collection_unit_id = data.get('collection_unit_id')
+    metric_json = data.get('metric_json')
 
     if not rescore_session_units_id:
-        return jsonify({"error": "rescore_session_units_id is required"}), 400
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not collection_unit_id:
-        return jsonify({"error": "collection_unit_id is required"}), 400
+        return jsonify({'error': 'collection_unit_id is required'}), 400
     if not metric_json:
-        return jsonify({"error": "metric_json are required"}), 400
+        return jsonify({'error': 'metric_json are required'}), 400
 
     handle_draft_metrics(rescore_session_units_id, metric_json)
     return jsonify(
-        {"message": "Draft metrics submitted successfully", "success": True}
+        {'message': 'Draft metrics submitted successfully', 'success': True}
     ), 201
 
 
@@ -405,10 +405,10 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
         # Loop through the metrics and update or insert them
         for metric in metric_json:
             collection_unit_metric_definition_id = metric[
-                "collection_unit_metric_definition_id"
+                'collection_unit_metric_definition_id'
             ]
-            metric_value = metric["metric_value"]
-            confidence_level = metric["confidence_level"]
+            metric_value = metric['metric_value']
+            confidence_level = metric['confidence_level']
             if metric_value is not None or confidence_level is not None:
                 # Check if the metric already exists in the database and update it if it does
                 existing_metric = fetch_data(
@@ -444,27 +444,27 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
                             confidence_level,
                         ),
                     )
-        return jsonify({"message": "Draft metrics submitted successfully"}), 201
+        return jsonify({'message': 'Draft metrics submitted successfully'}), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/submit-draft-comment", methods=["POST"])
+@data_bp.route('/submit-draft-comment', methods=['POST'])
 @jwt_required()
 def submit_draft_comment():
     data = request.get_json()
-    rescore_session_units_id = data.get("rescore_session_units_id")
-    unit_comment = data.get("unit_comment")
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    unit_comment = data.get('unit_comment')
 
     if not rescore_session_units_id:
-        return jsonify({"error": "rescore_session_units_id is required"}), 400
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not unit_comment:
-        return jsonify({"error": "unit_comment is required"}), 400
+        return jsonify({'error': 'unit_comment is required'}), 400
 
     handle_draft_comment(rescore_session_units_id, unit_comment)
     return jsonify(
-        {"message": "Draft comment submitted successfully", "success": True}
+        {'message': 'Draft comment submitted successfully', 'success': True}
     ), 201
 
 
@@ -495,68 +495,68 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
                 (rescore_session_units_id, unit_comment),
             )
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/bulk-upload-rescore", methods=["POST"])
+@data_bp.route('/bulk-upload-rescore', methods=['POST'])
 @jwt_required()
 def bulk_upload_rescore():
     data = request.get_json()
-    units = data.get("units")
-    rescore_data = data.get("rescore_data")
+    units = data.get('units')
+    rescore_data = data.get('rescore_data')
 
     success_count = 0
 
     for unit in units:
-        collection_unit_id = unit.get("collection_unit_id")
-        rescore_session_units_id = unit.get("rescore_session_units_id")
+        collection_unit_id = unit.get('collection_unit_id')
+        rescore_session_units_id = unit.get('rescore_session_units_id')
 
         if not collection_unit_id or not rescore_session_units_id:
             return jsonify(
                 {
-                    "error": "collection_unit_id and rescore_session_units_id are required"
+                    'error': 'collection_unit_id and rescore_session_units_id are required'
                 }
             ), 400
 
         # Handle ranks
-        if "ranks_json" in rescore_data:
+        if 'ranks_json' in rescore_data:
             # Loop through all of the score changes
-            for criterion_ranks in rescore_data["ranks_json"]:
+            for criterion_ranks in rescore_data['ranks_json']:
                 # Get the criterion_id for this score change
-                criterion_id = criterion_ranks[0]["criterion_id"]
-                category_id = criterion_ranks[0]["category_id"]
+                criterion_id = criterion_ranks[0]['criterion_id']
+                category_id = criterion_ranks[0]['category_id']
                 # Find category_draft_id
-                category_tracking = unit["category_tracking"]
+                category_tracking = unit['category_tracking']
                 current_category = [
                     category
                     for category in category_tracking
-                    if category.get("category_id") == category_id
+                    if category.get('category_id') == category_id
                 ]
-                category_draft_id = current_category[0]["category_draft_id"]
+                category_draft_id = current_category[0]['category_draft_id']
                 # Make the score change
                 handle_draft_rank(criterion_id, criterion_ranks, category_draft_id)
 
         # Handle metrics
-        if "metric_json" in rescore_data:
-            handle_draft_metrics(rescore_session_units_id, rescore_data["metric_json"])
+        if 'metric_json' in rescore_data:
+            handle_draft_metrics(rescore_session_units_id, rescore_data['metric_json'])
 
         # Handle comment
-        if "unit_comment" in rescore_data:
-            handle_draft_comment(rescore_session_units_id, rescore_data["unit_comment"])
+        if 'unit_comment' in rescore_data:
+            handle_draft_comment(rescore_session_units_id, rescore_data['unit_comment'])
 
         # Increase success counter
         success_count += 1
     return jsonify(
         {
-            "message": "Bulk drafts submitted successfully",
-            "success_count": success_count,
-            "total_units": len(units),
-            "success": True,
+            'message': 'Bulk drafts submitted successfully',
+            'success_count': success_count,
+            'total_units': len(units),
+            'success': True,
         }
     ), 201
 
 
-@data_bp.route("/end-rescore/<rescore_session_id>", methods=["POST"])
+@data_bp.route('/end-rescore/<rescore_session_id>', methods=['POST'])
 @jwt_required()
 def update_end_rescore(rescore_session_id):
     date = datetime.now()
@@ -573,28 +573,28 @@ def update_end_rescore(rescore_session_id):
     return jsonify(data)
 
 
-@data_bp.route("/complete-category", methods=["POST"])
+@data_bp.route('/complete-category', methods=['POST'])
 @jwt_required()
 def update_complete_category():
     data = request.get_json()
-    rescore_session_units_id = data.get("rescore_session_units_id")
-    category_ids_arr = data.get("category_ids_arr")
-    new_val = data.get("new_val")
+    rescore_session_units_id = data.get('rescore_session_units_id')
+    category_ids_arr = data.get('category_ids_arr')
+    new_val = data.get('new_val')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
     if not rescore_session_units_id:
-        return jsonify({"error": "rescore_session_units_id is required"}), 400
+        return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not category_ids_arr:
-        return jsonify({"error": "category_ids_arr is required"}), 400
+        return jsonify({'error': 'category_ids_arr is required'}), 400
     if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+        return jsonify({'error': 'user_id is required'}), 400
 
     if not isinstance(category_ids_arr, list):
-        return jsonify({"error": "category_ids_arr should be a list"}), 400
+        return jsonify({'error': 'category_ids_arr should be a list'}), 400
 
     # Dynamically build placeholders for each category_id
-    placeholders = ", ".join(["%s"] * len(category_ids_arr))
+    placeholders = ', '.join(['%s'] * len(category_ids_arr))
 
     try:
         data = execute_query(
@@ -608,36 +608,36 @@ def update_complete_category():
         )
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
     return jsonify(data)
 
 
 # Unit routes
-@data_bp.route("/submit-unit", methods=["POST"])
+@data_bp.route('/submit-unit', methods=['POST'])
 @jwt_required()
 def submit_unit():
     data = request.get_json()
-    unit_data = data.get("unit_data")
-    score_data = data.get("score_data")
-    metric_json = score_data.get("metric_json")
-    ranks_json = score_data.get("ranks_json")
+    unit_data = data.get('unit_data')
+    score_data = data.get('score_data')
+    metric_json = score_data.get('metric_json')
+    ranks_json = score_data.get('ranks_json')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     # Filter the data to remove None values and the collection_unit_id
     filter_unit_data = {
         key: value
         for key, value in unit_data.items()
-        if value is not None and key is not "collection_unit_id"
+        if value is not None and key is not 'collection_unit_id'
     }
     # Extract fields and values
     keys = list(filter_unit_data.keys())
     values = list(filter_unit_data.values())
 
     # Construct the SQL dynamically
-    placeholders = ", ".join(["%s"] * len(keys))  # %s placeholders
-    columns = ", ".join([f"`{key}`" for key in keys])  # column names with backticks
-    sql_query = f"INSERT INTO {database_name}.collection_unit ({columns}) VALUES ({placeholders})"
+    placeholders = ', '.join(['%s'] * len(keys))  # %s placeholders
+    columns = ', '.join([f'`{key}`' for key in keys])  # column names with backticks
+    sql_query = f'INSERT INTO {database_name}.collection_unit ({columns}) VALUES ({placeholders})'
 
     try:
         connection = get_db_connection()
@@ -645,19 +645,19 @@ def submit_unit():
         # Execute the query and return the new unit ID
         cursor.execute(sql_query, values)
         new_unit_id = cursor.lastrowid
-        print(f"new unit id - {new_unit_id}")
+        print(f'new unit id - {new_unit_id}')
 
         if new_unit_id is None:
-            return jsonify({"error": "Failed to create new unit"}), 500
+            return jsonify({'error': 'Failed to create new unit'}), 500
 
         # Handle metrics
         if metric_json:
             for metric in metric_json:
                 collection_unit_metric_definition_id = metric.get(
-                    "collection_unit_metric_definition_id"
+                    'collection_unit_metric_definition_id'
                 )
-                metric_value = metric.get("metric_value")
-                confidence_level = metric.get("confidence_level")
+                metric_value = metric.get('metric_value')
+                confidence_level = metric.get('confidence_level')
                 if metric_value is not None or confidence_level is not None:
                     cursor.execute(
                         f"""INSERT INTO {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id, metric_value, confidence_level, date_from, `current`)
@@ -673,7 +673,7 @@ def submit_unit():
         # Handle ranks
         if ranks_json:
             for criterion in ranks_json:
-                criterion_id = criterion[0]["criterion_id"]
+                criterion_id = criterion[0]['criterion_id']
                 # Add the criterion to the unit_assessment_criterion table and get the new id
                 cursor.execute(
                     f"""
@@ -686,9 +686,9 @@ def submit_unit():
                 )
                 unit_assessment_criterion_id = cursor.lastrowid
                 for rank in criterion:
-                    rank_id = rank["rank_id"]
-                    percentage = rank["percentage"]
-                    comment = rank["comment"]
+                    rank_id = rank['rank_id']
+                    percentage = rank['percentage']
+                    comment = rank['comment']
                     cursor.execute(
                         f"""
                         INSERT INTO {database_name}.unit_assessment_rank (
@@ -708,9 +708,9 @@ def submit_unit():
         cursor.close()
         connection.close()
 
-        return jsonify({"collection_unit_id": new_unit_id, "success": True}), 201
+        return jsonify({'collection_unit_id': new_unit_id, 'success': True}), 201
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
 def column_exists(field_name, new_value):
@@ -725,23 +725,23 @@ def column_exists(field_name, new_value):
         )
         return field_is_valid
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/submit-field", methods=["POST"])
+@data_bp.route('/submit-field', methods=['POST'])
 @jwt_required()
 def submit_field():
     data = request.get_json()
-    field_name = data.get("field_name")
-    new_value = data.get("new_value")
-    collection_unit_id = data.get("collection_unit_id")
+    field_name = data.get('field_name')
+    new_value = data.get('new_value')
+    collection_unit_id = data.get('collection_unit_id')
 
     if not field_name:
-        return jsonify({"error": "field_name is required"}), 400
+        return jsonify({'error': 'field_name is required'}), 400
     # if new_value is None:
     #     return jsonify({'error': 'new_value is required'}), 400
     if not collection_unit_id:
-        return jsonify({"error": "collection_unit_id is required"}), 400
+        return jsonify({'error': 'collection_unit_id is required'}), 400
 
     try:
         if column_exists(field_name=field_name, new_value=new_value):
@@ -753,27 +753,27 @@ def submit_field():
                 """,
                 [new_value, collection_unit_id],
             )
-            return jsonify({"data": data, "success": True})
+            return jsonify({'data': data, 'success': True})
         else:
-            return jsonify({"error: column does not exist"}), 500
+            return jsonify({'error: column does not exist'}), 500
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/split-unit", methods=["POST"])
+@data_bp.route('/split-unit', methods=['POST'])
 @jwt_required()
 def split_unit():
     data = request.get_json()
-    unit_id = data.get("unit_id")
-    new_count = data.get("new_count")
+    unit_id = data.get('unit_id')
+    new_count = data.get('new_count')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
     if not unit_id:
-        return jsonify({"error": "unit_id is required"}), 400
+        return jsonify({'error': 'unit_id is required'}), 400
     if not new_count:
-        return jsonify({"error": "new_count is required"}), 400
+        return jsonify({'error': 'new_count is required'}), 400
 
     new_units = []
 
@@ -787,7 +787,7 @@ def split_unit():
                 cursor=cursor,
                 unit_id_to_copy=unit_id,
                 user_id=user_id,
-                unit_name_addition=(" " + str(i + 1)),
+                unit_name_addition=(' ' + str(i + 1)),
             )
             new_units.append(new_unit_id)
         cursor.execute(
@@ -802,22 +802,22 @@ def split_unit():
         connection.commit()
         cursor.close()
         connection.close()
-        return jsonify({"new_units": new_units, "success": True})
+        return jsonify({'new_units': new_units, 'success': True})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/combine-unit", methods=["POST"])
+@data_bp.route('/combine-unit', methods=['POST'])
 @jwt_required()
 def combine_unit():
     data = request.get_json()
-    primary_unit_id = data.get("primary_unit_id")
-    unit_id_list = data.get("unit_id_list")
+    primary_unit_id = data.get('primary_unit_id')
+    unit_id_list = data.get('unit_id_list')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
     if not primary_unit_id:
-        return jsonify({"error": "primary_unit_id is required"}), 400
+        return jsonify({'error': 'primary_unit_id is required'}), 400
 
     try:
         connection = get_db_connection()
@@ -842,12 +842,12 @@ def combine_unit():
         connection.commit()
         cursor.close()
         connection.close()
-        return jsonify({"new_unit_id": new_unit_id, "success": True})
+        return jsonify({'new_unit_id': new_unit_id, 'success': True})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=""):
+def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=''):
     # Create a new unit
     cursor.execute(
         f"""
@@ -908,7 +908,7 @@ def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=""):
     return new_unit_id
 
 
-@data_bp.route("/unit-department", methods=["GET"])
+@data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
 def get_units_and_departments():
     data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id, unit.responsible_curator_id, users.name AS curator_name
@@ -922,7 +922,7 @@ def get_units_and_departments():
     return jsonify(data)
 
 
-@data_bp.route("/unit/<unit_id>", methods=["GET"])
+@data_bp.route('/unit/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_unit(unit_id):
     data = fetch_data(
@@ -938,7 +938,7 @@ def get_unit(unit_id):
     return jsonify(data)
 
 
-@data_bp.route("/full-unit/<unit_id>", methods=["GET"])
+@data_bp.route('/full-unit/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_full_unit(unit_id):
     data = fetch_data(
@@ -954,7 +954,7 @@ def get_full_unit(unit_id):
     return jsonify(data)
 
 
-@data_bp.route("/all-assigned-users/<unit_id>", methods=["GET"])
+@data_bp.route('/all-assigned-users/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_assigned_users(unit_id):
     data = fetch_data(
@@ -968,7 +968,7 @@ def get_assigned_users(unit_id):
     return jsonify(data)
 
 
-@data_bp.route("/units-assigned", methods=["GET"])
+@data_bp.route('/units-assigned', methods=['GET'])
 @jwt_required()
 def get_units_assigned():
     # Get user_id from the jwt token
@@ -983,9 +983,9 @@ def get_units_assigned():
                     """,
             (user_id,),
         )
-        match user[0]["role_id"]:
+        match user[0]['role_id']:
             case 1:
-                return jsonify({"error": "You are not autorised."}), 500
+                return jsonify({'error': 'You are not autorised.'}), 500
             case 2:
                 data = fetch_data(
                     """SELECT u.*, cu.*, s.section_name, d.division_name, u.name AS curator_name, cu.responsible_curator_id,
@@ -1023,7 +1023,7 @@ def get_units_assigned():
                     JOIN {database_name}.division d ON d.division_id = s.division_id
                     WHERE d.division_id = %s AND cu.unit_active = 'yes'
                             """,
-                    (user[0]["division_id"],),
+                    (user[0]['division_id'],),
                 )
             case 4:
                 data = fetch_data(
@@ -1034,10 +1034,10 @@ def get_units_assigned():
                 )
         return jsonify(data)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/units-by-division/<division_id>", methods=["GET"])
+@data_bp.route('/units-by-division/<division_id>', methods=['GET'])
 @jwt_required()
 def get_units_by_division(division_id):
     # Get user_id from the jwt token
@@ -1053,10 +1053,10 @@ def get_units_by_division(division_id):
         )
         return jsonify(data)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/division-users", methods=["GET"])
+@data_bp.route('/division-users', methods=['GET'])
 @jwt_required()
 def get_division_users():
     # Get user_id from the jwt token
@@ -1070,7 +1070,7 @@ def get_division_users():
                     """,
             (user_id,),
         )
-        role_id = user[0]["role_id"]
+        role_id = user[0]['role_id']
         if role_id >= 3:
             data = fetch_data(
                 """SELECT u.user_id, u.role_id, u.name, u.email, d.division_name, u.division_id, r.role,
@@ -1094,21 +1094,21 @@ def get_division_users():
                 JOIN {database_name}.division d ON d.division_id = u.division_id
                 WHERE u.division_id = %s
                         """,
-                (user[0]["division_id"],),
+                (user[0]['division_id'],),
             )
             return jsonify(data)
         else:
-            return jsonify({"error": "You are not autorised."}), 500
+            return jsonify({'error': 'You are not autorised.'}), 500
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/reassign-responsible-curator", methods=["POST"])
+@data_bp.route('/reassign-responsible-curator', methods=['POST'])
 @jwt_required()
 def reassign_responsible_curator():
     data = request.get_json()
-    old_user_id = data.get("old_user_id")
-    new_user_id = data.get("new_user_id")
+    old_user_id = data.get('old_user_id')
+    new_user_id = data.get('new_user_id')
 
     try:
         #
@@ -1137,23 +1137,23 @@ def reassign_responsible_curator():
         # Close the cursor and connection
         cursor.close()
         connection.close()
-        return jsonify({"message": "Units successfully reassigned", "success": True})
+        return jsonify({'message': 'Units successfully reassigned', 'success': True})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/submit-unit-assigned", methods=["POST"])
+@data_bp.route('/submit-unit-assigned', methods=['POST'])
 @jwt_required()
 def set_unit_assigned():
     data = request.get_json()
-    unit_id = data.get("unit_id")
-    assigned_users = data.get("assigned_users")
+    unit_id = data.get('unit_id')
+    assigned_users = data.get('assigned_users')
 
     if not unit_id:
-        return jsonify({"error": "unit_id is required"}), 400
+        return jsonify({'error': 'unit_id is required'}), 400
 
     if not assigned_users:
-        return jsonify({"error": "assigned_users is required"}), 400
+        return jsonify({'error': 'assigned_users is required'}), 400
 
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
@@ -1168,7 +1168,7 @@ def set_unit_assigned():
             (unit_id,),
         )
         current_assigned = set(
-            row["user_id"] for row in current_assigned
+            row['user_id'] for row in current_assigned
         )  # if fetch_data returns dicts
         assigned_users = set(assigned_users)
         # Compare lists
@@ -1191,24 +1191,24 @@ def set_unit_assigned():
                     (user_id, unit_id),
                 )
         return jsonify(
-            {"message": "Unit assigned users updated successfully", "success": True}
+            {'message': 'Unit assigned users updated successfully', 'success': True}
         ), 201
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/submit-user-assigned", methods=["POST"])
+@data_bp.route('/submit-user-assigned', methods=['POST'])
 @jwt_required()
 def set_user_assigned():
     data = request.get_json()
-    user_id = data.get("user_id")
-    assigned_units = data.get("assigned_units")
+    user_id = data.get('user_id')
+    assigned_units = data.get('assigned_units')
 
     if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+        return jsonify({'error': 'user_id is required'}), 400
 
     if not assigned_units:
-        return jsonify({"error": "assigned_units is required"}), 400
+        return jsonify({'error': 'assigned_units is required'}), 400
 
     try:
         # Fetch current assigned units for this user
@@ -1220,7 +1220,7 @@ def set_user_assigned():
         )
         # Normalize both sets to integers
         current_assigned = set(
-            int(row["collection_unit_id"]) for row in current_assigned
+            int(row['collection_unit_id']) for row in current_assigned
         )
         assigned_units = set(int(unit_id) for unit_id in assigned_units)
 
@@ -1245,14 +1245,14 @@ def set_user_assigned():
             )
 
         return jsonify(
-            {"message": "User assigned units updated successfully", "success": True}
+            {'message': 'User assigned units updated successfully', 'success': True}
         ), 201
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
 
 
-@data_bp.route("/criterion", methods=["GET"])
+@data_bp.route('/criterion', methods=['GET'])
 @jwt_required()
 def get_criterion():
     data = fetch_data("""SELECT cat.*, crit.criterion_id, crit.criterion_name, crit.criterion_code, crit.definition
@@ -1262,7 +1262,7 @@ def get_criterion():
     return jsonify(data)
 
 
-@data_bp.route("/units-metrics/<unit_id>", methods=["GET"])
+@data_bp.route('/units-metrics/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_units_metrics(unit_id):
     data = fetch_data(
@@ -1276,7 +1276,7 @@ def get_units_metrics(unit_id):
     return jsonify(data)
 
 
-@data_bp.route("/category", methods=["GET"])
+@data_bp.route('/category', methods=['GET'])
 @jwt_required()
 def get_roles():
     data = fetch_data("""SELECT cat.*
@@ -1285,7 +1285,7 @@ def get_roles():
     return jsonify(data)
 
 
-@data_bp.route("/all-roles", methods=["GET"])
+@data_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
 def get_category():
     data = fetch_data("""SELECT *
@@ -1294,7 +1294,7 @@ def get_category():
     return jsonify(data)
 
 
-@data_bp.route("/metric-definitions", methods=["GET"])
+@data_bp.route('/metric-definitions', methods=['GET'])
 @jwt_required()
 def get_metric_definitions():
     data = fetch_data("""SELECT *
@@ -1303,7 +1303,7 @@ def get_metric_definitions():
     return jsonify(data)
 
 
-@data_bp.route("/all-sections", methods=["GET"])
+@data_bp.route('/all-sections', methods=['GET'])
 @jwt_required()
 def get_all_sections():
     data = fetch_data("""SELECT sect.*, divis.department_id, divis.division_name, dept.department_name, sect.section_id AS value, sect.section_name AS label
@@ -1314,7 +1314,7 @@ def get_all_sections():
     return jsonify(data)
 
 
-@data_bp.route("/all-geographic-origin", methods=["GET"])
+@data_bp.route('/all-geographic-origin', methods=['GET'])
 @jwt_required()
 def get_all_geographic_origin():
     data = fetch_data("""SELECT *, geographic_origin_name AS label, geographic_origin_id AS value
@@ -1323,7 +1323,7 @@ def get_all_geographic_origin():
     return jsonify(data)
 
 
-@data_bp.route("/all-geological-time-period", methods=["GET"])
+@data_bp.route('/all-geological-time-period', methods=['GET'])
 @jwt_required()
 def get_all_geological_time_period():
     data = fetch_data("""SELECT *, geological_time_period_id AS value, period_name AS label
@@ -1332,7 +1332,7 @@ def get_all_geological_time_period():
     return jsonify(data)
 
 
-@data_bp.route("/all-divisions", methods=["GET"])
+@data_bp.route('/all-divisions', methods=['GET'])
 @jwt_required()
 def get_all_divisions():
     data = fetch_data("""SELECT divis.*
@@ -1341,7 +1341,7 @@ def get_all_divisions():
     return jsonify(data)
 
 
-@data_bp.route("/all-departments", methods=["GET"])
+@data_bp.route('/all-departments', methods=['GET'])
 @jwt_required()
 def get_all_departments():
     data = fetch_data("""SELECT *
@@ -1350,7 +1350,7 @@ def get_all_departments():
     return jsonify(data)
 
 
-@data_bp.route("/container-data", methods=["GET"])
+@data_bp.route('/container-data', methods=['GET'])
 @jwt_required()
 def get_all_containers():
     data = fetch_data("""SELECT *, storage_container_id AS value, container_name AS label
@@ -1359,7 +1359,7 @@ def get_all_containers():
     return jsonify(data)
 
 
-@data_bp.route("/all-taxon", methods=["GET"])
+@data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
 def get_all_taxon():
     data = fetch_data("""SELECT *, taxon_id AS value, CONCAT(taxon_name, ' ', taxon_rank) AS label
@@ -1368,7 +1368,7 @@ def get_all_taxon():
     return jsonify(data)
 
 
-@data_bp.route("/all-curatorial-definition", methods=["GET"])
+@data_bp.route('/all-curatorial-definition', methods=['GET'])
 @jwt_required()
 def get_all_curatorial_definition():
     data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*, cud.curatorial_unit_definition_id as value, cud.description as label
@@ -1380,7 +1380,7 @@ def get_all_curatorial_definition():
     return jsonify(data)
 
 
-@data_bp.route("/room-data", methods=["GET"])
+@data_bp.route('/room-data', methods=['GET'])
 @jwt_required()
 def get_all_rooms():
     data = fetch_data("""SELECT sr.*, f.*, b.*, s.*, sr.storage_room_id AS value, sr.room_code AS label
@@ -1392,7 +1392,7 @@ def get_all_rooms():
     return jsonify(data)
 
 
-@data_bp.route("/all-lib-function", methods=["GET"])
+@data_bp.route('/all-lib-function', methods=['GET'])
 @jwt_required()
 def get_all_lib_function():
     data = fetch_data("""SELECT *, library_and_archives_function_id AS value, function_name AS label
@@ -1401,7 +1401,7 @@ def get_all_lib_function():
     return jsonify(data)
 
 
-@data_bp.route("/all-curators", methods=["GET"])
+@data_bp.route('/all-curators', methods=['GET'])
 @jwt_required()
 def get_all_curators():
     data = fetch_data("""
@@ -1412,7 +1412,7 @@ def get_all_curators():
     return jsonify(data)
 
 
-@data_bp.route("/units-by-user", methods=["GET"])
+@data_bp.route('/units-by-user', methods=['GET'])
 @jwt_required()
 def get_units_by_user():
     # Get user_id from the jwt token
@@ -1436,7 +1436,7 @@ def get_units_by_user():
 # Export routes
 
 
-@data_bp.route("/export-view/<view>", methods=["GET"])
+@data_bp.route('/export-view/<view>', methods=['GET'])
 @jwt_required()
 def get_view(view):
     try:
@@ -1461,18 +1461,18 @@ def get_view(view):
         # Create CSV response
         def generate():
             # Make headers
-            header = ",".join(col_names)
+            header = ','.join(col_names)
             # Convert JSON objects to a comma-separated string
-            rows = "\n".join(
-                ",".join(str(row[col]) for col in col_names) for row in data
+            rows = '\n'.join(
+                ','.join(str(row[col]) for col in col_names) for row in data
             )
             # Return both
-            return f"{header}\n{rows}"
+            return f'{header}\n{rows}'
 
         # Create Response with CSV MIME type
-        response = Response(generate(), mimetype="text/csv")
-        response.headers["Content-Disposition"] = (
-            "attachment; filename=" + view + ".csv"
+        response = Response(generate(), mimetype='text/csv')
+        response.headers['Content-Disposition'] = (
+            'attachment; filename=' + view + '.csv'
         )
 
         return response
@@ -1490,43 +1490,43 @@ def generate_json():
     if data:
         try:
             # Extract JSON
-            json_data = json.loads(data[0]["ltc_export"])
+            json_data = json.loads(data[0]['ltc_export'])
         except json.JSONDecodeError as e:
             yield '{"error": "Invalid JSON format"}'
             return
         # Stream the JSON array directly
-        yield "[\n"
+        yield '[\n'
         for i, item in enumerate(json_data):
-            comma = "," if i < len(json_data) - 1 else ""
-            yield f"  {json.dumps(item)}{comma}\n"
-        yield "]\n"
+            comma = ',' if i < len(json_data) - 1 else ''
+            yield f'  {json.dumps(item)}{comma}\n'
+        yield ']\n'
 
 
-@data_bp.route("/export-ltc-json", methods=["GET"])
+@data_bp.route('/export-ltc-json', methods=['GET'])
 @jwt_required()
 def get_ltc_json():
     return Response(
         stream_with_context(generate_json()),
-        content_type="application/json",
-        headers={"Content-Disposition": "attachment; filename=data.json"},
+        content_type='application/json',
+        headers={'Content-Disposition': 'attachment; filename=data.json'},
     )
 
 
 # Unit actions routes
 
 
-@data_bp.route("/delete-units", methods=["POST"])
+@data_bp.route('/delete-units', methods=['POST'])
 @jwt_required()
 def delete_units():
     data = request.get_json()
-    unit_ids = data.get("unit_ids")
+    unit_ids = data.get('unit_ids')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
     if not unit_ids:
-        return jsonify({"error": "unit_ids is required"}), 400
+        return jsonify({'error': 'unit_ids is required'}), 400
     if not isinstance(unit_ids, list):
-        return jsonify({"error": "unit_ids should be a list"}), 400
+        return jsonify({'error': 'unit_ids should be a list'}), 400
 
     try:
         for unit_id in unit_ids:
@@ -1542,7 +1542,7 @@ def delete_units():
                 ),
             )
 
-        return jsonify({"message": "Units deleted successfully"}), 200
+        return jsonify({'message': 'Units deleted successfully'}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500

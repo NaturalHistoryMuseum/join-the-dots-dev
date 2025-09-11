@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required
 from server.routes.queries.data_queries import *
 from server.utils import fetch_data, refreshJWTToken
 
-stats_bp = Blueprint("stats", __name__)
+stats_bp = Blueprint('stats', __name__)
 
 
 # After a request, refresh the JWT token if it is about to expire
@@ -13,13 +13,13 @@ def refresh_expiring_jwts(response):
     return refreshJWTToken(response)
 
 
-@stats_bp.route("/home-stats", methods=["GET"])
+@stats_bp.route('/home-stats', methods=['GET'])
 @jwt_required()
 def get_home_stats():
-    user = session.get("user")
+    user = session.get('user')
     if not user:
-        return jsonify({"error": "Unauthorized"}), 401
-    user_level = user["level"]
+        return jsonify({'error': 'Unauthorized'}), 401
+    user_level = user['level']
     match user_level:
         case 1:
             category_percent_query = """
@@ -91,10 +91,10 @@ ORDER BY a.description, a.criterion_name;
                         FROM {database_name}.collection_unit cu
                         WHERE cu.unit_active = 'yes';"""
             total_units = fetch_data(total_units_query)[0][
-                "COUNT(cu.collection_unit_id)"
+                'COUNT(cu.collection_unit_id)'
             ]
 
-            data = {"category_percent": category_percent, "total_units": total_units}
+            data = {'category_percent': category_percent, 'total_units': total_units}
         case 2:
             last_rescored_query = """SELECT  (
                             SELECT MAX(DATE(rs.completed_at))
@@ -105,16 +105,16 @@ ORDER BY a.description, a.criterion_name;
                         FROM {database_name}.collection_unit cu
                         JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
                         WHERE au.user_id = %s AND cu.unit_active = 'yes';"""
-            last_rescored = fetch_data(last_rescored_query, (user["user_id"],))[0][
-                "last_rescored"
+            last_rescored = fetch_data(last_rescored_query, (user['user_id'],))[0][
+                'last_rescored'
             ]
 
             unit_count_query = """SELECT COUNT(cu.collection_unit_id) as unit_count
                         FROM {database_name}.collection_unit cu
                         JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
                         WHERE au.user_id = %s AND cu.unit_active = 'yes';"""
-            unit_count = fetch_data(unit_count_query, (user["user_id"],))[0][
-                "unit_count"
+            unit_count = fetch_data(unit_count_query, (user['user_id'],))[0][
+                'unit_count'
             ]
 
             scored_in_last_year_query = """SELECT
@@ -137,17 +137,17 @@ FROM (
 ) AS latest_per_unit;
 """
             scored_in_last_year = fetch_data(
-                scored_in_last_year_query, (user["user_id"],)
+                scored_in_last_year_query, (user['user_id'],)
             )
             data = {
-                "last_rescored": last_rescored,
-                "unit_count": unit_count,
-                "scored_in_last_year": scored_in_last_year,
+                'last_rescored': last_rescored,
+                'unit_count': unit_count,
+                'scored_in_last_year': scored_in_last_year,
             }
         case 3:
-            data = {"message": "User Level 3"}
+            data = {'message': 'User Level 3'}
         case 4:
-            data = {"message": "User Level 4"}
+            data = {'message': 'User Level 4'}
         case _:
-            data = {"message": "Unknown User Level"}
+            data = {'message': 'Unknown User Level'}
     return jsonify(data), 200
