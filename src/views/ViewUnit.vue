@@ -1,15 +1,5 @@
 <template>
-  <div class="unit-save-msg-container">
-    <transition-group name="fade" tag="div" class="message-stack">
-      <div v-for="(message, index) in messages" :key="index">
-        <SmallMessages
-          :message_text="message.message_text"
-          :message_type="message.message_type"
-          class="unit-save-msg"
-        />
-      </div>
-    </transition-group>
-  </div>
+  <OverlayMessage />
   <div v-if="unit_create_success" class="main-page">
     <zoa-flash kind="success" header="Unit Successfully Created">
       <p>
@@ -43,13 +33,13 @@
         </div>
         <div class="col-md-3">
           <div class="required-message">
-            Required fields completion:
+            Required fields completed?
             <div class="round-prog-bar">
               <RoundProgressBar :progress="countRequiredFields()" />
             </div>
           </div>
           <div class="required-message">
-            Scoring completion:
+            Scoring completed?
             <div class="round-prog-bar">
               <RoundProgressBar :progress="scores_percentage" />
             </div>
@@ -141,7 +131,10 @@
                   :key="sub.sub_section_id"
                 >
                   <h4 class="subheading">{{ sub.sub_section_name }}</h4>
-                  <div v-if="sub.fields.length > 0" class="fields-box">
+                  <div
+                    v-if="sub.fields && sub.fields.length > 0"
+                    class="fields-box"
+                  >
                     <div
                       v-for="field in sub.fields"
                       :key="field.field_name"
@@ -154,6 +147,62 @@
                         @dataChange="handleFieldChange"
                         @updateValue="unit[field.field_name] = $event"
                       />
+                    </div>
+                  </div>
+                  <div
+                    v-else-if="
+                      sub.component == 'edit-editors' &&
+                      curators_options.length > 0 &&
+                      allow_edit
+                    "
+                    class=""
+                  >
+                    <div class="required-tag">*</div>
+                    <zoa-input
+                      class="field-container"
+                      zoa-type="multiselect"
+                      label="Please select editors"
+                      v-model="assigned_users"
+                      @change="handleEditorChange(true)"
+                      help="The users who will be able to edit this unit"
+                      help-position="right"
+                      :config="{
+                        options: curators_options,
+                        itemName: 'Curator',
+                        itemNamePlural: 'Curators',
+                        placeholder: 'Please select....',
+                        enableSearch: true,
+                      }"
+                    />
+                    <div class="fields-box" v-if="assigned_users.length > 0">
+                      <div
+                        v-for="user_id in assigned_users"
+                        :key="user_id.value"
+                        class="field-editor"
+                      >
+                        <div>
+                          <div class="editor-title">
+                            {{
+                              curators_options.find((u) => u.value == user_id)
+                                .label
+                            }}
+                          </div>
+                          <div class="editor-title">
+                            {{
+                              curators_options.find((u) => u.value == user_id)
+                                .email
+                            }}
+                          </div>
+                        </div>
+                        <div v-if="user_id != unit.responsible_curator_id">
+                          <zoa-button
+                            class="remove-btn"
+                            @click="removeEditor(user_id)"
+                          >
+                            <i class="bi bi-x-lg"></i>
+                          </zoa-button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -181,7 +230,6 @@ import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
 // import CommentsTab from '@/components/unit sections/CommentsTab.vue'
 import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
-import SmallMessages from '@/components/SmallMessages.vue';
 // import DetailsTab from '@/components/unit sections/DetailsTab.vue';
 // import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
 import ScoresTab from '@/components/unit sections/ScoresTab.vue';
@@ -191,8 +239,10 @@ import { currentUser } from '@/services/authService';
 
 import DeleteModal from '@/components/modals/DeleteModal.vue';
 import SplitModal from '@/components/modals/SplitModal.vue';
+import OverlayMessage from '@/components/OverlayMessage.vue';
 import RoundProgressBar from '@/components/RoundProgressBar.vue';
 import CustomField from '@/components/unit sections/CustomField.vue';
+import { useMessagesStore } from '@/stores/messages';
 
 export default {
   name: 'ViewUnit',
@@ -204,12 +254,12 @@ export default {
     // PropertiesTab,
     // SectionTab,
     // DetailsTab,
-    SmallMessages,
     ActionsBtnGroup,
     RoundProgressBar,
     CustomField,
     SplitModal,
     DeleteModal,
+    OverlayMessage,
   },
   data() {
     return {
@@ -221,7 +271,6 @@ export default {
       current_section: {},
       unit_id: null,
 
-      messages: [],
       errors: [],
       required_fields: [
         'unit_name',
@@ -236,10 +285,13 @@ export default {
       scored_unit: [],
       unit_create_success: false,
       unit_sections: [],
+      assigned_users: [],
+      curators_options: [],
     };
   },
   setup() {
-    return { currentUser };
+    const store = useMessagesStore();
+    return { currentUser, store };
   },
   created() {
     this.setUnitSections();
@@ -257,21 +309,34 @@ export default {
         publish_flag: 'yes',
         unit_active: 'yes',
       };
+      this.assigned_users = [this.currentUser.user_id];
     } else {
       this.add_unit_mode = false;
       this.fetchUnitData();
     }
     this.fetchSectionOptions();
+    this.fetchAssignedUsers();
+    this.fetchAllCurators();
   },
   methods: {
     async setUnitSections() {
       const data = await import('../utils/unit_sections.json');
       this.unit_sections = data.default;
     },
+    async fetchAssignedUsers() {
+      if (this.unit_id) {
+        const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
+        this.assigned_users = resp.map((user) => user.user_id);
+      }
+    },
+    async fetchAllCurators() {
+      this.curators_options = await getGeneric(`all-curators`);
+    },
     async fetchUnitData() {
       if (!this.add_unit_mode && this.unit_id) {
         let unitData = await getGeneric(`full-unit/${this.unit_id}`);
         this.unit = unitData[0];
+        this.handleEditorChange(false);
         // Check if the unit is assigned to the current user
         if (this.currentUser.assigned_units) {
           this.allow_edit = JSON.parse(
@@ -280,6 +345,27 @@ export default {
         } else {
           this.allow_edit = false;
         }
+      }
+    },
+    removeEditor(user_id) {
+      this.assigned_users = this.assigned_users.filter(
+        (user) => user != user_id,
+      );
+      this.handleEditorChange(!this.add_unit_mode && this.allow_edit);
+    },
+    async handleEditorChange(submit = false) {
+      if (
+        this.unit.responsible_curator_id &&
+        !this.assigned_users.includes(this.unit.responsible_curator_id)
+      ) {
+        this.assigned_users.push(this.unit.responsible_curator_id);
+      }
+      if (submit && !this.add_unit_mode && this.allow_edit) {
+        const response = await submitDataGeneric('submit-unit-assigned', {
+          unit_id: this.unit.collection_unit_id,
+          assigned_users: this.assigned_users,
+        });
+        this.store.handleChangeResponse(response);
       }
     },
     fetchSectionOptions() {
@@ -312,7 +398,8 @@ export default {
       }
     },
     countRequiredFields() {
-      let total_fields = this.required_fields.length;
+      // Add one to the total for the assigned editors field
+      let total_fields = this.required_fields.length + 1;
       let filled_fields = 0;
       // Go through each key of the unit object
       for (const property in this.unit) {
@@ -324,6 +411,10 @@ export default {
         ) {
           filled_fields++;
         }
+      }
+      // Check if there is at least one assigned editor
+      if (this.assigned_users.length > 0) {
+        filled_fields++;
       }
       // Return percentage of required fields completed
       return ((filled_fields / total_fields) * 100 || 0).toFixed(2);
@@ -341,11 +432,7 @@ export default {
           field: field_name,
           error: 'This field is required',
         });
-        this.messages.push({
-          message_text: 'Field is required! Not saved',
-          message_type: 'error',
-        });
-        this.removeMessage();
+        this.store.addMessage('Field is required! Not saved', 'error');
       } else {
         try {
           // Set data for the field
@@ -357,72 +444,58 @@ export default {
           // Submit the data
           const resp = await submitDataGeneric('submit-field', data);
           // If the data is saved correctly
-          if (resp.success) {
-            this.messages.push({
-              message_text: 'Change saved!',
-              message_type: 'success',
-            });
-            this.removeMessage();
-          } else {
-            this.messages.push({
-              message_text: 'Change not saved',
-              message_type: 'error',
-            });
-            this.removeMessage();
-          }
+          this.store.handleChangeResponse(resp);
           this.fetchUnitData();
         } catch (error) {
           console.error('Submission error:', error);
-
-          this.messages.push({
-            message_text: 'Error saving change. Please try again.',
-            message_type: 'error',
-          });
-          this.removeMessage();
+          this.store.addMessage(
+            'Error saving change. Please try again.',
+            'error',
+          );
         }
       }
     },
-    removeMessage() {
-      setTimeout(() => {
-        this.messages.shift();
-      }, 3000);
-    },
-    submitUnit() {
+    async submitUnit() {
       // If not allowed to edit or in add mode, do nothing
       if (!this.allow_edit || !this.add_unit_mode) return;
       // Check if all required fields are filled
       if (this.countRequiredFields() < 100) {
-        this.messages.push({
-          message_text: 'Please fill all required fields',
-          message_type: 'error',
-        });
-        this.removeMessage();
+        this.store.addMessage('Please fill all required fields', 'error');
+
         return;
       }
       // Submit the unit data
-      submitDataGeneric('submit-unit', {
+      const unit_repsonse = await submitDataGeneric('submit-unit', {
         unit_data: this.unit,
         score_data: this.scored_unit,
-      }).then((response) => {
+      });
+      if (unit_repsonse.success) {
+        const response = await submitDataGeneric('submit-unit-assigned', {
+          unit_id: unit_repsonse.collection_unit_id,
+          assigned_users: this.assigned_users,
+        });
         if (response.success) {
           this.unit_create_success = true;
-          this.new_unit_id = response.collection_unit_id;
+          this.new_unit_id = unit_repsonse.collection_unit_id;
         } else {
-          this.messages.push({
-            message_text: 'Error saving unit',
-            message_type: 'error',
-          });
-          this.removeMessage();
+          this.store.addMessage('Error assigning editors to new unit', 'error');
         }
-      });
+      } else {
+        this.store.addMessage('Error saving unit', 'error');
+      }
     },
     navNewUnit() {
-      this.$router.push({
-        path: '/view-unit',
-        query: {
-          unit_id: this.new_unit_id,
-        },
-      });
+      // Navigate to the new unit and reload the page
+      this.$router
+        .push({
+          path: '/view-unit',
+          query: {
+            unit_id: this.new_unit_id,
+          },
+        })
+        .then(() => {
+          window.location.reload();
+        });
     },
   },
   computed: {},
@@ -478,6 +551,26 @@ export default {
   margin-bottom: -1.5rem;
 }
 
+.field-editor {
+  margin: 0.5rem 0;
+  padding: 0 0.5rem;
+  width: 25vw;
+  display: flex;
+  align-content: center;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.remove-btn {
+  background-color: #ff5957 !important;
+  color: white !important ;
+}
+
+.editor-title {
+  margin: 0.5rem;
+}
+
 .error-field .zoa__textbox__input {
   border: 1px solid red !important;
   border-radius: 10px;
@@ -486,31 +579,12 @@ export default {
   border: 1px solid red !important;
   border-radius: 10px;
 }
-.unit-save-msg {
-  margin-top: 1rem;
-  margin-bottom: -3rem;
-}
-
-.unit-save-msg-container {
-  position: fixed;
-  /* padding-top: 30rem; */
-  left: 85%;
-  z-index: 1;
-  pointer-events: none;
-  gap: 1rem;
-}
 
 .required-message {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin: 1rem;
-}
-
-.message-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
 }
 
 .fade-enter-active,

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="!success">
     <h2 class="text-center">Review Rescore Changes</h2>
     <p>
       Please review all of the changes below and confirm before submitting them.
@@ -42,9 +42,10 @@ export default {
   },
   props: {
     units: Array,
+    rescore_session_id: String,
   },
   data() {
-    return { confirm_changes: false };
+    return { confirm_changes: false, success: false };
   },
   methods: {
     async handleSaveChanges() {

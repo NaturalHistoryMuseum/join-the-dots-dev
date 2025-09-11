@@ -29,12 +29,27 @@
             @update:refreshData="fetchData"
           />
           <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
+          <zoa-button
+            kind="alt"
+            label="Manage Units Permissions"
+            @click="navUnitAssignment"
+          />
         </ActionsBtnGroup>
       </div>
       <div class="content-container">
         <!-- Search bar -->
         <SidebarFilter
           :units="units"
+          :show_filters="[
+            'departments',
+            'show_own',
+            'unit_id',
+            'unit_name',
+            'section',
+            'division',
+            'curators',
+          ]"
+          :column_direction="true"
           @update:filteredUnits="handleFilteredUnits"
         />
         <div class="table-area">
@@ -163,6 +178,9 @@ export default {
     },
     navAddUnit() {
       this.$router.push({ path: '/view-unit', query: { add_unit: 1 } });
+    },
+    navUnitAssignment() {
+      this.$router.push({ path: '/manage-unit-permissions' });
     },
     handleFilteredUnits(filteredUnits) {
       // Only reset pagination if actual filter logic triggered

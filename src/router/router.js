@@ -1,4 +1,6 @@
 import AdminView from '@/views/AdminView.vue';
+import AssignmentManagement from '@/views/UnitAssignmentManagement.vue';
+import UserManagement from '@/views/UserManagement.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { currentUser, loadUser } from '../services/authService';
 import AboutView from '../views/AboutView.vue';
@@ -87,6 +89,24 @@ const router = createRouter({
       meta: { requiresAuth: true },
       beforeEnter: (to, from, next) => {
         checkAuth(4, from, next);
+      },
+    },
+    {
+      path: '/manage-unit-permissions',
+      name: 'manage unit permissions',
+      component: AssignmentManagement,
+      meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        checkAuth(2, from, next);
+      },
+    },
+    {
+      path: '/user-management',
+      name: 'user management',
+      component: UserManagement,
+      meta: { requiresAuth: true },
+      beforeEnter: (to, from, next) => {
+        checkAuth(3, from, next);
       },
     },
   ],

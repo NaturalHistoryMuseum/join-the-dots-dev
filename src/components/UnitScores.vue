@@ -48,7 +48,12 @@
               <zoa-input
                 v-if="rescore"
                 zoa-type="number"
-                :label="fieldNameCalc(metric.metric_name)"
+                :label="
+                  fieldNameCalc(metric.metric_name) +
+                  (metric.metric_units == '%'
+                    ? ' (' + metric.metric_units + ')'
+                    : '')
+                "
                 v-model="metric.metric_value"
                 @change="
                   submitMetricsChanges(
@@ -142,7 +147,9 @@
       :rescore="rescore && !bulk_edit"
       :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
       :changeCatComplete="() => changeCatComplete([cat.category_id])"
-      :error="checkCategoryErrors(cat.category_id)"
+      :error="
+        rescore && !bulk_edit ? checkCategoryErrors(cat.category_id) : false
+      "
     >
       <div class="">
         <!-- last edited date for this whole category -->
@@ -769,7 +776,7 @@ export default {
       return array.some((item) => {
         const value = item['percentage'];
         if (typeof value === 'number' && !isNaN(value)) {
-          const percentage = value * 100;
+          const percentage = Math.round(value * 100 * 100) / 100;
           return !Number.isInteger(percentage);
         }
         return false;

@@ -44,7 +44,7 @@
           <zoa-button
             v-if="confirm_changes"
             class="confirm-btn"
-            label="Save Changes"
+            label="Delete Unit(s)"
             @click="handleConformChanges"
           />
         </div>

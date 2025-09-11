@@ -43,13 +43,13 @@ def add_user():
             (azure_id, name, email),
         )
 
-        return jsonify({'message': 'User added successfully'}), 201
+        return jsonify({'message': 'User added successfully', 'success': True}), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
-@user_bp.route('/edit-user-role', methods=['PUT'])
+@user_bp.route('/edit-user-role', methods=['POST'])
 @jwt_required()
 def edit_user_role():
     data = request.get_json()
@@ -73,7 +73,7 @@ def edit_user_role():
             ),
         )
 
-        return jsonify({'message': 'Role successfully changed'}), 201
+        return jsonify({'message': 'Role successfully changed', 'success': True}), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -117,7 +117,7 @@ def edit_assign_units():
         return jsonify({'message': 'Units successfully assigned'}), 201
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'success': True}), 500
 
 
 @user_bp.route('/all-roles', methods=['GET'])
@@ -144,4 +144,4 @@ def edit_user_division():
                    """,
         (division_id, user_id),
     )
-    return jsonify(data)
+    return jsonify({'data': data, 'success': True}), 201

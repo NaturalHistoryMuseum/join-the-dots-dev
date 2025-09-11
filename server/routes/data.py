@@ -73,7 +73,7 @@ def get_mark_rescore_open():
                 cursor.execute(query, (rescore_session_units_id, category_id))
 
         connection.commit()
-        return jsonify({'rescore_session_id': rescore_session_id}), 201
+        return jsonify({'rescore_session_id': rescore_session_id, 'success': True}), 201
 
     except Exception as e:
         connection.rollback()
@@ -371,7 +371,9 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
                     """,
                     (category_draft_id, criterion_id, rank_id, percentage, comment),
                 )
-        return jsonify({'message': 'Draft rank submitted successfully'}), 201
+        return jsonify(
+            {'message': 'Draft rank submitted successfully', 'success': True}
+        ), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -393,7 +395,9 @@ def submit_draft_metrics():
         return jsonify({'error': 'metric_json are required'}), 400
 
     handle_draft_metrics(rescore_session_units_id, metric_json)
-    return jsonify({'message': 'Draft metrics submitted successfully'}), 201
+    return jsonify(
+        {'message': 'Draft metrics submitted successfully', 'success': True}
+    ), 201
 
 
 def handle_draft_metrics(rescore_session_units_id, metric_json):
@@ -459,7 +463,9 @@ def submit_draft_comment():
         return jsonify({'error': 'unit_comment is required'}), 400
 
     handle_draft_comment(rescore_session_units_id, unit_comment)
-    return jsonify({'message': 'Draft comment submitted successfully'}), 201
+    return jsonify(
+        {'message': 'Draft comment submitted successfully', 'success': True}
+    ), 201
 
 
 def handle_draft_comment(rescore_session_units_id, unit_comment):
@@ -545,6 +551,7 @@ def bulk_upload_rescore():
             'message': 'Bulk drafts submitted successfully',
             'success_count': success_count,
             'total_units': len(units),
+            'success': True,
         }
     ), 201
 
@@ -904,11 +911,13 @@ def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=''):
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
 def get_units_and_departments():
-    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id
+    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id, unit.responsible_curator_id, users.name AS curator_name
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
-                    LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id;
+                    LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id
+                    LEFT JOIN {database_name}.users AS users ON users.user_id = unit.responsible_curator_id
+                      WHERE unit.unit_active = 'yes';
                    """)
     return jsonify(data)
 
@@ -945,6 +954,304 @@ def get_full_unit(unit_id):
     return jsonify(data)
 
 
+@data_bp.route('/all-assigned-users/<unit_id>', methods=['GET'])
+@jwt_required()
+def get_assigned_users(unit_id):
+    data = fetch_data(
+        """SELECT au.user_id, u.name AS user_name
+        FROM {database_name}.assigned_units au
+        JOIN {database_name}.users u ON u.user_id = au.user_id
+        WHERE au.collection_unit_id = %s
+                   """
+        % int(unit_id)
+    )
+    return jsonify(data)
+
+
+@data_bp.route('/units-assigned', methods=['GET'])
+@jwt_required()
+def get_units_assigned():
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    try:
+        # Fetch user level
+        user = fetch_data(
+            """SELECT *
+            FROM {database_name}.users
+            WHERE user_id = %s
+                    """,
+            (user_id,),
+        )
+        match user[0]['role_id']:
+            case 1:
+                return jsonify({'error': 'You are not autorised.'}), 500
+            case 2:
+                data = fetch_data(
+                    """SELECT u.*, cu.*, s.section_name, d.division_name, u.name AS curator_name, cu.responsible_curator_id,
+                    (
+                        SELECT JSON_ARRAYAGG(
+	                        au.user_id
+	                    )
+                        FROM {database_name}.assigned_units au
+                        JOIN {database_name}.users u ON u.user_id = au.user_id
+                        WHERE au.collection_unit_id = cu.collection_unit_id
+                    ) AS assigned_editors
+                    FROM {database_name}.assigned_units au
+                    JOIN {database_name}.users u ON u.user_id = au.user_id
+                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
+                    JOIN {database_name}.section s ON s.section_id = cu.section_id
+                    JOIN {database_name}.division d ON d.division_id = s.division_id
+                    WHERE au.user_id = %s AND cu.unit_active = 'yes'
+                            """,
+                    (user_id,),
+                )
+            case 3:
+                data = fetch_data(
+                    """SELECT cu.*, s.section_name, d.division_name, u.name AS curator_name, cu.responsible_curator_id,
+                    (
+                        SELECT JSON_ARRAYAGG(
+	                        au.user_id
+	                    )
+                        FROM {database_name}.assigned_units au
+                        JOIN {database_name}.users u ON u.user_id = au.user_id
+                        WHERE au.collection_unit_id = cu.collection_unit_id
+                    ) AS assigned_editors
+                    FROM {database_name}.collection_unit cu
+                    JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
+                    JOIN {database_name}.section s ON s.section_id = cu.section_id
+                    JOIN {database_name}.division d ON d.division_id = s.division_id
+                    WHERE d.division_id = %s AND cu.unit_active = 'yes'
+                            """,
+                    (user[0]['division_id'],),
+                )
+            case 4:
+                data = fetch_data(
+                    """SELECT cu.*,
+                    FROM {database_name}.collection_unit cu
+                    WHERE cu.unit_active = 'yes'
+                            """
+                )
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/units-by-division/<division_id>', methods=['GET'])
+@jwt_required()
+def get_units_by_division(division_id):
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        data = fetch_data(
+            """SELECT cu.*
+        FROM {database_name}.collection_unit cu
+        JOIN {database_name}.section s ON s.section_id = cu.section_id
+        WHERE cu.unit_active = 'yes' AND s.division_id = %s
+                """,
+            (division_id,),
+        )
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/division-users', methods=['GET'])
+@jwt_required()
+def get_division_users():
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        # Fetch user level
+        user = fetch_data(
+            """SELECT *
+            FROM {database_name}.users
+            WHERE user_id = %s
+                    """,
+            (user_id,),
+        )
+        role_id = user[0]['role_id']
+        if role_id >= 3:
+            data = fetch_data(
+                """SELECT u.user_id, u.role_id, u.name, u.email, d.division_name, u.division_id, r.role,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        au.collection_unit_id
+                    )
+                    FROM {database_name}.assigned_units au
+                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
+                    WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
+                ) AS assigned_units,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        cu.collection_unit_id
+                    )
+                    FROM {database_name}.collection_unit cu
+                    WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
+                ) AS responsible_units
+                FROM {database_name}.users u
+                JOIN {database_name}.roles r ON r.role_id = u.role_id
+                JOIN {database_name}.division d ON d.division_id = u.division_id
+                WHERE u.division_id = %s
+                        """,
+                (user[0]['division_id'],),
+            )
+            return jsonify(data)
+        else:
+            return jsonify({'error': 'You are not autorised.'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/reassign-responsible-curator', methods=['POST'])
+@jwt_required()
+def reassign_responsible_curator():
+    data = request.get_json()
+    old_user_id = data.get('old_user_id')
+    new_user_id = data.get('new_user_id')
+
+    try:
+        #
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+
+        # Transfer units the old user was responsible for to the new user
+        cursor.execute(f"""
+                    INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
+                    SELECT {new_user_id} AS user_id, collection_unit_id
+                    FROM {database_name}.collection_unit
+                    WHERE responsible_curator_id = {old_user_id}
+                """)
+        # Remove all units assigned to old user
+        cursor.execute(f"""
+                    DELETE FROM {database_name}.assigned_units
+                    WHERE user_id = {old_user_id}
+                """)
+        # Change the responsible_curator_id from the old user, to the new
+        cursor.execute(f"""
+                    UPDATE {database_name}.collection_unit
+                    SET responsible_curator_id = {new_user_id}
+                    WHERE responsible_curator_id = {old_user_id};
+                """)
+        connection.commit()
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
+        return jsonify({'message': 'Units successfully reassigned', 'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/submit-unit-assigned', methods=['POST'])
+@jwt_required()
+def set_unit_assigned():
+    data = request.get_json()
+    unit_id = data.get('unit_id')
+    assigned_users = data.get('assigned_users')
+
+    if not unit_id:
+        return jsonify({'error': 'unit_id is required'}), 400
+
+    if not assigned_users:
+        return jsonify({'error': 'assigned_users is required'}), 400
+
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    try:
+        # Get the current assigned users
+        current_assigned = fetch_data(
+            """SELECT user_id
+            FROM {database_name}.assigned_units
+            WHERE collection_unit_id = %s
+                    """,
+            (unit_id,),
+        )
+        current_assigned = set(
+            row['user_id'] for row in current_assigned
+        )  # if fetch_data returns dicts
+        assigned_users = set(assigned_users)
+        # Compare lists
+        users_to_add = assigned_users - current_assigned
+        users_to_remove = current_assigned - assigned_users
+        # Insert new assigned users
+        if users_to_add:
+            for user_id in users_to_add:
+                execute_query(
+                    """INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
+                    VALUES (%s, %s)""",
+                    (user_id, unit_id),
+                )
+        # Remove unassigned users
+        if users_to_remove:
+            for user_id in users_to_remove:
+                execute_query(
+                    """DELETE FROM {database_name}.assigned_units
+                    WHERE user_id = %s AND collection_unit_id = %s""",
+                    (user_id, unit_id),
+                )
+        return jsonify(
+            {'message': 'Unit assigned users updated successfully', 'success': True}
+        ), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/submit-user-assigned', methods=['POST'])
+@jwt_required()
+def set_user_assigned():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    assigned_units = data.get('assigned_units')
+
+    if not user_id:
+        return jsonify({'error': 'user_id is required'}), 400
+
+    if not assigned_units:
+        return jsonify({'error': 'assigned_units is required'}), 400
+
+    try:
+        # Fetch current assigned units for this user
+        current_assigned = fetch_data(
+            """SELECT collection_unit_id
+               FROM {database_name}.assigned_units
+               WHERE user_id = %s""",
+            (user_id,),
+        )
+        # Normalize both sets to integers
+        current_assigned = set(
+            int(row['collection_unit_id']) for row in current_assigned
+        )
+        assigned_units = set(int(unit_id) for unit_id in assigned_units)
+
+        # Determine diffs
+        units_to_add = assigned_units - current_assigned
+        units_to_remove = current_assigned - assigned_units
+
+        # Insert new assignments
+        for unit_id in units_to_add:
+            execute_query(
+                """INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
+                   VALUES (%s, %s)""",
+                (user_id, unit_id),
+            )
+
+        # Remove old assignments
+        for unit_id in units_to_remove:
+            execute_query(
+                """DELETE FROM {database_name}.assigned_units
+                   WHERE user_id = %s AND collection_unit_id = %s""",
+                (user_id, unit_id),
+            )
+
+        return jsonify(
+            {'message': 'User assigned units updated successfully', 'success': True}
+        ), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @data_bp.route('/criterion', methods=['GET'])
 @jwt_required()
 def get_criterion():
@@ -971,9 +1278,18 @@ def get_units_metrics(unit_id):
 
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
-def get_category():
+def get_roles():
     data = fetch_data("""SELECT cat.*
                    FROM {database_name}.category cat;
+                   """)
+    return jsonify(data)
+
+
+@data_bp.route('/all-roles', methods=['GET'])
+@jwt_required()
+def get_category():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.roles;
                    """)
     return jsonify(data)
 
@@ -1052,9 +1368,9 @@ def get_all_taxon():
     return jsonify(data)
 
 
-@data_bp.route('/all-curtorial-definition', methods=['GET'])
+@data_bp.route('/all-curatorial-definition', methods=['GET'])
 @jwt_required()
-def get_all_curtorial_definition():
+def get_all_curatorial_definition():
     data = fetch_data("""SELECT cud.*, bl.*, it.*, pm.*, cud.curatorial_unit_definition_id as value, cud.description as label
                     FROM {database_name}.curatorial_unit_definition cud
                     LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id
@@ -1082,6 +1398,17 @@ def get_all_lib_function():
     data = fetch_data("""SELECT *, library_and_archives_function_id AS value, function_name AS label
                         FROM {database_name}.library_and_archives_function;
                    """)
+    return jsonify(data)
+
+
+@data_bp.route('/all-curators', methods=['GET'])
+@jwt_required()
+def get_all_curators():
+    data = fetch_data("""
+        SELECT u.name AS label, u.user_id AS value, u.email
+        FROM {database_name}.users u
+        WHERE u.role_id = 2 OR u.role_id = 2 OR 3
+        """)
     return jsonify(data)
 
 
