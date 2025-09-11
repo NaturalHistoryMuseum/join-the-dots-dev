@@ -1,3 +1,9 @@
+## v0.2.2 (2025-09-11)
+
+### Fix
+
+- literal logic error fix for build
+
 ## v0.2.1 (2025-09-11)
 
 ### Build System(s)
