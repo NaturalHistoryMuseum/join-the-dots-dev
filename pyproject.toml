@@ -3,14 +3,9 @@
 repository = "https://github.com/NaturalHistoryMuseum/join-the-dots-dev"
 changelog = "https://github.com/NaturalHistoryMuseum/join-the-dots-dev/blob/main/CHANGELOG.md"
 
-
-
-
 [tool]
 [tool.setuptools]
 zip-safe = false
-
-
 
 [tool.commitizen]
 name = "cz_nhm"
