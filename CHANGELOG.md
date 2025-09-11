@@ -1,3 +1,9 @@
+## v0.2.3 (2025-09-11)
+
+### Refactor
+
+- change endpoints to k8s
+
 ## v0.2.2 (2025-09-11)
 
 ### Fix
