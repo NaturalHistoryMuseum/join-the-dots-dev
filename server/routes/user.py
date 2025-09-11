@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-
 from server.utils import execute_query, fetch_data
 
 user_bp = Blueprint('user', __name__)

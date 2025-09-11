@@ -1,6 +1,5 @@
-from flask import current_app as app
-
 import mysql.connector
+from flask import current_app as app
 
 
 # Create a connection

@@ -8,8 +8,7 @@ from server.routes.user import user_bp
 
 
 def register_routes(app: Flask):
-    """
-    Register all route blueprints to the Flask app.
+    """Register all route blueprints to the Flask app.
 
     This helps in keeping the main app configuration clean and modular.
     """

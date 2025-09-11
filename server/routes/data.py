@@ -7,7 +7,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-
 from server.database import get_db_connection
 from server.routes.queries.data_queries import *
 from server.utils import database_name, execute_query, fetch_data, refreshJWTToken

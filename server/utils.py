@@ -13,9 +13,7 @@ database_name = 'jtd_live'
 
 
 def fetch_data(query, params=None):
-    """
-    Helper function to execute a database query.
-    """
+    """Helper function to execute a database query."""
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     # Format the query with the database name
@@ -28,9 +26,7 @@ def fetch_data(query, params=None):
 
 
 def execute_query(query, params=None, return_lastrowid=False):
-    """
-    Helper function to execute a database query with commit.
-    """
+    """Helper function to execute a database query with commit."""
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
     # Format the query with the database name
@@ -48,9 +44,7 @@ def execute_query(query, params=None, return_lastrowid=False):
 
 
 def refreshJWTToken(response):
-    """
-    Refresh the JWT token in the response if it is about to expire.
-    """
+    """Refresh the JWT token in the response if it is about to expire."""
     try:
         exp_timestamp = get_jwt()['exp']
         now = datetime.now(timezone.utc)
