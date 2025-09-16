@@ -1,3 +1,9 @@
+## v0.2.5 (2025-09-16)
+
+### Fix
+
+- unit action will duplicate scores corrently and assigned units listed on account page
+
 ## v0.2.4 (2025-09-16)
 
 ### Fix
