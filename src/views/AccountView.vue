@@ -111,7 +111,7 @@
                 {{ unit }} -
                 {{
                   units.find((u) => u.value.toString() === unit.toString())
-                    ?.unit_name
+                    ?.label
                 }}
               </div>
             </div>
