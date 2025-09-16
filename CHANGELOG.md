@@ -1,3 +1,9 @@
+## v0.2.4 (2025-09-16)
+
+### Fix
+
+- fixes issues on account and view unit
+
 ## v0.2.3 (2025-09-11)
 
 ### Refactor
