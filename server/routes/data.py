@@ -875,27 +875,52 @@ def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=''):
                     """,
         (new_unit_id, unit_id_to_copy),
     )
-    # Insert current assessment criterion
+    # Select the current assessment criterion
     cursor.execute(
-        f"""INSERT INTO {database_name}.unit_assessment_criterion (collection_unit_id, criterion_id, assessor_id, criteria_assessment, date_assessed, date_from, date_to, `current`)
-                        SELECT %s AS collection_unit_id, criterion_id, assessor_id, criteria_assessment, date_assessed, date_from, date_to, `current`
-                        FROM {database_name}.unit_assessment_criterion
-                        WHERE collection_unit_id = %s AND `current` = 'yes'
-                    """,
-        (new_unit_id, unit_id_to_copy),
+        f"""
+        SELECT unit_assessment_criterion_id, criterion_id, assessor_id, criteria_assessment,
+            date_assessed, date_from, date_to, `current`
+        FROM {database_name}.unit_assessment_criterion
+        WHERE collection_unit_id = %s AND `current` = 'yes'
+        """,
+        (unit_id_to_copy,),
     )
-    # Get the last id
-    last_unit_assessment_criterion_id = cursor.lastrowid
-    # Insert assessment rank
-    cursor.execute(
-        f"""INSERT INTO {database_name}.unit_assessment_rank (unit_assessment_criterion_id, rank_id, percentage, comment)
-                        SELECT %s AS unit_assessment_criterion_id, rank_id, percentage, comment
-                        FROM {database_name}.unit_assessment_rank uar
-                        JOIN {database_name}.unit_assessment_criterion uac ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                        WHERE uac.collection_unit_id = %s AND uac.`current` = 'yes'
-                    """,
-        (last_unit_assessment_criterion_id, unit_id_to_copy),
-    )
+    criteria_to_copy = cursor.fetchall()
+    # Go through each criterion
+    for criterion in criteria_to_copy:
+        # Insert the current criterion
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.unit_assessment_criterion
+                (collection_unit_id, criterion_id, assessor_id, criteria_assessment,
+                date_assessed, date_from, date_to, `current`)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                new_unit_id,
+                criterion['criterion_id'],
+                criterion['assessor_id'],
+                criterion['criteria_assessment'],
+                criterion['date_assessed'],
+                criterion['date_from'],
+                criterion['date_to'],
+                criterion['current'],
+            ),
+        )
+        # Get the last id
+        new_criterion_id = cursor.lastrowid
+
+        # Copy ranks belonging to this criterion
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.unit_assessment_rank
+                (unit_assessment_criterion_id, rank_id, percentage, comment)
+            SELECT %s, rank_id, percentage, comment
+            FROM {database_name}.unit_assessment_rank
+            WHERE unit_assessment_criterion_id = %s
+            """,
+            (new_criterion_id, criterion['unit_assessment_criterion_id']),
+        )
     # Insert Unit Metrics
     cursor.execute(
         f"""INSERT INTO {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id, metric_value, confidence_level, date_from, date_to, `current`)
