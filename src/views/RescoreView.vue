@@ -1,6 +1,6 @@
 <template>
   <div class="rescore" v-show="!loading">
-    <div class="row">
+    <div class="row" v-if="!rescore_saved">
       <!-- <h1 class="col-md-3 rescore-title">Rescore</h1> -->
       <div class="col-md-3"></div>
 
@@ -11,7 +11,7 @@
       />
       <div class="col-md-3"></div>
     </div>
-    <div class="stepper-navigation" v-if="rescore_session_id">
+    <div class="stepper-navigation" v-if="rescore_session_id && !rescore_saved">
       <zoa-button
         v-if="current_step > 1"
         label="Previous"
@@ -45,6 +45,7 @@
       <ReviewRescoreView
         :rescore_session_id="rescore_session_id"
         :units="units"
+        @update:rescore_saved="rescore_saved = true"
       />
     </div>
     <!-- </div> -->
@@ -91,6 +92,7 @@ export default {
       rescore_session_id: null,
       open_rescore: {},
       loading: true,
+      rescore_saved: false,
     };
   },
   mounted() {

@@ -34,6 +34,11 @@
             label="Manage Units Permissions"
             @click="navUnitAssignment"
           />
+          <zoa-button
+            kind="alt"
+            label="Manage User Permissions"
+            @click="$router.push('/user-management')"
+          />
         </ActionsBtnGroup>
       </div>
       <div class="content-container">

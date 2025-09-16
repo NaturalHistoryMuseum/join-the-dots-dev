@@ -174,13 +174,22 @@
                         enableSearch: true,
                       }"
                     />
-                    <div class="fields-box" v-if="assigned_users.length > 0">
+                    <div
+                      class="fields-box"
+                      v-if="
+                        assigned_users.length > 0 && curators_options.length > 0
+                      "
+                    >
                       <div
                         v-for="user_id in assigned_users"
                         :key="user_id.value"
                         class="field-editor"
                       >
-                        <div>
+                        <div
+                          v-if="
+                            curators_options.find((u) => u.value == user_id)
+                          "
+                        >
                           <div class="editor-title">
                             {{
                               curators_options.find((u) => u.value == user_id)
