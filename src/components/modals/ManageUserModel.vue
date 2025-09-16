@@ -259,69 +259,36 @@
 
 <script>
 import { currentUser } from '@/services/authService';
-import { getGeneric, submitDataGeneric } from '@/services/dataService';
+import { submitDataGeneric } from '@/services/dataService';
 import { postGenericUser } from '@/services/userService';
 export default {
   name: 'ManageUserModel',
   props: {
     user: Object,
     users: Array,
+    divisions: Array,
+    roles: Array,
+    units: Array,
   },
   data() {
     return {
       currentUser,
-      divisions: [],
-      roles: [],
-      units: [],
+
       mode: 'view',
       new_responsible_curator: null,
       new_role: null,
       success: false,
     };
   },
-  mounted() {
-    this.fetchAllUnits();
-    this.fetchAllDivisions();
-    this.fetchAllRoles();
-  },
+  mounted() {},
   methods: {
     resetModal() {
       this.mode = 'view';
       this.new_responsible_curator = null;
       this.new_role = null;
       this.success = false;
-      this.fetchAllUnits();
-      this.fetchAllDivisions();
-      this.fetchAllRoles();
     },
-    async fetchAllUnits() {
-      const response = await getGeneric(
-        `units-by-division/${this.currentUser.division_id}`,
-      );
-      this.units = response.map((unit) => ({
-        ...unit,
-        value: unit.collection_unit_id.toString(),
-        label: unit.unit_name,
-      }));
-    },
-    async fetchAllDivisions() {
-      const response = await getGeneric(`all-divisions`);
-      this.divisions = response.map((division) => ({
-        ...division,
-        value: division.division_id.toString(),
-        label: division.division_name,
-        order: division.division_id,
-      }));
-    },
-    async fetchAllRoles() {
-      const response = await getGeneric(`all-roles`);
-      this.roles = response.map((role) => ({
-        ...role,
-        value: role.role_id.toString(),
-        label: role.role[0].toUpperCase() + role.role.slice(1),
-        order: role.role_id,
-      }));
-    },
+
     async handleRoleToViewer() {
       const response = await postGenericUser(`edit-user-role`, {
         user_id: this.local_user.user_id,

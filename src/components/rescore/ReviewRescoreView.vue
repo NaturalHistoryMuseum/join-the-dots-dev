@@ -54,6 +54,7 @@ export default {
       });
       if (response.success) {
         this.success = true;
+        this.$emit('update:rescore_saved', true);
       }
     },
   },

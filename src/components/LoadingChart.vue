@@ -68,7 +68,6 @@ function animateWaveDots() {
     x: i,
     y: 2.5 + Math.sin(t + i * 0.5) * 1.5, // Wave motion centered at 2.5
   }));
-  console.log(waveData);
   chartData.value.datasets[0].data = waveData;
   t += 0.05;
   if (loading.value) {

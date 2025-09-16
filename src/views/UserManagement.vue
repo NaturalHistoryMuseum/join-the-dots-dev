@@ -19,6 +19,9 @@
             :user="row.item"
             :users="users"
             @update:refreshData="fetchAllUsers"
+            :roles="roles"
+            :divisions="divisions"
+            :units="units"
           />
         </template>
       </TableCheckbox>
@@ -63,6 +66,9 @@ export default {
         { label: '', key: 'edit_user_btn' },
       ],
       filtered_users: [],
+      divisions: [],
+      roles: [],
+      units: [],
     };
   },
   setup() {
@@ -71,6 +77,9 @@ export default {
   },
   mounted() {
     this.fetchAllUsers();
+    this.fetchAllUnits();
+    this.fetchAllDivisions();
+    this.fetchAllRoles();
   },
   methods: {
     async fetchAllUsers() {
@@ -90,6 +99,34 @@ export default {
       this.filtered_users = JSON.parse(JSON.stringify(this.users)).filter(
         (u) => u.user_id != this.currentUser.user_id,
       );
+    },
+    async fetchAllUnits() {
+      const response = await getGeneric(
+        `units-by-division/${this.currentUser.division_id}`,
+      );
+      this.units = response.map((unit) => ({
+        ...unit,
+        value: unit.collection_unit_id.toString(),
+        label: unit.unit_name,
+      }));
+    },
+    async fetchAllDivisions() {
+      const response = await getGeneric(`all-divisions`);
+      this.divisions = response.map((division) => ({
+        ...division,
+        value: division.division_id.toString(),
+        label: division.division_name,
+        order: division.division_id,
+      }));
+    },
+    async fetchAllRoles() {
+      const response = await getGeneric(`all-roles`);
+      this.roles = response.map((role) => ({
+        ...role,
+        value: role.role_id.toString(),
+        label: role.role[0].toUpperCase() + role.role.slice(1),
+        order: role.role_id,
+      }));
     },
   },
 };

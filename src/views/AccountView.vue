@@ -59,7 +59,7 @@
               help-position="right"
               @change="handleDivisionSave()"
             />
-            <div v-else-if="division_options.length > 0">
+            <div v-else-if="division_options.length > 0 && division_id">
               <zoa-input
                 zoa-type="empty"
                 label="Division"
@@ -75,7 +75,7 @@
               </p>
             </div>
           </div>
-          <div class="account-field">
+          <!-- <div class="account-field">
             <zoa-input
               zoa-type="multiselect"
               label="Units Assigned"
@@ -88,6 +88,33 @@
               help="The collection units that are assigned to you"
               help-position="right"
             />
+          </div> -->
+          <div class="account-field">
+            <zoa-input
+              zoa-type="empty"
+              label="Assigned Units"
+              class="comments-title"
+              help="The collection units that they are assigned to be able to edit"
+              help-position="right"
+            />
+            <div
+              class="view-dropdown-field"
+              v-if="
+                units.length > 0 && assigned_units.length > 0 && division_id
+              "
+            >
+              <div
+                class="view-field"
+                v-for="unit in assigned_units"
+                :key="unit"
+              >
+                {{ unit }} -
+                {{
+                  units.find((u) => u.value.toString() === unit.toString())
+                    ?.unit_name
+                }}
+              </div>
+            </div>
           </div>
         </div>
       </div>

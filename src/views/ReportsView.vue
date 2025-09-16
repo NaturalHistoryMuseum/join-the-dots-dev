@@ -11,7 +11,8 @@
       >
       <h1>Exports</h1>
       <div class="row">
-        <div class="col-md-4">
+        <p>Coming soon...</p>
+        <!-- <div class="col-md-4">
           <SelectComp
             :options="[
               { value: 'vw_unit_rescore_form', label: 'Rescore View' },
@@ -24,7 +25,7 @@
             :onChangeFunc="handleViewSelect"
             :multi="false"
           />
-        </div>
+        </div> -->
         <!-- <div class="col-md-4">
           <SelectComp
             :options="[
@@ -36,33 +37,33 @@
             :multi="false"
           />
         </div> -->
-        <div class="col-md-4">
+        <!-- <div class="col-md-4">
           <zoa-button
             label="Download export to csv (only press once)"
             @click="downloadScoreView"
             :disabled="!viewVal"
           />
-        </div>
+        </div> -->
       </div>
 
-      <h1>LtC Export</h1>
+      <!-- <h1>LtC Export</h1>
       <div class="row">
         <div class="col-md-4">
           <zoa-button label="JSON LtC Export" @click="downloadLtcExport" />
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
 
 <script>
-import SelectComp from '@/components/SelectComp.vue';
+// import SelectComp from '@/components/SelectComp.vue';
 import { downloadCSV, downloadLtCjson } from '@/services/dataService';
 import { useLoadingStore } from '@/stores/loadingStore';
 
 export default {
   components: {
-    SelectComp,
+    // SelectComp,
   },
   data() {
     return {
