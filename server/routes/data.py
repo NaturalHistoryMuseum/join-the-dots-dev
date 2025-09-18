@@ -1282,7 +1282,8 @@ def set_user_assigned():
 def get_criterion():
     data = fetch_data("""SELECT cat.*, crit.criterion_id, crit.criterion_name, crit.criterion_code, crit.definition
                    FROM {database_name}.criterion crit
-                    LEFT JOIN {database_name}.category cat ON crit.category_id = cat.category_id;
+                    LEFT JOIN {database_name}.category cat ON crit.category_id = cat.category_id
+                    WHERE crit.criterion_id != 3;
                    """)
     return jsonify(data)
 

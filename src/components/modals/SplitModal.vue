@@ -17,6 +17,13 @@
     <template v-slot:header> Split Unit </template>
     <div class="flex flex-col center gap-4 action-modal-content">
       <div v-if="selected_unit && !success && !loading">
+        <p v-if="open_rescore">
+          <strong
+            >*A rescore is currently open, please note that performing actions
+            on units with an open rescore can have negative side
+            affects.*</strong
+          >
+        </p>
         <p>Unit selected for split:</p>
         <p>
           <strong
@@ -79,6 +86,7 @@ export default {
   props: {
     selected_unit: Object,
     navigate_on_success: Boolean,
+    open_rescore: Object,
   },
   data() {
     return {

@@ -48,14 +48,6 @@
             "help_text": "The sort order of the collection units for displaying in rescore forms."
           },
           {
-            "field_name": "unit_active",
-            "field_type": "checkbox",
-            "label": "Unit Active?",
-            "required": false,
-            "editable": true,
-            "help_text": "Defines whether the collection unit is currently active."
-          },
-          {
             "field_name": "publish_flag",
             "field_type": "checkbox",
             "label": "Publish Unit?",

@@ -25,7 +25,7 @@
         planning, particularly at large museums, whilst setting standards and
         measuring improvements where possible.
       </p>
-      <h2>Join the Dots - User Mannual</h2>
+      <h2>Join the Dots - User Manual</h2>
       <!-- Embed in future -->
       <p>
         <a

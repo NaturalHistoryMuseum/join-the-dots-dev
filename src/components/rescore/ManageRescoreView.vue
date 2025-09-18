@@ -1,6 +1,8 @@
 <template>
   <div class="main-header">
-    <p class="last-rescore">Latest Rescore : {{ latestRescore() }}</p>
+    <p v-if="latestRescore()" class="last-rescore">
+      Latest Rescore : {{ latestRescore() }}
+    </p>
   </div>
   <div
     v-if="Object.keys(open_rescore).length && !is_loading"
@@ -110,16 +112,18 @@ export default {
     latestRescore() {
       // Initialize to a very old date
       let latest_date = new Date(0);
+      let is_latest_date = false;
       this.units.forEach((unit) => {
         if (unit.last_rescored) {
           const date = new Date(unit.last_rescored);
           if (!latest_date || date > latest_date) {
+            is_latest_date = true;
             latest_date = date;
           }
         }
       });
 
-      return latest_date ? this.formatDate(latest_date) : 'N/A';
+      return is_latest_date ? this.formatDate(latest_date) : false;
     },
     // Navigate to the view unit page
     viewUnit(unit) {

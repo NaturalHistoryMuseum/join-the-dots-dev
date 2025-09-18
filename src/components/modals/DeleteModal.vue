@@ -17,6 +17,13 @@
     <template v-slot:header> Delete Unit </template>
     <div class="flex flex-col center gap-4 action-modal-content">
       <div v-if="selected_units.length > 0 && !success && !loading">
+        <p v-if="open_rescore">
+          <strong
+            >*A rescore is currently open, please note that performing actions
+            on units with an open rescore can have negative side
+            affects.*</strong
+          >
+        </p>
         <div>Delete the following units:</div>
         <div
           v-for="unit in selected_units"
@@ -70,6 +77,7 @@ export default {
   props: {
     selected_units: Array,
     navigate_on_success: Boolean,
+    open_rescore: Object,
   },
   data() {
     return {

@@ -48,9 +48,9 @@
               help-position="right"
             />
           </div>
-          <div class="account-field">
+          <div class="account-field" v-if="currentUser.level > 1">
             <zoa-input
-              v-if="role_id >= 4"
+              v-if="role_id >= 3"
               zoa-type="dropdown"
               label="Division"
               :config="{ options: division_options }"
@@ -59,7 +59,7 @@
               help-position="right"
               @change="handleDivisionSave()"
             />
-            <div v-else-if="division_options.length > 0 && division_id">
+            <div v-else-if="division_options && division_options.length > 0">
               <zoa-input
                 zoa-type="empty"
                 label="Division"
@@ -69,13 +69,15 @@
               />
               <p class="view-field">
                 {{
-                  division_options.find((d) => d.division_id == division_id)
-                    .division_name
+                  division_id
+                    ? division_options.find((d) => d.division_id == division_id)
+                        .division_name
+                    : 'No division selected'
                 }}
               </p>
             </div>
           </div>
-          <!-- <div class="account-field">
+          <div class="account-field" v-if="currentUser.level > 1">
             <zoa-input
               zoa-type="multiselect"
               label="Units Assigned"
@@ -87,21 +89,28 @@
               v-model="assigned_units"
               help="The collection units that are assigned to you"
               help-position="right"
+              @change="show_save_btn = true"
             />
-          </div> -->
-          <div class="account-field">
+            <zoa-button
+              label="Save"
+              v-if="show_save_btn"
+              @click="handleAssignedUnitsSave"
+            />
+          </div>
+          <!-- <div
+            class="account-field"
+            v-else-if="currentUser.level = 2 && units && units.length > 0"
+          >
             <zoa-input
               zoa-type="empty"
               label="Assigned Units"
               class="comments-title"
-              help="The collection units that they are assigned to be able to edit"
+              help="The collection units that you are assigned to be able to edit"
               help-position="right"
             />
             <div
               class="view-dropdown-field"
-              v-if="
-                units.length > 0 && assigned_units.length > 0 && division_id
-              "
+              v-if="assigned_units && assigned_units.length > 0"
             >
               <div
                 class="view-field"
@@ -114,6 +123,38 @@
                     ?.label
                 }}
               </div>
+            </div>
+            <div v-else class="view-field">No units currently assigned</div>
+          </div> -->
+          <div
+            class="account-field"
+            v-if="currentUser.level > 1 && units && units.length > 0"
+          >
+            <zoa-input
+              zoa-type="empty"
+              label="Responsible Units"
+              class="comments-title"
+              help="The collection units you are responsible for"
+              help-position="right"
+            />
+            <div
+              class="view-dropdown-field"
+              v-if="responsible_units && responsible_units.length > 0"
+            >
+              <div
+                class="view-field"
+                v-for="unit in responsible_units"
+                :key="unit"
+              >
+                {{ unit }} -
+                {{
+                  units.find((u) => u.value.toString() === unit.toString())
+                    ?.label
+                }}
+              </div>
+            </div>
+            <div v-else class="view-field">
+              You are not responsible for any units
             </div>
           </div>
         </div>
@@ -141,7 +182,7 @@
 
 <script>
 import OverlayMessage from '@/components/OverlayMessage.vue';
-import { getGeneric } from '@/services/dataService';
+import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import {
   assignUnits,
   getGenericUser,
@@ -165,10 +206,20 @@ export default {
       role_id: this.currentUser.role_id,
       options: [],
       placeholder: 'Please select',
-      assigned_units: JSON.parse(this.currentUser.assigned_units),
+      assigned_units: this.currentUser.assigned_units
+        ? JSON.parse(this.currentUser.assigned_units).map((unit) =>
+            unit.toString(),
+          )
+        : [],
+      responsible_units: this.currentUser.responsible_units
+        ? JSON.parse(this.currentUser.responsible_units).map((unit) =>
+            unit.toString(),
+          )
+        : [],
       units: [],
       division_id: this.currentUser.division_id,
       division_options: [],
+      show_save_btn: false,
     };
   },
   mounted() {
@@ -234,11 +285,31 @@ export default {
           },
           true,
         );
-
-        // ✅ Pass API response to global messages
         this.store.handleChangeResponse(response);
       } catch (error) {
         console.error('Error updating division:', error);
+        this.store.addMessage('Something went wrong', 'error');
+      }
+    },
+    // Save assigned units function
+    async handleAssignedUnitsSave() {
+      if (this.responsible_units.length > 0) {
+        this.responsible_units.forEach((unit) => {
+          if (!this.assigned_units.includes(unit)) {
+            this.assigned_units.push(unit);
+          }
+        });
+      }
+
+      try {
+        const response = await submitDataGeneric(`submit-user-assigned`, {
+          user_id: this.currentUser.user_id,
+          assigned_units: this.assigned_units,
+        });
+        this.show_save_btn = false;
+        this.store.handleChangeResponse(response);
+      } catch (error) {
+        console.error('Error updating assigned units:', error);
         this.store.addMessage('Something went wrong', 'error');
       }
     },
