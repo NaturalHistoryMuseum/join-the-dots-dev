@@ -10,6 +10,7 @@
               )
             "
             @update:refreshData="fetchData"
+            :open_rescore="open_rescore"
           />
           <SplitModal
             v-if="selectedUnitIds.length < 2"
@@ -19,6 +20,7 @@
               )
             "
             @update:refreshData="fetchData"
+            :open_rescore="open_rescore"
           />
           <CombineModal
             :selected_units="
@@ -27,6 +29,7 @@
               )
             "
             @update:refreshData="fetchData"
+            :open_rescore="open_rescore"
           />
           <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
           <zoa-button
@@ -155,6 +158,7 @@ export default {
         { label: 'Actions', key: 'actions' },
       ],
       filteredUnits: [],
+      open_rescore: {},
     };
   },
   mounted() {
@@ -171,6 +175,9 @@ export default {
           ...unit,
           selected: false,
         }));
+      });
+      getGeneric('open-rescore').then((response) => {
+        this.open_rescore = response.length > 0 ? response[0] : {};
       });
     },
     viewUnit(unit) {

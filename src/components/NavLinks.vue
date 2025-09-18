@@ -35,7 +35,7 @@ export default {
       {
         name: 'View Units',
         path: '/view-units',
-        access_groups: ['admin', 'editor', 'manager'],
+        access_groups: ['admin', 'viewer', 'editor', 'manager'],
       },
       {
         name: 'Rescore',

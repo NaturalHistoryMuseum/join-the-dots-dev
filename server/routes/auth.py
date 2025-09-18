@@ -15,23 +15,9 @@ from flask_jwt_extended import (
 
 from server.config import Config
 from server.database import get_db_connection
+from server.utils import fetch_data
 
 auth_bp = Blueprint('auth', __name__)
-
-
-# Database connection
-def fetch_data(query, params=None):
-    """
-    Helper function to execute a database query.
-    """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(query, params or ())
-    result = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return result
-
 
 AUTHORITY = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
 
@@ -169,7 +155,14 @@ def auth_status():
                 FROM jtd_live.assigned_units au
                 JOIN jtd_live.collection_unit cu ON au.collection_unit_id = cu.collection_unit_id
                 WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
-            ) AS assigned_units
+            ) AS assigned_units,
+            (
+                SELECT JSON_ARRAYAGG(
+                    cu.collection_unit_id
+                )
+                FROM {database_name}.collection_unit cu
+                WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
+            ) AS responsible_units
             FROM jtd_live.users u
             LEFT JOIN jtd_live.roles r ON u.role_id = r.role_id
             WHERE user_id = %s;""",
