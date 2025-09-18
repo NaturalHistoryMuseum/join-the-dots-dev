@@ -89,6 +89,12 @@
               v-model="assigned_units"
               help="The collection units that are assigned to you"
               help-position="right"
+              @change="show_save_btn = true"
+            />
+            <zoa-button
+              label="Save"
+              v-if="show_save_btn"
+              @click="handleAssignedUnitsSave"
             />
           </div>
           <!-- <div
@@ -176,7 +182,7 @@
 
 <script>
 import OverlayMessage from '@/components/OverlayMessage.vue';
-import { getGeneric } from '@/services/dataService';
+import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import {
   assignUnits,
   getGenericUser,
@@ -200,11 +206,20 @@ export default {
       role_id: this.currentUser.role_id,
       options: [],
       placeholder: 'Please select',
-      assigned_units: JSON.parse(this.currentUser.assigned_units) || [],
-      responsible_units: JSON.parse(this.currentUser.responsible_units) || [],
+      assigned_units: this.currentUser.assigned_units
+        ? JSON.parse(this.currentUser.assigned_units).map((unit) =>
+            unit.toString(),
+          )
+        : [],
+      responsible_units: this.currentUser.responsible_units
+        ? JSON.parse(this.currentUser.responsible_units).map((unit) =>
+            unit.toString(),
+          )
+        : [],
       units: [],
       division_id: this.currentUser.division_id,
       division_options: [],
+      show_save_btn: false,
     };
   },
   mounted() {
@@ -270,11 +285,31 @@ export default {
           },
           true,
         );
-
-        // ✅ Pass API response to global messages
         this.store.handleChangeResponse(response);
       } catch (error) {
         console.error('Error updating division:', error);
+        this.store.addMessage('Something went wrong', 'error');
+      }
+    },
+    // Save assigned units function
+    async handleAssignedUnitsSave() {
+      if (this.responsible_units.length > 0) {
+        this.responsible_units.forEach((unit) => {
+          if (!this.assigned_units.includes(unit)) {
+            this.assigned_units.push(unit);
+          }
+        });
+      }
+
+      try {
+        const response = await submitDataGeneric(`submit-user-assigned`, {
+          user_id: this.currentUser.user_id,
+          assigned_units: this.assigned_units,
+        });
+        this.show_save_btn = false;
+        this.store.handleChangeResponse(response);
+      } catch (error) {
+        console.error('Error updating assigned units:', error);
         this.store.addMessage('Something went wrong', 'error');
       }
     },
