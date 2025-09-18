@@ -1,3 +1,13 @@
+## v0.3.0 (2025-09-18)
+
+### Feature
+
+- users can submit changes to assigned units
+
+### Fix
+
+- fix account page, rescore issues and other minor fixes
+
 ## v0.2.5 (2025-09-16)
 
 ### Fix
