@@ -1,3 +1,9 @@
+## v0.3.1 (2025-09-19)
+
+### Fix
+
+- adding unit - adding scores will now add up to 100%
+
 ## v0.3.0 (2025-09-18)
 
 ### Feature
