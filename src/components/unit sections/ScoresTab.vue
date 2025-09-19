@@ -91,10 +91,16 @@ export default {
         return 0;
       }
       const ranks = this.edited_unit.ranks_json;
-      const metrics = this.edited_unit.metric_json;
+      console.log('this is the edited ranks:', ranks);
+      console.log('this is the total ranks:', this.rank_json);
 
+      const metrics = this.edited_unit.metric_json;
+      // Remove C3 from ranks to mark completness
+      const filtered_rank_json = this.rank_json.filter(
+        (rank) => rank.criterion_id !== 3,
+      );
       // Calculate the total completeness based on the number of ranks divided by 5
-      const total_completness = this.rank_json.length / 5 + 3; // Adding 3 for the metrics - should do this dynamically
+      const total_completness = filtered_rank_json.length / 5 + 3; // Adding 3 for the metrics - should do this dynamically
       let actual_completness = 0;
       // Go through each rank and see if it has a total score
       ranks.forEach((rank_group) => {
