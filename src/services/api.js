@@ -2,10 +2,7 @@ import axios from 'axios';
 import { logout } from './authService';
 import { getCookie } from './cookies';
 
-// FOR LOCAL TESTING
-// const API_URL = 'http://localhost:5000/api/';
-// FOR K8S
-const API_URL = 'https://jtd-qa.nhm.ac.uk/api/';
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export const api = axios.create({
   baseURL: API_URL,
