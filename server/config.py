@@ -33,3 +33,13 @@ class Config:
     JWT_REFRESH_COOKIE_NAME = 'refresh_token'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
+
+    # Power BI Configuration
+    AUDIENCE = f'api://{CLIENT_ID}'
+    ISSUER = f'https://login.microsoftonline.com/{TENANT_ID}/v2.0'
+    VALID_ISSUERS = [
+        f'https://login.microsoftonline.com/{TENANT_ID}/v2.0',
+        f'https://login.microsoftonline.com/{TENANT_ID}/',
+        f'https://sts.windows.net/{TENANT_ID}/',
+    ]
+    JWKS_URL = f'https://login.microsoftonline.com/{TENANT_ID}/discovery/v2.0/keys'
