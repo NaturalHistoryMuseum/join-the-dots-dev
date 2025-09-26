@@ -1,3 +1,9 @@
+## v0.3.2 (2025-09-26)
+
+### Build System(s)
+
+- **deps**: bump form-data from 4.0.1 to 4.0.4
+
 ## v0.3.1 (2025-09-19)
 
 ### Fix
