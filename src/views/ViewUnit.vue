@@ -54,67 +54,12 @@
           />
         </div>
       </div>
-      <!-- {{ this.unit }} -->
       <TopTabs
         :tabs="unit_sections"
         :active_tab="active_tab"
         :changeTabFunc="changeTab"
       >
         <div v-if="(unit && unit_id) || add_unit_mode">
-          <!-- Unit Details -->
-          <!-- <div v-if="active_tab == 0" class="content row">
-            <DetailsTab
-              :unit="unit"
-              :department_id="current_section.department_id"
-              :handleFieldChange="handleFieldChange"
-              :errors="errors"
-              :allow_edit="allow_edit"
-            />
-          </div> -->
-          <!-- Section -->
-          <!-- <div v-if="active_tab == 1" class="content row">
-            <SectionTab
-              :unit="unit"
-              :current_section="current_section"
-              :section_options="section_options"
-              :setCurrentSection="setCurrentSection"
-              :handleFieldChange="handleFieldChange"
-              :errors="errors"
-              :allow_edit="allow_edit"
-            />
-          </div> -->
-          <!-- Properties -->
-          <!-- <div v-if="active_tab == 2" class="content row">
-            <PropertiesTab
-              :unit="unit"
-              :department_id="current_section.department_id"
-              :handleFieldChange="handleFieldChange"
-              :allow_edit="allow_edit"
-            />
-          </div> -->
-          <!-- Storage -->
-          <!-- <div v-if="active_tab == 3" class="content row">
-            <StorageTab
-              :unit="unit"
-              :handleFieldChange="handleFieldChange"
-              :errors="errors"
-              :allow_edit="allow_edit"
-            />
-          </div> -->
-          <!-- Scores -->
-          <!-- <div v-show="active_tab == 4" class="content row">
-            <ScoresTab
-              :unit="unit"
-              :unit_id="unit_id"
-              :add_unit_mode="add_unit_mode"
-              @update:scores_percentage="scores_percentage = $event"
-              @new_unit="scored_unit = $event"
-            />
-          </div> -->
-          <!-- Comments -->
-          <!-- <div v-if="active_tab == 5" class="content row">
-            <CommentsTab :unit="unit" />
-          </div> -->
           <div v-if="unit_sections.length > 0">
             <div
               v-for="section in unit_sections"
@@ -122,7 +67,6 @@
               class="content row"
               v-show="active_tab == section.section_id"
             >
-              <!-- <h4 class="subheading">{{ section.section_name }}</h4> -->
               <div
                 v-if="section.sub_sections && section.sub_sections.length > 0"
               >
@@ -234,17 +178,12 @@
 </template>
 
 <script>
+import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
 import TopTabs from '@/components/TopTabs.vue';
+import ScoresTab from '@/components/unit sections/ScoresTab.vue';
+import { currentUser } from '@/services/authService';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
-// import CommentsTab from '@/components/unit sections/CommentsTab.vue'
-import ActionsBtnGroup from '@/components/ActionsBtnGroup.vue';
-// import DetailsTab from '@/components/unit sections/DetailsTab.vue';
-// import PropertiesTab from '@/components/unit sections/PropertiesTab.vue';
-import ScoresTab from '@/components/unit sections/ScoresTab.vue';
-// import SectionTab from '@/components/unit sections/SectionTab.vue';
-// import StorageTab from '@/components/unit sections/StorageTab.vue';
-import { currentUser } from '@/services/authService';
 
 import DeleteModal from '@/components/modals/DeleteModal.vue';
 import SplitModal from '@/components/modals/SplitModal.vue';
@@ -257,12 +196,7 @@ export default {
   name: 'ViewUnit',
   components: {
     TopTabs,
-    // CommentsTab,
     ScoresTab,
-    // StorageTab,
-    // PropertiesTab,
-    // SectionTab,
-    // DetailsTab,
     ActionsBtnGroup,
     RoundProgressBar,
     CustomField,
