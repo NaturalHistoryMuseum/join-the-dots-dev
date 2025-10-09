@@ -207,9 +207,7 @@ export default {
   data() {
     return {
       unit: [],
-
       active_tab: 0,
-
       section_options: [],
       current_section: {},
       unit_id: null,
