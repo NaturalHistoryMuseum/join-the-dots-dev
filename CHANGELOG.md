@@ -1,3 +1,25 @@
+## v0.4.0 (2025-10-10)
+
+### Feature
+
+- api for powerbi to access db started
+
+### Fix
+
+- change how the user/person tables are used by the app
+- adding more simple powerbi data api
+
+### Refactor
+
+- removing sql queries and gitignoring them
+- removing old view unit tabs
+- removing accidental backend build folder
+- updating packages for security
+
+### Chores/Misc
+
+- change api url into the env variables
+
 ## v0.3.2 (2025-09-26)
 
 ### Build System(s)
