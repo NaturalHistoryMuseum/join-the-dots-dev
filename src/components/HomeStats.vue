@@ -235,7 +235,6 @@ export default {
     },
     // Fetch data
     fetchData() {
-      // console.log(this.chart_data);
       // Fetch data
       getStatsGeneric('home-stats').then((response) => {
         this.stats = response;
@@ -246,7 +245,6 @@ export default {
             .toISOString()
             .split('T')[0];
         }
-        // console.log('stats : ', this.stats);
         if (
           this.stats.scored_in_last_year &&
           this.stats.scored_in_last_year.length > 0
@@ -284,11 +282,9 @@ export default {
     //       y: 2.5 + Math.sin(this.t + i * 0.5) * 1.5,
     //       r: 10, // Or make it dynamic if desired
     //     }))
-    //     console.log(this.chart_data.datasets[0].data)
     //     this.t += 0.05
     //     if (this.loadingDots) {
     //       this.waveFrame = requestAnimationFrame(update)
-    //       console.log(this.waveFrame)
     //     }
     //   }
     //   update()
