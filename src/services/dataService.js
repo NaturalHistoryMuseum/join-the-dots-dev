@@ -1,9 +1,4 @@
-import api from './api';
-
-// FOR LOCAL TESTING
-// const API_URL = 'http://localhost:5000/api/data';
-// FOR K8S
-const API_URL = 'https://jtd-qa.nhm.ac.uk/api/data';
+import { api, API_URL } from './api';
 
 export async function getGeneric(route) {
   const resp = await api

@@ -69,3 +69,28 @@ def refreshJWTToken(response):
     except (RuntimeError, KeyError):
         # Case where there is not a valid JWT. Just return the original response
         return response
+
+
+def get_user_by_id(user_id):
+    user_details = fetch_data(
+        """SELECT u.*, r.role, r.`level`, p.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
+            (
+                SELECT JSON_ARRAYAGG( au.collection_unit_id )
+                FROM {database_name}.assigned_units au
+                JOIN {database_name}.collection_unit cu ON au.collection_unit_id = cu.collection_unit_id
+                WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
+            ) AS assigned_units,
+            (
+                SELECT JSON_ARRAYAGG(
+                    cu.collection_unit_id
+                )
+                FROM {database_name}.collection_unit cu
+                WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
+            ) AS responsible_units
+            FROM {database_name}.users u
+            LEFT JOIN {database_name}.roles r ON u.role_id = r.role_id
+            LEFT JOIN {database_name}.person p ON u.person_id = p.person_id
+            WHERE user_id = %s;""",
+        (user_id,),
+    )
+    return user_details[0] if user_details else None

@@ -91,8 +91,6 @@ export default {
         return 0;
       }
       const ranks = this.edited_unit.ranks_json;
-      console.log('this is the edited ranks:', ranks);
-      console.log('this is the total ranks:', this.rank_json);
 
       const metrics = this.edited_unit.metric_json;
       // Remove C3 from ranks to mark completness

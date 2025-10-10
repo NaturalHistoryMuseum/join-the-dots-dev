@@ -10,7 +10,13 @@ from flask_jwt_extended import (
 
 from server.database import get_db_connection
 from server.routes.queries.data_queries import *
-from server.utils import database_name, execute_query, fetch_data, refreshJWTToken
+from server.utils import (
+    database_name,
+    execute_query,
+    fetch_data,
+    get_user_by_id,
+    refreshJWTToken,
+)
 
 data_bp = Blueprint('data', __name__)
 
@@ -92,6 +98,8 @@ def submit_rescore_complete():
         return jsonify({'error': 'rescore_session_id is required'}), 400
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
+    user = get_user_by_id(user_id)
+    person_id = user.get('person_id')
 
     try:
         connection = get_db_connection()
@@ -225,7 +233,7 @@ def submit_rescore_complete():
                     date_assessed, date_from, current
                 ) VALUES (%s, %s, %s, NOW(), NOW(), 'yes')
             """,
-                (collection_unit_id, criterion_id, user_id),
+                (collection_unit_id, criterion_id, person_id),
             )
             inserted_id = cursor.lastrowid
 
@@ -645,7 +653,6 @@ def submit_unit():
         # Execute the query and return the new unit ID
         cursor.execute(sql_query, values)
         new_unit_id = cursor.lastrowid
-        print(f'new unit id - {new_unit_id}')
 
         if new_unit_id is None:
             return jsonify({'error': 'Failed to create new unit'}), 500
@@ -936,12 +943,13 @@ def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=''):
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
 def get_units_and_departments():
-    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id, unit.responsible_curator_id, users.name AS curator_name
+    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id, unit.responsible_curator_id, COALESCE(CONCAT(person.first_name, ' ', person.last_name), users.display_name) AS curator_name
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
                     LEFT JOIN {database_name}.department AS department ON division.department_id = department.department_id
                     LEFT JOIN {database_name}.users AS users ON users.user_id = unit.responsible_curator_id
+                    LEFT JOIN {database_name}.person AS person ON person.person_id = users.person_id
                       WHERE unit.unit_active = 'yes';
                    """)
     return jsonify(data)
@@ -967,10 +975,11 @@ def get_unit(unit_id):
 @jwt_required()
 def get_full_unit(unit_id):
     data = fetch_data(
-        """SELECT  cu.*, concat(p.first_name, ' ', p.last_name) AS responsible_curator,
+        """SELECT  cu.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS responsible_curator,
                     uc.unit_comment, DATE(uc.date_added) AS date_comment_added
                     FROM {database_name}.collection_unit cu
-                    LEFT JOIN {database_name}.person p ON p.person_id = cu.responsible_curator_id
+                    LEFT JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
+                    LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                     LEFT JOIN {database_name}.unit_comment uc ON uc.collection_unit_id = cu.collection_unit_id
                     WHERE cu.collection_unit_id = %u;
                    """
@@ -983,9 +992,10 @@ def get_full_unit(unit_id):
 @jwt_required()
 def get_assigned_users(unit_id):
     data = fetch_data(
-        """SELECT au.user_id, u.name AS user_name
+        """SELECT au.user_id, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS user_name
         FROM {database_name}.assigned_units au
         JOIN {database_name}.users u ON u.user_id = au.user_id
+        LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
         WHERE au.collection_unit_id = %s
                    """
         % int(unit_id)
@@ -1001,19 +1011,13 @@ def get_units_assigned():
 
     try:
         # Fetch user level
-        user = fetch_data(
-            """SELECT *
-            FROM {database_name}.users
-            WHERE user_id = %s
-                    """,
-            (user_id,),
-        )
-        match user[0]['role_id']:
+        user = get_user_by_id(user_id)
+        match user['role_id']:
             case 1:
                 return jsonify({'error': 'You are not autorised.'}), 500
             case 2:
                 data = fetch_data(
-                    """SELECT u.*, cu.*, s.section_name, d.division_name, u.name AS curator_name, cu.responsible_curator_id,
+                    """SELECT u.*, cu.*, s.section_name, d.division_name, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS curator_name, cu.responsible_curator_id,
                     (
                         SELECT JSON_ARRAYAGG(
 	                        au.user_id
@@ -1024,6 +1028,7 @@ def get_units_assigned():
                     ) AS assigned_editors
                     FROM {database_name}.assigned_units au
                     JOIN {database_name}.users u ON u.user_id = au.user_id
+                    LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                     JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
                     JOIN {database_name}.section s ON s.section_id = cu.section_id
                     JOIN {database_name}.division d ON d.division_id = s.division_id
@@ -1033,7 +1038,7 @@ def get_units_assigned():
                 )
             case 3:
                 data = fetch_data(
-                    """SELECT cu.*, s.section_name, d.division_name, u.name AS curator_name, cu.responsible_curator_id,
+                    """SELECT cu.*, s.section_name, d.division_name, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS curator_name, cu.responsible_curator_id,
                     (
                         SELECT JSON_ARRAYAGG(
 	                        au.user_id
@@ -1044,6 +1049,7 @@ def get_units_assigned():
                     ) AS assigned_editors
                     FROM {database_name}.collection_unit cu
                     JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
+                    LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                     JOIN {database_name}.section s ON s.section_id = cu.section_id
                     JOIN {database_name}.division d ON d.division_id = s.division_id
                     WHERE d.division_id = %s AND cu.unit_active = 'yes'
@@ -1088,17 +1094,11 @@ def get_division_users():
     user_id = get_jwt_identity()
     try:
         # Fetch user level
-        user = fetch_data(
-            """SELECT *
-            FROM {database_name}.users
-            WHERE user_id = %s
-                    """,
-            (user_id,),
-        )
-        role_id = user[0]['role_id']
+        user = get_user_by_id(user_id)
+        role_id = user['role_id']
         if role_id >= 3:
             data = fetch_data(
-                """SELECT u.user_id, u.role_id, u.name, u.email, d.division_name, u.division_id, r.role,
+                """SELECT u.user_id, u.role_id, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name, u.email, d.division_name, u.division_id, r.role,
                 (
                     SELECT JSON_ARRAYAGG(
                         au.collection_unit_id
@@ -1115,11 +1115,12 @@ def get_division_users():
                     WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
                 ) AS responsible_units
                 FROM {database_name}.users u
+                LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                 JOIN {database_name}.roles r ON r.role_id = u.role_id
                 JOIN {database_name}.division d ON d.division_id = u.division_id
-                WHERE u.division_id = %s
+                WHERE u.division_id = %s AND u.role_id > 1;
                         """,
-                (user[0]['division_id'],),
+                (user['division_id'],),
             )
             return jsonify(data)
         else:
@@ -1304,7 +1305,7 @@ def get_units_metrics(unit_id):
 
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
-def get_roles():
+def get_category():
     data = fetch_data("""SELECT cat.*
                    FROM {database_name}.category cat;
                    """)
@@ -1313,7 +1314,7 @@ def get_roles():
 
 @data_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
-def get_category():
+def get_roles():
     data = fetch_data("""SELECT *
                    FROM {database_name}.roles;
                    """)
@@ -1431,9 +1432,10 @@ def get_all_lib_function():
 @jwt_required()
 def get_all_curators():
     data = fetch_data("""
-        SELECT u.name AS label, u.user_id AS value, u.email
-        FROM {database_name}.users u
-        WHERE u.role_id = 2 OR u.role_id = 2 OR 3
+        SELECT CONCAT(p.first_name, ' ', p.last_name) AS label, u.user_id AS value, u.email, u.user_id, p.person_id
+        FROM {database_name}.person p
+        LEFT JOIN {database_name}.users u ON u.person_id = p.person_id
+        WHERE u.role_id = 2 OR u.role_id = 3;
         """)
     return jsonify(data)
 

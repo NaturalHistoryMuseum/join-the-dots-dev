@@ -3,7 +3,7 @@
     <div class="main-header">
       <h1>Join the Dots Portal</h1>
       <div v-if="currentUser">
-        <p>Welcome, {{ currentUser.name }}</p>
+        <p v-if="currentUser.name">Welcome, {{ currentUser.name }}</p>
       </div>
       <!-- <HomeStats /> -->
     </div>
@@ -84,6 +84,15 @@ export default {
     navigate(path) {
       this.$router.push({ path: path });
     },
+    // async getUserAzure() {
+    // const response = await api.post(
+    //   `auth/azure/user`,
+    //   { email: this.currentUser.email },
+    //   {
+    //     withCredentials: true,
+    //   },
+    // );
+    // },
   },
 };
 </script>

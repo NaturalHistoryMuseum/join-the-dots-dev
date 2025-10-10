@@ -2,7 +2,6 @@
   <div class="account-page">
     <OverlayMessage />
     <h1>Account</h1>
-
     <div v-if="currentUser" class="content">
       <div class="account-section">
         <h2>User Details</h2>
@@ -41,7 +40,7 @@
             <zoa-input
               zoa-type="dropdown"
               label="Role"
-              :config="{ options, placeholder }"
+              :config="{ options: role_options, placeholder }"
               @change="(value) => handleRoleChange(value)"
               v-model="role_id"
               help="The access role assigned to your account for this JtD application"
@@ -183,11 +182,7 @@
 <script>
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
-import {
-  assignUnits,
-  getGenericUser,
-  postGenericUser,
-} from '@/services/userService';
+import { assignUnits, postGenericUser } from '@/services/userService';
 import { useMessagesStore } from '@/stores/messages';
 import { currentUser } from '../services/authService';
 
@@ -204,7 +199,7 @@ export default {
     return {
       users: [],
       role_id: this.currentUser.role_id,
-      options: [],
+      role_options: [],
       placeholder: 'Please select',
       assigned_units: this.currentUser.assigned_units
         ? JSON.parse(this.currentUser.assigned_units).map((unit) =>
@@ -231,8 +226,8 @@ export default {
     // Page specific functions
     async fetchData() {
       // get all roles and set them to options
-      getGenericUser(`all-roles`).then((response) => {
-        this.options = response.map((role) => ({
+      getGeneric(`all-roles`).then((response) => {
+        this.role_options = response.map((role) => ({
           ...role,
           value: role.role_id,
           label: role.role[0].toUpperCase() + role.role.slice(1),

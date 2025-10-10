@@ -161,7 +161,9 @@
               @change="new_responsible_curator = null"
             />
           </div>
-          <div v-show="new_role == 1">
+          <div
+            v-show="new_role == 1 && local_user.responsible_units.length > 0"
+          >
             <p>
               To demote this person to a Viewer you will need to nominate
               another user to takeover the units they are responsible for
@@ -196,8 +198,10 @@
                     >
                       {{ unit }} -
                       {{
-                        units.find((u) => u.collection_unit_id === unit)
-                          ?.unit_name
+                        units.find(
+                          (u) =>
+                            u.collection_unit_id.toString() === unit.toString(),
+                        )?.unit_name
                       }}
                     </div>
                   </div>
@@ -205,7 +209,10 @@
               </div>
             </div>
           </div>
-          <div v-if="new_role > 1">
+          <div
+            v-if="new_role > 1 || local_user.responsible_units.length === 0"
+            class="confirm-container"
+          >
             <zoa-button
               label="Confirm Role Change"
               class="confirm-btn"
@@ -241,7 +248,7 @@
             />
           </div>
           <zoa-button label="Save Changes" @click="saveAssignedUnits" />
-          <h4>Change Responsible Units</h4>
+          <h4 class="margin-top">Change Responsible Units</h4>
           <p>
             Changing the units this user is responsible for can be done per unit
             in the 'Manage Units Permissions' Page.
@@ -398,7 +405,7 @@ export default {
 }
 
 .confirm-container {
-  margin: 2rem;
+  margin-top: 2rem;
 }
 
 .text-left {
@@ -409,5 +416,9 @@ export default {
   margin-bottom: 1rem;
   display: flex;
   justify-content: center;
+}
+
+.margin-top {
+  margin-top: 1rem;
 }
 </style>
