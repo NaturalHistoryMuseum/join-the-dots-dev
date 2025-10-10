@@ -43,3 +43,6 @@ class Config:
         f'https://sts.windows.net/{TENANT_ID}/',
     ]
     JWKS_URL = f'https://login.microsoftonline.com/{TENANT_ID}/discovery/v2.0/keys'
+
+    # Power BI Expected API Key
+    EXPECTED_API_KEY = os.environ.get('EXPECTED_API_KEY')
