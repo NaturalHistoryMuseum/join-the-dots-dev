@@ -9,7 +9,8 @@
   <SmallMessages
     v-if="
       checkEdited(editedRanks[criterion_id]) &&
-      checkErrors(criterion_id).length == 0
+      checkErrors(criterion_id).length == 0 &&
+      show_success
     "
     message_text="Change Saved"
     message_type="success"
@@ -27,6 +28,7 @@ export default {
     ranks: Array,
     checkEdited: Function,
     checkErrors: Function,
+    show_success: Boolean,
   },
   components: {
     SmallMessages,
