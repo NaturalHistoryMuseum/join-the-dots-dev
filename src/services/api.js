@@ -2,7 +2,8 @@ import axios from 'axios';
 import { logout } from './authService';
 import { getCookie } from './cookies';
 
-export const API_URL = import.meta.env.VITE_API_URL;
+// export const API_URL = import.meta.env.VITE_API_URL;
+export const API_URL = 'https://jtd-qa.nhm.ac.uk/api/';
 
 export const api = axios.create({
   baseURL: API_URL,
