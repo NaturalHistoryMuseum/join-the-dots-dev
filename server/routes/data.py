@@ -48,6 +48,9 @@ def get_mark_rescore_open():
 
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
+    # Get user details
+    user_details = get_user_by_id(user_id)
+    cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
     try:
         # Insert session
         query = f"""
@@ -104,6 +107,7 @@ def submit_rescore_complete():
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
+        cursor.execute('SET @current_person_id = %s', (person_id,))
         connection.start_transaction()
         # Submit draft comments
 
@@ -650,6 +654,9 @@ def submit_unit():
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
+        # Get user details
+        user_details = get_user_by_id(user_id)
+        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
         # Execute the query and return the new unit ID
         cursor.execute(sql_query, values)
         new_unit_id = cursor.lastrowid
@@ -689,7 +696,7 @@ def submit_unit():
                         date_assessed, date_from, current
                     ) VALUES (%s, %s, %s, NOW(), NOW(), 'yes')
                     """,
-                    (new_unit_id, criterion_id, user_id),
+                    (new_unit_id, criterion_id, user_details['person_id']),
                 )
                 unit_assessment_criterion_id = cursor.lastrowid
                 for rank in criterion:
@@ -709,6 +716,26 @@ def submit_unit():
                             comment,
                         ),
                     )
+        # Add structural change entry
+        # Higher structure change
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.structural_changes_higher (
+                higher_operation, effective_date, change_agent_id, cause
+            ) VALUES ('create', NOW(), %s, 'Requested by curator')
+            """,
+            (user_details['person_id'],),
+        )
+        structural_changes_higher_id = cursor.lastrowid
+        # Basic structural change
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.structural_changes_basic (
+                structural_changes_higher_id, collection_unit_id, operation
+            ) VALUES (%s, %s, 'create')
+            """,
+            (structural_changes_higher_id, new_unit_id),
+        )
 
         # Commit the transaction queries
         connection.commit()
@@ -787,6 +814,19 @@ def split_unit():
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
+        user_details = get_user_by_id(user_id)
+        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        # Add structural change entry
+        # Higher structure change
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.structural_changes_higher (
+                higher_operation, effective_date, change_agent_id, cause
+            ) VALUES ('split', NOW(), %s, 'Requested by curator')
+            """,
+            (user_details['person_id'],),
+        )
+        structural_changes_higher_id = cursor.lastrowid
         # Create new units
         for i in range(new_count):
             # Copy the original primary unit
@@ -797,6 +837,15 @@ def split_unit():
                 unit_name_addition=(' ' + str(i + 1)),
             )
             new_units.append(new_unit_id)
+            # Basic structural change
+            cursor.execute(
+                f"""
+                INSERT INTO {database_name}.structural_changes_basic (
+                    structural_changes_higher_id, collection_unit_id, operation
+                ) VALUES (%s, %s, 'create')
+                """,
+                (structural_changes_higher_id, new_unit_id),
+            )
         cursor.execute(
             f"""
                     UPDATE {database_name}.collection_unit
@@ -804,6 +853,15 @@ def split_unit():
                         WHERE collection_unit_id = %s;
                     """,
             (unit_id,),
+        )
+        # Basic structural change
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.structural_changes_basic (
+                structural_changes_higher_id, collection_unit_id, operation
+            ) VALUES (%s, %s, 'delete')
+            """,
+            (structural_changes_higher_id, unit_id),
         )
         # Commit the transaction queries
         connection.commit()
@@ -829,11 +887,32 @@ def combine_unit():
     try:
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
+        user_details = get_user_by_id(user_id)
+        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        # Add structural change entry
+        # Higher structure change
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.structural_changes_higher (
+                higher_operation, effective_date, change_agent_id, cause
+            ) VALUES ('merge', NOW(), %s, 'Requested by curator')
+            """,
+            (user_details['person_id'],),
+        )
+        structural_changes_higher_id = cursor.lastrowid
         # Copy the original primary unit
         new_unit_id = copy_unit(
             cursor=cursor, unit_id_to_copy=primary_unit_id, user_id=user_id
         )
-
+        # Basic structural change
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.structural_changes_basic (
+                structural_changes_higher_id, collection_unit_id, operation
+            ) VALUES (%s, %s, 'create')
+            """,
+            (structural_changes_higher_id, new_unit_id),
+        )
         # Mark old units as not active
         for unit_id in unit_id_list:
             cursor.execute(
@@ -843,6 +922,15 @@ def combine_unit():
                         WHERE collection_unit_id = %s;
                     """,
                 (unit_id,),
+            )
+            # Basic structural change
+            cursor.execute(
+                f"""
+                INSERT INTO {database_name}.structural_changes_basic (
+                    structural_changes_higher_id, collection_unit_id, operation
+                ) VALUES (%s, %s, 'delete')
+                """,
+                (structural_changes_higher_id, unit_id),
             )
 
         # Commit the transaction queries
@@ -1135,12 +1223,15 @@ def reassign_responsible_curator():
     data = request.get_json()
     old_user_id = data.get('old_user_id')
     new_user_id = data.get('new_user_id')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     try:
         #
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
-
+        user_details = get_user_by_id(user_id)
+        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
         # Transfer units the old user was responsible for to the new user
         cursor.execute(f"""
                     INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
@@ -1557,10 +1648,16 @@ def delete_units():
         return jsonify({'error': 'unit_ids should be a list'}), 400
 
     try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Get user details
+        user_details = get_user_by_id(user_id)
+        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+
         for unit_id in unit_ids:
             # Delete units from collection_unit table
-            execute_query(
-                """UPDATE {database_name}.collection_unit cu JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
+            cursor.execute(
+                f"""UPDATE {database_name}.collection_unit cu JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
                     SET cu.unit_active = 'no'
                     WHERE cu.collection_unit_id = %s
                     AND au.user_id = %s;""",
@@ -1569,6 +1666,30 @@ def delete_units():
                     user_id,
                 ),
             )
+            # Add structural change entry
+            # Higher structure change
+            cursor.execute(
+                f"""
+                INSERT INTO {database_name}.structural_changes_higher (
+                    higher_operation, effective_date, change_agent_id, cause
+                ) VALUES ('delete', NOW(), %s, 'Requested by curator')
+                """,
+                (user_details['person_id'],),
+            )
+            structural_changes_higher_id = cursor.lastrowid
+            # Basic structural change
+            cursor.execute(
+                f"""
+            INSERT INTO {database_name}.structural_changes_basic (
+                structural_changes_higher_id, collection_unit_id, operation
+            ) VALUES (%s, %s, 'delete')
+            """,
+                (structural_changes_higher_id, unit_id),
+            )
+        # Commit the transaction queries
+        connection.commit()
+        cursor.close()
+        connection.close()
 
         return jsonify({'message': 'Units deleted successfully'}), 200
 

@@ -87,11 +87,11 @@
                   // edited_unit.metric_json && edited_unit.metric_json.length > 0
                   true
                 "
-                class="row"
+                class="row text-left"
               >
                 <div class="col-md-8">
                   <p>These are your changes:</p>
-                  <h4>Metrics</h4>
+                  <h4 class="indent">Metrics</h4>
                   <div
                     v-for="(metric, index) in edited_unit.metric_json"
                     :key="index"
@@ -118,7 +118,7 @@
                       edited_unit.ranks_json.length > 0
                     "
                   >
-                    <h4>Scores</h4>
+                    <h4 class="indent">Scores</h4>
                     <div
                       v-for="(criterion, index) in edited_unit.ranks_json"
                       :key="index"

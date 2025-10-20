@@ -10,7 +10,12 @@
               )
             "
             @update:refreshData="fetchData"
-            :open_rescore="open_rescore"
+            :included_in_rescore="
+              Object.keys(this.open_rescore).length > 0 &&
+              rescore_units.some((rescore_unit) =>
+                selectedUnitIds.includes(rescore_unit),
+              )
+            "
           />
           <SplitModal
             v-if="selectedUnitIds.length < 2"
@@ -20,7 +25,12 @@
               )
             "
             @update:refreshData="fetchData"
-            :open_rescore="open_rescore"
+            :included_in_rescore="
+              Object.keys(this.open_rescore).length > 0 &&
+              rescore_units.some((rescore_unit) =>
+                selectedUnitIds.includes(rescore_unit),
+              )
+            "
           />
           <CombineModal
             :selected_units="
@@ -29,7 +39,12 @@
               )
             "
             @update:refreshData="fetchData"
-            :open_rescore="open_rescore"
+            :included_in_rescore="
+              Object.keys(this.open_rescore).length > 0 &&
+              rescore_units.some((rescore_unit) =>
+                selectedUnitIds.includes(rescore_unit),
+              )
+            "
           />
           <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
           <zoa-button
@@ -159,6 +174,7 @@ export default {
       ],
       filteredUnits: [],
       open_rescore: {},
+      rescore_units: [],
     };
   },
   mounted() {
@@ -178,6 +194,18 @@ export default {
       });
       getGeneric('open-rescore').then((response) => {
         this.open_rescore = response.length > 0 ? response[0] : {};
+        if (Object.keys(this.open_rescore).length > 0) {
+          // Set the rescore session id
+          this.rescore_session_id = this.open_rescore.rescore_session_id;
+          // Fetch units in this rescore session
+          getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+            (response) => {
+              this.rescore_units = response.map(
+                (unit) => unit.collection_unit_id,
+              );
+            },
+          );
+        }
       });
     },
     viewUnit(unit) {

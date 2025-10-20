@@ -213,10 +213,7 @@
           <!-- Container for other criterion interations -->
           <div
             class="row"
-            v-if="
-              !bulk_edit &&
-              (rescore || countCriterionComments(crit.criterion_id) > 0)
-            "
+            v-if="rescore || countCriterionComments(crit.criterion_id) > 0"
           >
             <!-- Show comments asigned to ranks in this criterion -->
             <div class="show-comments">
@@ -230,11 +227,20 @@
                 </div>
                 <!-- Show warnings / Messages -->
                 <RanksWarnings
+                  v-if="
+                    (bulk_edit &&
+                      editedRanks[crit.criterion_id].reduce(
+                        (sum, r) => sum + (r.percentage || 0),
+                        0,
+                      ) > 0) ||
+                    !bulk_edit
+                  "
                   :criterion_id="crit.criterion_id"
                   :editedRanks="editedRanks"
                   :ranks="ranks"
                   :checkEdited="checkEdited"
                   :checkErrors="checkErrors"
+                  :show_success="!bulk_edit"
                 />
               </div>
               <div v-else class="show-comments">
@@ -245,11 +251,20 @@
                 </div>
                 <!-- Show warnings / Messages -->
                 <RanksWarnings
+                  v-if="
+                    (bulk_edit &&
+                      editedRanks[crit.criterion_id].reduce(
+                        (sum, r) => sum + (r.percentage || 0),
+                        0,
+                      ) > 0) ||
+                    !bulk_edit
+                  "
                   :criterion_id="crit.criterion_id"
                   :editedRanks="editedRanks"
                   :ranks="ranks"
                   :checkEdited="checkEdited"
                   :checkErrors="checkErrors"
+                  :show_success="!bulk_edit"
                 />
               </div>
             </div>
@@ -747,7 +762,8 @@ export default {
       if (
         this.unit &&
         errors.length == 0 &&
-        this.saving_criterion_id !== criterion_id
+        this.saving_criterion_id !== criterion_id &&
+        !this.bulk_edit
       ) {
         // Check that there was a change
         const was_changed = this.checkChanged(criterion_id);
