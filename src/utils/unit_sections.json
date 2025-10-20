@@ -101,8 +101,8 @@
               },
               {
                 "field_name": "department_name",
-                "label": "Department Name",
-                "help_text": "The official name of the NHM department."
+                "label": "Discipline Name",
+                "help_text": "The official name of the NHM discipline."
               }
             ]
           }
