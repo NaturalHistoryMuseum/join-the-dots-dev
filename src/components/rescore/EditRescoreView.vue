@@ -36,8 +36,8 @@
 
 <script>
 import ActionsBtnGroup from '../ActionsBtnGroup.vue';
-import BulkEditScoreModal from '../BulkEditScoreModal.vue';
 import CollapsibleTabs from '../CollapsibleTabs.vue';
+import BulkEditScoreModal from '../modals/BulkEditScoreModal.vue';
 import RoundProgressBar from '../RoundProgressBar.vue';
 
 export default {

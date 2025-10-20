@@ -320,8 +320,8 @@ import {
   submitDraftRrank,
 } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
-import CriterionDefModal from './CriterionDefModal.vue';
-import EditCommentsModal from './EditCommentsModal.vue';
+import CriterionDefModal from './modals/CriterionDefModal.vue';
+import EditCommentsModal from './modals/EditCommentsModal.vue';
 import PercentageInput from './PercentageInput.vue';
 import RanksWarnings from './RanksWarnings.vue';
 import RescoreAccordionComp from './RescoreAccordionComp.vue';

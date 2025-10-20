@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import ManageUserModel from '@/components/modals/ManageUserModel.vue';
+import ManageUserModel from '@/components/modals/ManageUserModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { currentUser } from '@/services/authService';

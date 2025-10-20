@@ -172,9 +172,9 @@
 <script>
 import { submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
-import StepperComp from './StepperComp.vue';
-import TableCheckbox from './TableCheckbox.vue';
-import UnitScores from './UnitScores.vue';
+import StepperComp from '../StepperComp.vue';
+import TableCheckbox from '../TableCheckbox.vue';
+import UnitScores from '../UnitScores.vue';
 
 export default {
   name: 'BulkEditScoreModal',
@@ -188,7 +188,7 @@ export default {
     refresh_page_data: Function,
   },
   async mounted() {
-    const data = await import('../utils/ranks_json_temp.json');
+    const data = await import('../../utils/ranks_json_temp.json');
     this.rank_json = data.default;
     this.resetModal();
   },
