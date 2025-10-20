@@ -1,9 +1,4 @@
 <template>
-  <div class="main-header">
-    <p v-if="latestRescore()" class="last-rescore">
-      Latest Rescore : {{ latestRescore() }}
-    </p>
-  </div>
   <div
     v-if="Object.keys(open_rescore).length && !is_loading"
     class="rescore-open"
@@ -28,6 +23,7 @@
         label="Start Rescore with Selected Units"
         @click="createRescore"
       />
+      <zoa-button label="Mark No Change to Units" />
       <!-- <zoa-button label="Create new unit" /> -->
     </div>
     <div class="table-container">
@@ -109,22 +105,22 @@ export default {
       this.fetchUnitsData();
       this.fetchData();
     },
-    latestRescore() {
-      // Initialize to a very old date
-      let latest_date = new Date(0);
-      let is_latest_date = false;
-      this.units.forEach((unit) => {
-        if (unit.last_rescored) {
-          const date = new Date(unit.last_rescored);
-          if (!latest_date || date > latest_date) {
-            is_latest_date = true;
-            latest_date = date;
-          }
-        }
-      });
+    // latestRescore() {
+    //   // Initialize to a very old date
+    //   let latest_date = new Date(0);
+    //   let is_latest_date = false;
+    //   this.units.forEach((unit) => {
+    //     if (unit.last_rescored) {
+    //       const date = new Date(unit.last_rescored);
+    //       if (!latest_date || date > latest_date) {
+    //         is_latest_date = true;
+    //         latest_date = date;
+    //       }
+    //     }
+    //   });
 
-      return is_latest_date ? this.formatDate(latest_date) : false;
-    },
+    //   return is_latest_date ? this.formatDate(latest_date) : false;
+    // },
     // Navigate to the view unit page
     viewUnit(unit) {
       this.$router.push({
@@ -167,7 +163,18 @@ export default {
   gap: 1rem;
 }
 
+.rescore-closed {
+  margin: 1rem;
+}
+
 .last-rescore {
   text-align: end;
+}
+
+.rescore-actions {
+  display: flex;
+  gap: 5rem;
+  margin-bottom: 1rem;
+  justify-content: center;
 }
 </style>
