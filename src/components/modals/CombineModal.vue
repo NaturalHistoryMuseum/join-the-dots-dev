@@ -64,7 +64,7 @@
           <zoa-button
             class="confirm-btn"
             label="Save Changes"
-            @click="handleConformChanges"
+            @click="handleConfirmChanges"
           />
         </div>
       </div>
@@ -106,7 +106,7 @@ export default {
   },
   methods: {
     fieldNameCalc,
-    async handleConformChanges() {
+    async handleConfirmChanges() {
       this.loading = true;
       const resp = await submitDataGeneric('combine-unit', {
         primary_unit_id: this.primary_unit_id,

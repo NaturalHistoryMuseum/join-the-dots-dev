@@ -65,7 +65,7 @@
             v-if="confirm_changes"
             class="confirm-btn"
             label="Delete Unit(s)"
-            @click="handleConformChanges"
+            @click="handleConfirmChanges"
           />
         </div>
       </div>
@@ -100,7 +100,7 @@ export default {
     };
   },
   methods: {
-    async handleConformChanges() {
+    async handleConfirmChanges() {
       this.loading = true;
       await submitDataGeneric('delete-units', {
         unit_ids: this.selected_units.map((unit) => unit.collection_unit_id),

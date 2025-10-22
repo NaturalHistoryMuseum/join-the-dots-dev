@@ -55,7 +55,7 @@
           <zoa-button
             class="confirm-btn"
             label="Save Changes"
-            @click="handleConformChanges"
+            @click="handleConfirmChanges"
           />
         </div>
         <div v-else-if="split_new_units == 1">
@@ -105,7 +105,7 @@ export default {
   },
   methods: {
     fieldNameCalc,
-    async handleConformChanges() {
+    async handleConfirmChanges() {
       this.loading = true;
       const resp = await submitDataGeneric('split-unit', {
         unit_id: this.selected_unit.collection_unit_id,

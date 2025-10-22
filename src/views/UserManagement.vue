@@ -156,12 +156,4 @@ export default {
   text-align: left;
   justify-self: center;
 }
-
-.table-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
-}
 </style>
