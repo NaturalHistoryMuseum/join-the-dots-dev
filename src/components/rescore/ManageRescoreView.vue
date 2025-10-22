@@ -23,13 +23,20 @@
         label="Start Rescore with Selected Units"
         @click="createRescore"
       />
-      <zoa-button label="Mark No Change to Units" />
+      <NoRescoreModal
+        :selected_units="selectedUnitIds"
+        :units="units"
+        @update:refreshData="fetchData"
+      />
       <!-- <zoa-button label="Create new unit" /> -->
     </div>
     <div class="table-container">
       <TableCheckbox :units="units" :fields="fields">
         <!-- Custom rendering for a date field -->
         <template #cell(last_rescored)="row">
+          {{ formatDate(row.value) }}
+        </template>
+        <template #cell(last_assessed)="row">
           {{ formatDate(row.value) }}
         </template>
 
@@ -52,10 +59,11 @@ import {
 } from '@/services/dataService';
 import { currentUser } from '../../services/authService';
 import TableCheckbox from '../TableCheckbox.vue';
+import NoRescoreModal from '../modals/NoRescoreModal.vue';
 
 export default {
   name: 'ManageRescoreView',
-  components: { TableCheckbox },
+  components: { TableCheckbox, NoRescoreModal },
   setup() {
     return { currentUser };
   },
@@ -70,7 +78,8 @@ export default {
         { label: '', key: 'select', class: 'text-center' }, // Checkbox column
         { label: 'Collection Unit ID', key: 'collection_unit_id' },
         { label: 'Unit Name', key: 'unit_name' },
-        { label: 'Last Rescored', key: 'last_rescored' },
+        { label: 'Last Assessed', key: 'last_assessed' },
+        { label: 'Last Rescored / Edited', key: 'last_rescored' },
         { label: 'Actions', key: 'actions' },
       ],
       is_loading: false,
@@ -80,13 +89,16 @@ export default {
     this.fetchData();
   },
   methods: {
-    async fetchData() {
+    async loadPage() {
       // Start loading state so nothing is displayed until data is fetched
       this.is_loading = true;
-      // Fetch data
-      this.units = await getGeneric('units-by-user');
+      await this.fetchData();
       // End loading state
       this.is_loading = false;
+    },
+    async fetchData() {
+      // Fetch data
+      this.units = await getGeneric('units-by-user');
     },
     navigateRescore() {
       // Emit the next step in stepper
@@ -103,7 +115,7 @@ export default {
       // Close the rescore session
       await markRescoreComplete(this.open_rescore.rescore_session_id);
       this.fetchUnitsData();
-      this.fetchData();
+      this.loadPage();
     },
     // latestRescore() {
     //   // Initialize to a very old date

@@ -1537,16 +1537,36 @@ def get_units_by_user():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     data = fetch_data(
-        """SELECT cu.*, (
-                            SELECT MAX(DATE(rs.completed_at))
-                            FROM {database_name}.rescore_session_units rsu
-                            JOIN {database_name}.rescore_session rs ON rs.rescore_session_id = rsu.rescore_session_id
-                            WHERE rsu.collection_unit_id = cu.collection_unit_id
-                        ) AS last_rescored
-                        FROM {database_name}.collection_unit cu
-                        JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
-                        WHERE au.user_id = %s AND cu.unit_active = 'yes';
-                        """,
+        """SELECT cu.*,
+           (
+                SELECT MAX(latest_date)
+                FROM (
+                    SELECT MAX(DATE(uac.date_from)) AS latest_date
+                    FROM {database_name}.unit_assessment_criterion uac
+                    WHERE uac.collection_unit_id = cu.collection_unit_id AND uac.current = 'yes'
+
+                    UNION ALL
+
+                    SELECT MAX(DATE(cum.date_from)) AS latest_date
+                    FROM {database_name}.collection_unit_metric cum
+                    WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes'
+
+                    UNION ALL
+
+                    SELECT MAX(DATE(uc.date_added)) AS latest_date
+                    FROM {database_name}.unit_comment uc
+                    WHERE uc.collection_unit_id = cu.collection_unit_id
+                ) AS all_dates
+            ) AS last_rescored,
+            (
+                SELECT MAX(DATE(uac.date_assessed))
+                FROM {database_name}.unit_assessment_criterion uac
+                WHERE uac.collection_unit_id = cu.collection_unit_id
+            ) AS last_assessed
+            FROM {database_name}.collection_unit cu
+            JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
+            WHERE au.user_id = %s AND cu.unit_active = 'yes';
+            """,
         (user_id,),
     )
     return jsonify(data)
@@ -1693,5 +1713,32 @@ def delete_units():
 
         return jsonify({'message': 'Units deleted successfully'}), 200
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/update-assessed-date', methods=['POST'])
+@jwt_required()
+def update_assessed_date():
+    data = request.get_json()
+    unit_ids = data.get('unit_ids')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    print(unit_ids)
+    print(','.join(map(str, unit_ids)))
+    try:
+        # Dynamically build placeholders for each category_id
+        placeholders = ', '.join(['%s'] * len(unit_ids))
+        execute_query(
+            f"""
+            UPDATE {database_name}.unit_assessment_criterion
+            SET date_assessed = NOW()
+            WHERE collection_unit_id IN ({placeholders}) AND `current` = 'yes';
+            """,
+            (*unit_ids,),
+        )
+        return jsonify(
+            {'message': 'Assessed date updated successfully', 'success': True}
+        ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
