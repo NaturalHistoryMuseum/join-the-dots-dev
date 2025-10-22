@@ -1142,7 +1142,7 @@ def get_units_assigned():
                     JOIN {database_name}.division d ON d.division_id = s.division_id
                     WHERE d.division_id = %s AND cu.unit_active = 'yes'
                             """,
-                    (user[0]['division_id'],),
+                    (user['division_id'],),
                 )
             case 4:
                 data = fetch_data(
