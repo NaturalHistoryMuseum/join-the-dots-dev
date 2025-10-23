@@ -1,10 +1,12 @@
 import { currentUser, loadUser } from '../services/authService';
-import { api, API_URL } from './api';
+// import { api } from './api';
+import { getApi } from '@/services/api';
 
 export async function getGenericUser(route) {
   try {
+    const api = getApi();
     const resp = await api
-      .get(`${API_URL}user/${route}`, { withCredentials: true })
+      .get(`user/${route}`, { withCredentials: true })
       .then((response) => {
         return response.data;
       });
@@ -17,8 +19,9 @@ export async function getGenericUser(route) {
 
 export async function postGenericUser(route, data, reloadUser = false) {
   try {
+    const api = getApi();
     const resp = await api
-      .post(`${API_URL}user/${route}`, data, { withCredentials: true })
+      .post(`user/${route}`, data, { withCredentials: true })
       .then((response) => {
         return response.data;
       });
@@ -35,10 +38,11 @@ export async function postGenericUser(route, data, reloadUser = false) {
 export async function getUser() {
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
+    const api = getApi();
     // Use stored user data if available
     const user = JSON.parse(storedUser);
     const user_details = await api
-      .get(`${API_URL}/user/${user.azure_id}`, { withCredentials: true })
+      .get(`/user/${user.azure_id}`, { withCredentials: true })
       .then((response) => {
         return response.data;
       });
@@ -47,37 +51,13 @@ export async function getUser() {
   return;
 }
 
-// export async function editRole(role) {
-//   if (currentUser) {
-//     try {
-//       const response = await api
-//         .put(
-//           `${API_URL}/edit-user-role`,
-//           {
-//             user_id: currentUser.value.user_id,
-//             role_id: role,
-//           },
-//           { headers: { 'Content-Type': 'application/json' } },
-//         )
-//         .then((response) => {
-//           return response.data;
-//         });
-//       // Reload user to get new role
-//       await loadUser(true);
-//       return response;
-//     } catch (error) {
-//       console.error('Error updating role:', error);
-//       throw error;
-//     }
-//   }
-// }
-
 export async function assignUnits(units) {
   if (currentUser) {
     try {
+      const api = getApi();
       const response = await api
         .post(
-          `${API_URL}/assign-units`,
+          `/assign-units`,
           {
             user_id: currentUser.value.user_id,
             units: units,
@@ -96,44 +76,3 @@ export async function assignUnits(units) {
     }
   }
 }
-
-// export async function addSections(sections) {
-//   if (currentUser) {
-//     try {
-//       const response = await api
-//         .post(
-//           `${API_URL}/add-sections`,
-//           {
-//             user_id: currentUser.value.user_id,
-//             sections: sections,
-//           },
-//           { headers: { 'Content-Type': 'application/json' } },
-//         )
-//         .then((response) => {
-//           return response.data
-//         })
-//       // Reload user to get new role
-//       await loadUser(true)
-//       return response
-//     } catch (error) {
-//       console.error('Error adding sections:', error)
-//       throw error
-//     }
-//   }
-// }
-
-// export async function getSections() {
-//   if (currentUser) {
-//     try {
-//       const response = await api
-//         .get(`${API_URL}/get-sections/${currentUser.value.user_id}`)
-//         .then((response) => {
-//           return response.data
-//         })
-//       return response
-//     } catch (error) {
-//       console.error('Error getting sections:', error)
-//       throw error
-//     }
-//   }
-// }
