@@ -1,3 +1,9 @@
+## v0.4.1 (2025-10-20)
+
+### Fix
+
+- temp fix for api url issue
+
 ## v0.4.0 (2025-10-10)
 
 ### Feature
