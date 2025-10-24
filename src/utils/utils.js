@@ -6,3 +6,5 @@ export default function fieldNameCalc(db_name) {
   const string = capitalised.join(' ');
   return string;
 }
+
+export const ENV = import.meta.env.VITE_ENV;

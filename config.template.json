@@ -1,0 +1,4 @@
+{
+  "API_URL": "${API_URL}",
+  "APP_ENV": "${APP_ENV}"
+}

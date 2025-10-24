@@ -1,6 +1,6 @@
+import { getApi } from '@/services/api';
 import { ref } from 'vue';
 import router from '../router/router';
-import api from './api';
 import { getCookie } from './cookies';
 
 export const currentUser = ref(null);
@@ -8,6 +8,7 @@ let userLoaded = false;
 
 export async function login() {
   try {
+    const api = getApi();
     // Get the auth URL from the server
     const response = await api.get(`auth/login`, {
       withCredentials: true,
@@ -46,6 +47,7 @@ export async function login() {
 
 export async function logout() {
   try {
+    const api = getApi();
     // Navigate to login page
     router.push('/login');
     currentUser.value = null;
@@ -65,6 +67,7 @@ export function loadUser(reloadUser = false) {
     // Check if the CSRF Token is stored in the cookies
     const csrfToken = getCookie('csrf_access_token');
     if (csrfToken) {
+      const api = getApi();
       // Get the current logged in user if user is logged in
       api
         .get(`auth/status`, {

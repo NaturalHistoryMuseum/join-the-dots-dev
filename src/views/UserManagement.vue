@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import ManageUserModel from '@/components/modals/ManageUserModel.vue';
+import ManageUserModel from '@/components/modals/ManageUserModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { currentUser } from '@/services/authService';
@@ -155,13 +155,5 @@ export default {
   width: 10rem;
   text-align: left;
   justify-self: center;
-}
-
-.table-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
 }
 </style>

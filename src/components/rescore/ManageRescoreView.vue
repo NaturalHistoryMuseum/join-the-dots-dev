@@ -1,9 +1,4 @@
 <template>
-  <div class="main-header">
-    <p v-if="latestRescore()" class="last-rescore">
-      Latest Rescore : {{ latestRescore() }}
-    </p>
-  </div>
   <div
     v-if="Object.keys(open_rescore).length && !is_loading"
     class="rescore-open"
@@ -28,12 +23,20 @@
         label="Start Rescore with Selected Units"
         @click="createRescore"
       />
+      <NoRescoreModal
+        :selected_units="selectedUnitIds"
+        :units="units"
+        @update:refreshData="fetchData"
+      />
       <!-- <zoa-button label="Create new unit" /> -->
     </div>
     <div class="table-container">
       <TableCheckbox :units="units" :fields="fields">
         <!-- Custom rendering for a date field -->
         <template #cell(last_rescored)="row">
+          {{ formatDate(row.value) }}
+        </template>
+        <template #cell(last_assessed)="row">
           {{ formatDate(row.value) }}
         </template>
 
@@ -56,10 +59,11 @@ import {
 } from '@/services/dataService';
 import { currentUser } from '../../services/authService';
 import TableCheckbox from '../TableCheckbox.vue';
+import NoRescoreModal from '../modals/NoRescoreModal.vue';
 
 export default {
   name: 'ManageRescoreView',
-  components: { TableCheckbox },
+  components: { TableCheckbox, NoRescoreModal },
   setup() {
     return { currentUser };
   },
@@ -74,7 +78,8 @@ export default {
         { label: '', key: 'select', class: 'text-center' }, // Checkbox column
         { label: 'Collection Unit ID', key: 'collection_unit_id' },
         { label: 'Unit Name', key: 'unit_name' },
-        { label: 'Last Rescored', key: 'last_rescored' },
+        { label: 'Last Assessed', key: 'last_assessed' },
+        { label: 'Last Rescored / Edited', key: 'last_rescored' },
         { label: 'Actions', key: 'actions' },
       ],
       is_loading: false,
@@ -84,13 +89,16 @@ export default {
     this.fetchData();
   },
   methods: {
-    async fetchData() {
+    async loadPage() {
       // Start loading state so nothing is displayed until data is fetched
       this.is_loading = true;
-      // Fetch data
-      this.units = await getGeneric('units-by-user');
+      await this.fetchData();
       // End loading state
       this.is_loading = false;
+    },
+    async fetchData() {
+      // Fetch data
+      this.units = await getGeneric('units-by-user');
     },
     navigateRescore() {
       // Emit the next step in stepper
@@ -107,24 +115,24 @@ export default {
       // Close the rescore session
       await markRescoreComplete(this.open_rescore.rescore_session_id);
       this.fetchUnitsData();
-      this.fetchData();
+      this.loadPage();
     },
-    latestRescore() {
-      // Initialize to a very old date
-      let latest_date = new Date(0);
-      let is_latest_date = false;
-      this.units.forEach((unit) => {
-        if (unit.last_rescored) {
-          const date = new Date(unit.last_rescored);
-          if (!latest_date || date > latest_date) {
-            is_latest_date = true;
-            latest_date = date;
-          }
-        }
-      });
+    // latestRescore() {
+    //   // Initialize to a very old date
+    //   let latest_date = new Date(0);
+    //   let is_latest_date = false;
+    //   this.units.forEach((unit) => {
+    //     if (unit.last_rescored) {
+    //       const date = new Date(unit.last_rescored);
+    //       if (!latest_date || date > latest_date) {
+    //         is_latest_date = true;
+    //         latest_date = date;
+    //       }
+    //     }
+    //   });
 
-      return is_latest_date ? this.formatDate(latest_date) : false;
-    },
+    //   return is_latest_date ? this.formatDate(latest_date) : false;
+    // },
     // Navigate to the view unit page
     viewUnit(unit) {
       this.$router.push({
@@ -167,7 +175,18 @@ export default {
   gap: 1rem;
 }
 
+.rescore-closed {
+  margin: 1rem;
+}
+
 .last-rescore {
   text-align: end;
+}
+
+.rescore-actions {
+  display: flex;
+  gap: 5rem;
+  margin-bottom: 1rem;
+  justify-content: center;
 }
 </style>

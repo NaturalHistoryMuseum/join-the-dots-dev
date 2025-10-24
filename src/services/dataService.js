@@ -1,6 +1,7 @@
-import { api, API_URL } from './api';
+import { getApi } from '@/services/api';
 
 export async function getGeneric(route) {
+  const api = getApi();
   const resp = await api
     .get(`data/${route}`, { withCredentials: true })
     .then((response) => {
@@ -11,7 +12,8 @@ export async function getGeneric(route) {
 
 export async function downloadCSV(view) {
   try {
-    const response = await fetch(`${API_URL}/export-view/${view}`);
+    const api = getApi();
+    const response = await api.get(`/export-view/${view}`);
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -27,6 +29,7 @@ export async function downloadCSV(view) {
 
 export async function downloadLtCjson() {
   try {
+    const api = getApi();
     const response = await api.get(`data/export-ltc-json`, {
       responseType: 'blob',
       withCredentials: true,
@@ -51,6 +54,7 @@ export async function downloadLtCjson() {
 
 export async function markRescoreOpen(units) {
   try {
+    const api = getApi();
     const response = await api.post(
       `data/mark-rescore-open`,
       { units: units },
@@ -67,6 +71,7 @@ export async function markRescoreOpen(units) {
 }
 export async function markRescoreComplete(rescore_session_id) {
   try {
+    const api = getApi();
     const response = await api.post(`data/end-rescore/${rescore_session_id}`, {
       withCredentials: true,
     });
@@ -83,6 +88,7 @@ export async function completeCats(
   new_val,
 ) {
   try {
+    const api = getApi();
     const response = await api.post(
       `data/complete-category`,
       {
@@ -103,6 +109,7 @@ export async function completeCats(
 
 export async function submitDraftRrank(rank_draft) {
   try {
+    const api = getApi();
     const response = await api.post(`data/submit-draft-rank`, rank_draft, {
       headers: { 'Content-Type': 'application/json' },
       withCredentials: true,
@@ -116,6 +123,7 @@ export async function submitDraftRrank(rank_draft) {
 
 export async function submitDataGeneric(route, data_json) {
   try {
+    const api = getApi();
     const response = await api.post(`data/${route}`, data_json, {
       headers: {
         'Content-Type': 'application/json',

@@ -9,8 +9,12 @@
         aria-controls="unit-table"
         class="customPagination"
       ></b-pagination>
+      <div class="selected-num" v-if="selected_unit_ids.length > 0">
+        {{ selected_unit_ids.length }} units selected
+      </div>
       <!-- Rows per page dropdown -->
       <zoa-input
+        class="per-page-dropdown"
         zoa-type="dropdown"
         :config="{ options: per_page_options, placeholder: 'Rows per page' }"
         label="Rows per page"
@@ -217,10 +221,20 @@ export default {
 
 .table-options {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
   padding: 1rem 2rem;
   width: 100%;
+}
+
+.selected-num {
+  font-size: 0.9rem;
+  color: #555;
+  margin-left: 2rem;
+}
+
+.per-page-dropdown {
+  margin-left: auto;
 }
 
 .unit-table {
