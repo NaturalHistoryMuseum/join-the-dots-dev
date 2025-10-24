@@ -239,7 +239,7 @@ export default {
                 ? unit.curator_name.substring(0, this.dropdown_char_limit) +
                   '...'
                 : unit.curator_name,
-            value: unit.responsible_curator_id,
+            value: unit.responsible_curator_id.toString(),
           });
         }
       });
@@ -280,7 +280,9 @@ export default {
           // Filter by responsible curator
           (this.search_curators.length > 0
             ? this.search_curators.includes(
-                unit.responsible_curator_id ? unit.responsible_curator_id : '',
+                unit.responsible_curator_id.toString()
+                  ? unit.responsible_curator_id.toString()
+                  : '',
               )
             : true) &&
           // Filter by active/inactive status
@@ -299,6 +301,8 @@ export default {
       this.search_id_query = '';
       this.active_tab = 0;
       this.search_section = [];
+      this.search_division = [];
+      this.search_curators = [];
     },
   },
 };
@@ -326,7 +330,7 @@ export default {
   color: white;
   display: flex;
   flex-direction: column;
-  margin: 10px;
+  margin: 1rem 1rem 0rem 1rem;
   /* width: 50px; */
 }
 
@@ -392,11 +396,12 @@ export default {
 
 .filters-row {
   margin-top: 1rem;
+  gap: 2rem;
   text-align: left;
   color: black;
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  /* align-items: flex-start; */
 }
 
 .filter {

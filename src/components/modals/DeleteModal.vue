@@ -112,7 +112,7 @@ export default {
         setTimeout(() => {
           // Redirect to view units page
           this.$router.push({ path: '/view-units' });
-        }, 1000);
+        }, 2000);
       } else {
         // Emit update
         this.$emit('update:refreshData');

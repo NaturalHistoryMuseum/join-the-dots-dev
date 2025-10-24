@@ -101,23 +101,36 @@
                     "
                     class=""
                   >
-                    <div class="required-tag">*</div>
-                    <zoa-input
-                      class="field-container"
-                      zoa-type="multiselect"
-                      label="Please select editors"
-                      v-model="assigned_users"
-                      @change="handleEditorChange(true)"
-                      help="The users who will be able to edit this unit"
-                      help-position="right"
-                      :config="{
-                        options: curators_options,
-                        itemName: 'Curator',
-                        itemNamePlural: 'Curators',
-                        placeholder: 'Please select....',
-                        enableSearch: true,
-                      }"
-                    />
+                    <div class="editors-field">
+                      <div>
+                        <div class="required-tag">*</div>
+                        <zoa-input
+                          class="field-container"
+                          zoa-type="multiselect"
+                          label="Please select editors"
+                          v-model="assigned_users"
+                          @change="handleEditorChange(true)"
+                          help="The users who will be able to edit this unit"
+                          help-position="right"
+                          :config="{
+                            options: curators_options,
+                            itemName: 'Curator',
+                            itemNamePlural: 'Curators',
+                            placeholder: 'Please select....',
+                            enableSearch: true,
+                          }"
+                        />
+                      </div>
+                      <div>
+                        <zoa-button
+                          class="remove-btn"
+                          @click="removeEditor(user_id)"
+                        >
+                          Remove All Editors
+                          <i class="bi bi-x-lg"></i>
+                        </zoa-button>
+                      </div>
+                    </div>
                     <div
                       class="fields-box"
                       v-if="
@@ -267,11 +280,17 @@ export default {
     async fetchAssignedUsers() {
       if (this.unit_id) {
         const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
-        this.assigned_users = resp.map((user) => user.user_id);
+        this.assigned_users = resp.map((user) => user.user_id.toString());
       }
     },
     async fetchAllCurators() {
-      this.curators_options = await getGeneric(`all-curators`);
+      getGeneric(`all-curators`).then((response) => {
+        this.curators_options = response.map((user) => ({
+          ...user,
+          value: user.user_id.toString(),
+        }));
+        this.handleEditorChange(false);
+      });
     },
     async fetchUnitData() {
       if (!this.add_unit_mode && this.unit_id) {
@@ -290,16 +309,18 @@ export default {
     },
     removeEditor(user_id) {
       this.assigned_users = this.assigned_users.filter(
-        (user) => user != user_id,
+        (user) => user != user_id.toString(),
       );
       this.handleEditorChange(!this.add_unit_mode && this.allow_edit);
     },
     async handleEditorChange(submit = false) {
       if (
         this.unit.responsible_curator_id &&
-        !this.assigned_users.includes(this.unit.responsible_curator_id)
+        !this.assigned_users.includes(
+          this.unit.responsible_curator_id.toString(),
+        )
       ) {
-        this.assigned_users.push(this.unit.responsible_curator_id);
+        this.assigned_users.push(this.unit.responsible_curator_id.toString());
       }
       if (submit && !this.add_unit_mode && this.allow_edit) {
         const response = await submitDataGeneric('submit-unit-assigned', {
@@ -503,6 +524,11 @@ export default {
   flex-wrap: wrap;
 }
 
+.editors-field {
+  display: flex;
+  gap: 2rem;
+  align-items: end;
+}
 .remove-btn {
   background-color: #ff5957 !important;
   color: white !important ;

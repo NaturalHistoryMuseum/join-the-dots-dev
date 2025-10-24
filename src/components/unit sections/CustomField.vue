@@ -2,7 +2,7 @@
   <div
     v-if="field && isValidFieldType(field.field_type)"
     :class="
-      this.field.field_type === 'dropdown' && field.dependant_fields
+      this.field.field_type === 'dropdown-search' && field.dependant_fields
         ? 'dd-container'
         : ''
     "
@@ -88,7 +88,10 @@ export default {
     };
   },
   mounted() {
-    if (this.field.field_type === 'dropdown' && this.field.options_source) {
+    if (
+      this.field.field_type === 'dropdown-search' &&
+      this.field.options_source
+    ) {
       this.fetchDropdownOptions();
     }
   },
@@ -101,13 +104,15 @@ export default {
           return { placeholder: 'Enter a number' };
         case 'checkbox':
           return { checkValue: this.value === 'yes' };
-        case 'dropdown':
+        case 'dropdown-search':
           return {
             options:
               Array.isArray(this.dropdown_options) &&
               this.dropdown_options.length
                 ? this.dropdown_options
                 : ['Option 1', 'Option 2'],
+            enableSearch: true,
+            placeholder: 'Select an option',
           };
         default:
           return {};
@@ -121,7 +126,7 @@ export default {
     displayValue() {
       if (this.field.field_type === 'checkbox') {
         return this.value === 'yes' ? 'Yes' : 'No';
-      } else if (this.field.field_type === 'dropdown') {
+      } else if (this.field.field_type === 'dropdown-search') {
         return this.current_option.label
           ? this.current_option.label
           : this.allow_edit
@@ -136,7 +141,9 @@ export default {
         if (this.field.field_type === 'checkbox') {
           return this.value === 'yes';
         }
-        return this.value !== undefined ? this.value : '';
+        return this.value && this.value !== undefined
+          ? this.value.toString()
+          : '';
       },
       set(val) {
         let new_val = val;
@@ -158,7 +165,12 @@ export default {
     },
     fetchDropdownOptions() {
       getGeneric(this.field.options_source).then((response) => {
-        this.dropdown_options = response || [];
+        this.dropdown_options =
+          response.map((item) => ({
+            ...item,
+            value: item.value.toString(),
+            label: item.label.toString(),
+          })) || [];
         this.setCurrentOption();
       });
     },
@@ -179,7 +191,7 @@ export default {
       const validTypes = [
         'textbox',
         'number',
-        'dropdown',
+        'dropdown-search',
         'checkbox',
         'textarea',
         'empty',
@@ -187,7 +199,7 @@ export default {
       return validTypes.includes(type);
     },
     handleChange() {
-      if (this.field.field_type === 'dropdown') {
+      if (this.field.field_type === 'dropdown-search') {
         this.setCurrentOption();
       }
     },
