@@ -173,6 +173,7 @@ export default {
   text-align: center;
   margin-bottom: 2rem;
   margin-top: 1rem;
+  margin: 1rem 2rem 2rem 2rem;
 }
 
 .split-unit {

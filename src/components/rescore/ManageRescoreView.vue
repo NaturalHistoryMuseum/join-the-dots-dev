@@ -31,7 +31,6 @@
         :units="units"
         @update:refreshData="fetchData"
       />
-      <!-- <zoa-button label="Create new unit" /> -->
     </div>
     <SidebarFilter
       :units="units"
@@ -70,7 +69,7 @@ import SidebarFilter from '@/components/SidebarFilter.vue';
 import {
   getGeneric,
   markRescoreComplete,
-  markRescoreOpen,
+  submitDataGeneric,
 } from '@/services/dataService';
 import { currentUser } from '../../services/authService';
 import TableCheckbox from '../TableCheckbox.vue';
@@ -123,7 +122,9 @@ export default {
 
     async createRescore() {
       // Create rescore session with selected units
-      await markRescoreOpen(this.selectedUnitIds);
+      await submitDataGeneric('mark-rescore-open', {
+        units: this.selectedUnitIds,
+      });
       this.fetchUnitsData();
       // this.navigateRescore();
     },
@@ -163,6 +164,7 @@ export default {
       return date ? new Date(date).toISOString().split('T')[0] : 'No Data';
     },
     handleFilteredUnits(filtered_units) {
+      console.log();
       // Only reset pagination if actual filter logic triggered
       if (!this._internalChange) {
         this.filtered_units = JSON.parse(JSON.stringify(filtered_units));
@@ -175,7 +177,7 @@ export default {
   computed: {
     selectedUnitIds() {
       // Return the IDs of the selected units
-      return this.units
+      return this.filtered_units
         .filter((unit) => unit.selected)
         .map((unit) => unit.collection_unit_id);
     },
