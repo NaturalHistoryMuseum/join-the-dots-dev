@@ -1287,7 +1287,7 @@ def set_unit_assigned():
         current_assigned = set(
             row['user_id'] for row in current_assigned
         )  # if fetch_data returns dicts
-        assigned_users = set(assigned_users)
+        assigned_users = set(int(user) for user in assigned_users)
         # Compare lists
         users_to_add = assigned_users - current_assigned
         users_to_remove = current_assigned - assigned_users

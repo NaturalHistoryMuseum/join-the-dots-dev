@@ -40,7 +40,13 @@
             <zoa-input
               zoa-type="dropdown"
               label="Role"
-              :config="{ options: role_options, placeholder }"
+              :config="{
+                options: role_options.filter(
+                  (role) =>
+                    parseInt(role.role_id) <= parseInt(currentUser.role_id),
+                ),
+                placeholder,
+              }"
               @change="(value) => handleRoleChange(value)"
               v-model="role_id"
               help="The access role assigned to your account for this JtD application"
@@ -49,7 +55,7 @@
           </div>
           <div class="account-field" v-if="currentUser.level > 1">
             <zoa-input
-              v-if="role_id >= 3"
+              v-if="role_id >= 4"
               zoa-type="dropdown"
               label="Division"
               :config="{ options: division_options }"

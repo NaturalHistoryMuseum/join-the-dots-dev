@@ -124,7 +124,7 @@
                       <div>
                         <zoa-button
                           class="remove-btn"
-                          @click="removeEditor(user_id)"
+                          @click="removeAllEditors()"
                         >
                           Remove All Editors
                           <i class="bi bi-x-lg"></i>
@@ -263,7 +263,7 @@ export default {
         publish_flag: 'yes',
         unit_active: 'yes',
       };
-      this.assigned_users = [this.currentUser.user_id];
+      this.assigned_users = [];
     } else {
       this.add_unit_mode = false;
       this.fetchUnitData();
@@ -312,6 +312,12 @@ export default {
         (user) => user != user_id.toString(),
       );
       this.handleEditorChange(!this.add_unit_mode && this.allow_edit);
+    },
+    removeAllEditors() {
+      // Remove all editors except the responsible curator
+      this.assigned_users = [this.unit.responsible_curator_id.toString()];
+      // Submit the change
+      this.handleEditorChange(this.allow_edit);
     },
     async handleEditorChange(submit = false) {
       if (

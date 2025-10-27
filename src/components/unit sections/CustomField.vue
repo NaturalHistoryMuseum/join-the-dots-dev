@@ -127,7 +127,7 @@ export default {
       if (this.field.field_type === 'checkbox') {
         return this.value === 'yes' ? 'Yes' : 'No';
       } else if (this.field.field_type === 'dropdown-search') {
-        return this.current_option.label
+        return this.current_option && this.current_option.label
           ? this.current_option.label
           : this.allow_edit
             ? ''
