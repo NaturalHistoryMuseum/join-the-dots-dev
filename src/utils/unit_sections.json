@@ -87,7 +87,7 @@
         "fields": [
           {
             "field_name": "section_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Section Name",
             "required": true,
             "editable": true,
@@ -114,7 +114,7 @@
         "fields": [
           {
             "field_name": "curatorial_unit_definition_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Curatorial Unit Definition",
             "required": true,
             "editable": true,
@@ -151,7 +151,7 @@
         "fields": [
           {
             "field_name": "library_and_archives_function_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Library and Archives Function",
             "required": false,
             "editable": true,
@@ -172,7 +172,7 @@
         "fields": [
           {
             "field_name": "responsible_curator_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Responsible Curator",
             "required": true,
             "editable": true,
@@ -205,7 +205,7 @@
         "fields": [
           {
             "field_name": "geological_time_period_to_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Geological Time Period To",
             "required": false,
             "editable": true,
@@ -221,7 +221,7 @@
           },
           {
             "field_name": "geological_time_period_from_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Geological Time Period From",
             "required": false,
             "editable": true,
@@ -243,7 +243,7 @@
         "fields": [
           {
             "field_name": "geographic_origin_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Geographic Origin Name",
             "required": false,
             "editable": true,
@@ -273,7 +273,7 @@
           },
           {
             "field_name": "taxon_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Taxon Name",
             "required": false,
             "editable": true,
@@ -310,7 +310,7 @@
         "fields": [
           {
             "field_name": "storage_container_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Storage Container",
             "required": false,
             "editable": true,
@@ -336,7 +336,7 @@
         "fields": [
           {
             "field_name": "storage_room_id",
-            "field_type": "dropdown",
+            "field_type": "dropdown-search",
             "label": "Room Code",
             "required": true,
             "editable": true,

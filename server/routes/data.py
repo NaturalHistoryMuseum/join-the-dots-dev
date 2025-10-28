@@ -1287,7 +1287,7 @@ def set_unit_assigned():
         current_assigned = set(
             row['user_id'] for row in current_assigned
         )  # if fetch_data returns dicts
-        assigned_users = set(assigned_users)
+        assigned_users = set(int(user) for user in assigned_users)
         # Compare lists
         users_to_add = assigned_users - current_assigned
         users_to_remove = current_assigned - assigned_users
@@ -1480,7 +1480,15 @@ def get_all_containers():
 @data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
 def get_all_taxon():
-    data = fetch_data("""SELECT *, taxon_id AS value, CONCAT(taxon_name, ' ', taxon_rank) AS label
+    data = fetch_data("""SELECT *, taxon_id AS value,
+                    CONCAT(
+                        case
+                            when taxon_life_science_id is null then 'ES '
+                            when taxon_palaeontology_id is null then 'LS '
+                            else ''
+                        end,
+                        taxon_name, ' ', taxon_rank
+                    ) AS label
                    FROM {database_name}.taxon ;
                    """)
     return jsonify(data)
@@ -1537,7 +1545,8 @@ def get_units_by_user():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     data = fetch_data(
-        """SELECT cu.*,
+        """SELECT cu.*, s.section_name, d.division_name,
+
            (
                 SELECT MAX(latest_date)
                 FROM (
@@ -1565,6 +1574,8 @@ def get_units_by_user():
             ) AS last_assessed
             FROM {database_name}.collection_unit cu
             JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
+            JOIN {database_name}.section s ON s.section_id = cu.section_id
+            JOIN {database_name}.division d ON d.division_id = s.division_id
             WHERE au.user_id = %s AND cu.unit_active = 'yes';
             """,
         (user_id,),

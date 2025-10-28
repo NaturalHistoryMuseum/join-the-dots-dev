@@ -33,15 +33,17 @@
         v-if="selected_units && !success && !loading && !included_in_rescore"
       >
         <p>Unit selected to be combined:</p>
-        <div
-          v-for="unit in selected_units"
-          :key="unit.collection_unit_id"
-          class="units-list"
-        >
-          <strong>
-            {{ unit.collection_unit_id }} -
-            {{ unit.unit_name }}
-          </strong>
+        <div class="view-dropdown-field">
+          <div
+            class="view-field text-left"
+            v-for="unit in selected_units"
+            :key="unit.collection_unit_id"
+          >
+            <strong>
+              {{ unit.collection_unit_id }} -
+              {{ unit.unit_name }}
+            </strong>
+          </div>
         </div>
         <p class="message">
           Please select the unit that you would like to be the primary unit.
@@ -173,15 +175,6 @@ export default {
 
 .new-count {
   justify-self: center;
-}
-
-.action-modal-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 2rem;
-  margin-top: 1rem;
 }
 
 .actions-modal {

@@ -5,12 +5,15 @@
   >
     <h5>Rescore Open:</h5>
     <p>Started : {{ open_rescore.created_at }}</p>
-    <zoa-button
+    <!-- <zoa-button
       label="Continue Rescore"
       @click="navigateRescore()"
       class="close-rescore-btn"
+    /> -->
+    <zoa-button
+      label="Close Rescore and Discard Changes"
+      @click="closeRescore()"
     />
-    <zoa-button label="Close Rescore" @click="closeRescore()" />
   </div>
   <div v-else-if="!is_loading" class="rescore-closed">
     <h5>Rescore Status:</h5>
@@ -28,10 +31,20 @@
         :units="units"
         @update:refreshData="fetchData"
       />
-      <!-- <zoa-button label="Create new unit" /> -->
     </div>
+    <SidebarFilter
+      :units="units"
+      :show_filters="['unit_id', 'unit_name', 'section']"
+      :column_direction="false"
+      :minimal="true"
+      @update:filteredUnits="handleFilteredUnits"
+    />
     <div class="table-container">
-      <TableCheckbox :units="units" :fields="fields">
+      <TableCheckbox
+        :units="filtered_units"
+        :fields="fields"
+        ref="rescoreTable"
+      >
         <!-- Custom rendering for a date field -->
         <template #cell(last_rescored)="row">
           {{ formatDate(row.value) }}
@@ -52,10 +65,11 @@
 </template>
 
 <script>
+import SidebarFilter from '@/components/SidebarFilter.vue';
 import {
   getGeneric,
   markRescoreComplete,
-  markRescoreOpen,
+  submitDataGeneric,
 } from '@/services/dataService';
 import { currentUser } from '../../services/authService';
 import TableCheckbox from '../TableCheckbox.vue';
@@ -63,7 +77,7 @@ import NoRescoreModal from '../modals/NoRescoreModal.vue';
 
 export default {
   name: 'ManageRescoreView',
-  components: { TableCheckbox, NoRescoreModal },
+  components: { TableCheckbox, NoRescoreModal, SidebarFilter },
   setup() {
     return { currentUser };
   },
@@ -83,6 +97,7 @@ export default {
         { label: 'Actions', key: 'actions' },
       ],
       is_loading: false,
+      filtered_units: [],
     };
   },
   mounted() {
@@ -107,7 +122,9 @@ export default {
 
     async createRescore() {
       // Create rescore session with selected units
-      await markRescoreOpen(this.selectedUnitIds);
+      await submitDataGeneric('mark-rescore-open', {
+        units: this.selectedUnitIds,
+      });
       this.fetchUnitsData();
       // this.navigateRescore();
     },
@@ -146,11 +163,21 @@ export default {
     formatDate(date) {
       return date ? new Date(date).toISOString().split('T')[0] : 'No Data';
     },
+    handleFilteredUnits(filtered_units) {
+      console.log();
+      // Only reset pagination if actual filter logic triggered
+      if (!this._internalChange) {
+        this.filtered_units = JSON.parse(JSON.stringify(filtered_units));
+        if (filtered_units.length > 0) {
+          this.$refs.rescoreTable.resetPage();
+        }
+      }
+    },
   },
   computed: {
     selectedUnitIds() {
       // Return the IDs of the selected units
-      return this.units
+      return this.filtered_units
         .filter((unit) => unit.selected)
         .map((unit) => unit.collection_unit_id);
     },
@@ -164,7 +191,6 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 1rem;
 }
 .rescore-open {
   display: flex;

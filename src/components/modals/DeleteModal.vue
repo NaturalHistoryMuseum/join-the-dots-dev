@@ -38,15 +38,17 @@
         "
       >
         <div>Delete the following units:</div>
-        <div
-          v-for="unit in selected_units"
-          :key="unit.collection_unit_id"
-          class="units-list"
-        >
-          <strong>
-            {{ unit.collection_unit_id }} -
-            {{ unit.unit_name }}
-          </strong>
+        <div class="view-dropdown-field">
+          <div
+            class="view-field text-left"
+            v-for="unit in selected_units"
+            :key="unit.collection_unit_id"
+          >
+            <strong>
+              {{ unit.collection_unit_id }} -
+              {{ unit.unit_name }}
+            </strong>
+          </div>
         </div>
         <div class="action-desc">
           <p>This will remove the selected unit(s). This cannot be undone.</p>
@@ -112,7 +114,7 @@ export default {
         setTimeout(() => {
           // Redirect to view units page
           this.$router.push({ path: '/view-units' });
-        }, 1000);
+        }, 2000);
       } else {
         // Emit update
         this.$emit('update:refreshData');
@@ -151,10 +153,6 @@ export default {
   gap: 1rem;
   width: auto;
   margin-top: 1rem;
-}
-
-.action-modal-content {
-  text-align: center;
 }
 
 .split-unit {

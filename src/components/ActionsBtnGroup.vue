@@ -26,7 +26,7 @@ export default {
   props: { force_show: Boolean },
   data() {
     return {
-      show_actions: false,
+      show_actions: true,
     };
   },
   methods: {

@@ -128,12 +128,6 @@ export default {
 </script>
 
 <style>
-.filters-row {
-  display: flex;
-  gap: 3rem;
-  align-items: center;
-  margin-bottom: 20px;
-}
 .unit-row {
   display: flex;
   flex-wrap: wrap;
