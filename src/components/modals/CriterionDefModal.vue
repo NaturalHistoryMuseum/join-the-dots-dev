@@ -1,7 +1,13 @@
 <template>
   <zoa-modal class="modal-btn criterion-modal" kind="info">
     <template v-slot:button>
-      <i class="bi bi-info-circle help-icon"></i>
+      <zoa-button title="definition">
+        <i
+          title="Criterion Definition"
+          aria-label="Definition"
+          class="bi bi-info-circle help-icon"
+        ></i>
+      </zoa-button>
     </template>
     <template v-slot:header>
       Definition - {{ crit.criterion_code }}: {{ crit.criterion_name }}

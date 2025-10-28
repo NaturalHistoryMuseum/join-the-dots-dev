@@ -515,7 +515,7 @@ export default {
 }
 
 .required-tag {
-  color: red;
+  color: darkred;
   margin-bottom: -1.5rem;
 }
 

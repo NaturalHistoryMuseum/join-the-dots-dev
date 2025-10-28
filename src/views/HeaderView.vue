@@ -15,15 +15,15 @@ import NavLinks from '../components/NavLinks.vue';
       <!-- Login / Account Buttons -->
       <div class="account-header">
         <div v-if="currentUser">
-          <button @click="navigateAccount" class="icon-btn">
-            <i alt="Account Button" class="bi bi-person-fill icon"></i>
+          <button @click="navigateAccount" title="Account" class="icon-btn">
+            <i class="bi bi-person-fill icon"></i>
           </button>
-          <button @click="logoutUser" class="icon-btn">
-            <i alt="Logout Button" class="bi bi-box-arrow-in-right icon"></i>
+          <button @click="logoutUser" title="Logout" class="icon-btn">
+            <i class="bi bi-box-arrow-in-right icon"></i>
           </button>
         </div>
         <div v-else>
-          <button @click="login" class="icon-btn">
+          <button @click="login" title="Login" class="icon-btn">
             <i alt="Login Button" class="bi bi-box-arrow-in-left icon"></i>
           </button>
         </div>

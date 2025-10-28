@@ -63,7 +63,7 @@ export default {
         { label: 'Name', key: 'name' },
         { label: 'Role', key: 'role' },
         { label: 'Email', key: 'email' },
-        { label: '', key: 'edit_user_btn' },
+        { label: 'Actions', key: 'edit_user_btn' },
       ],
       filtered_users: [],
       divisions: [],

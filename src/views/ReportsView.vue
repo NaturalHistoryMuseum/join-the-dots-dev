@@ -3,7 +3,7 @@
     <div class="main-header">
       <h1>Reports</h1>
       <p>Coming soon...</p>
-      <h5>For now, use the following link</h5>
+      <p>For now, use the following link</p>
       <a
         href="https://app.powerbi.com/groups/00c58706-93bc-4ec1-84d9-0b51d7d6561e/reports/e617e09b-0285-442d-b16c-cbfff8c5db22/ReportSection?experience=power-bi"
         target="_blank"

@@ -120,6 +120,8 @@
         <textarea
           v-if="rescore"
           class="text-area"
+          id="Unit Comment"
+          aria-label="Unit Comment"
           rows="7"
           v-model="local_unit.unit_comment"
           @change="handleCommentChange"
