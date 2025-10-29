@@ -1,6 +1,6 @@
 <template>
   <div v-if="!success">
-    <h2 class="text-center">Review Rescore Changes</h2>
+    <p class="h2-style text-center">Review Rescore Changes</p>
     <p>
       Please review all of the changes below and confirm before submitting them.
       These changes cannot be undone.

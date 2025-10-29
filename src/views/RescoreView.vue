@@ -1,7 +1,7 @@
 <template>
   <div class="rescore" v-show="!loading">
     <div class="row" v-if="!rescore_saved">
-      <!-- <h1 class="col-md-3 rescore-title">Rescore</h1> -->
+      <!-- <p class="h1-style col-md-3 rescore-title">Rescore</p> -->
       <div class="col-md-3"></div>
 
       <StepperComp

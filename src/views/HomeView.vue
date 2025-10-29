@@ -1,19 +1,19 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <h1>Join the Dots Portal</h1>
+      <p class="h1-style">Join the Dots Portal</p>
       <div v-if="currentUser">
         <p v-if="currentUser.name">Welcome, {{ currentUser.name }}</p>
       </div>
       <!-- <HomeStats /> -->
     </div>
     <div class="boader-header">
-      <h2 class="boader-header-title">Actions</h2>
+      <p class="h2-style boader-header-title">Actions</p>
     </div>
     <b-row class="home-cards">
       <div v-if="currentUser.level > 1" class="home-card col-md-4">
         <i class="bi bi-clipboard-check card-icon"></i>
-        <h2>Rescore</h2>
+        <p class="h2-style">Rescore</p>
         <p>Perform a rescore on your assigned units.</p>
         <zoa-button
           label="Rescore"
@@ -23,7 +23,7 @@
       </div>
       <div v-if="currentUser.level == 1" class="home-card col-md-4">
         <i class="bi bi-file-earmark card-icon"></i>
-        <h2>About</h2>
+        <p class="h2-style">About</p>
         <p>Understand the JtD process further</p>
         <zoa-button
           label="Rescore"
@@ -34,7 +34,7 @@
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
-        <h2>View Units</h2>
+        <p class="h2-style">View Units</p>
         <p>
           Explore all units or just your assigned units and make changes to
           them.
@@ -48,7 +48,7 @@
       <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
-        <h2>Reports</h2>
+        <p class="h2-style">Reports</p>
         <p>
           Generate reports on your assigned units or whole division's
           performance.
@@ -98,6 +98,27 @@ export default {
 </script>
 
 <style>
+.h1-style {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+.h2-style {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.h3-style {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+.h4-style {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.h5-style {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
 .main-page {
   display: flex;
   flex-direction: column;

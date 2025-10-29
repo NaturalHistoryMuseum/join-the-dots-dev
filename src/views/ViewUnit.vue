@@ -13,7 +13,7 @@
     <div class="main-header">
       <div class="row" v-if="(unit && unit_id) || !add_unit_mode">
         <div class="col-md-4">
-          <h1>View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
+          <p class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</p>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
         <div class="col-md-8" v-if="allow_edit">
@@ -25,7 +25,7 @@
       </div>
       <div v-else class="row">
         <div class="col-md-6">
-          <h1>Add New Unit</h1>
+          <p class="h1-style">Add New Unit</p>
           <p>
             Please fill out all required units (<span style="color: red">*</span
             >) and the scoring page to create this unit.
@@ -74,7 +74,7 @@
                   v-for="sub in section.sub_sections"
                   :key="sub.sub_section_id"
                 >
-                  <h4 class="subheading">{{ sub.sub_section_name }}</h4>
+                  <p class="h4-style subheading">{{ sub.sub_section_name }}</p>
                   <div
                     v-if="sub.fields && sub.fields.length > 0"
                     class="fields-box"

@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <h1>Admin</h1>
+      <p class="h1-style">Admin</p>
     </div>
   </div>
 </template>

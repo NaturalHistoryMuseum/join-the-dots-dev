@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <h1>Reports</h1>
+      <p class="h1-style">Reports</p>
       <p>Coming soon...</p>
       <p>For now, use the following link</p>
       <a
@@ -9,7 +9,7 @@
         target="_blank"
         >Power Bi Reports</a
       >
-      <h1>Exports</h1>
+      <p class="h1-style">Exports</p>
       <div class="row">
         <p>Coming soon...</p>
         <!-- <div class="col-md-4">
@@ -46,7 +46,7 @@
         </div> -->
       </div>
 
-      <!-- <h1>LtC Export</h1>
+      <!-- <p class="h1-style">LtC Export</p>
       <div class="row">
         <div class="col-md-4">
           <zoa-button label="JSON LtC Export" @click="downloadLtcExport" />
@@ -157,7 +157,7 @@ export default {
 <!--
 <template>
   <div>
-    <h2>Power BI Embedded Report</h2>
+    <p class="h2-style">Power BI Embedded Report</p>
     <div ref="reportContainer" style="width: 800px; height: 600px"></div>
   </div>
 </template>
