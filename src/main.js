@@ -19,13 +19,9 @@ import 'bootstrap/dist/css/bootstrap.css';
 import BootstrapVue3 from 'bootstrap-vue-3';
 
 // Import load user function
-import { initApi } from './services/api';
 import { loadUser } from './services/authService';
 
 async function init() {
-  // Load config
-  await loadConfig();
-  await initApi();
   // Load user
   await loadUser();
 
@@ -43,21 +39,3 @@ async function init() {
   app.mount('#app');
 }
 init();
-
-async function loadConfig() {
-  try {
-    const res = await fetch('./config.json');
-    if (!res.ok) throw new Error('config json not found');
-    const config = await res.json();
-
-    window.APP_CONFIG = config;
-    return config;
-  } catch (err) {
-    console.error('Failed to load config json:', err);
-    // fallback values
-    return {
-      API_URL: 'http://localhost:5000/api',
-      APP_ENV: 'local',
-    };
-  }
-}

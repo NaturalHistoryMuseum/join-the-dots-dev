@@ -405,7 +405,7 @@ export default {
   color: black;
   display: flex;
   flex-direction: row;
-  /* align-items: flex-start; */
+  align-items: flex-start;
 }
 
 .filter {

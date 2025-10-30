@@ -1,10 +1,8 @@
 import { currentUser, loadUser } from '../services/authService';
-// import { api } from './api';
-import { getApi } from '@/services/api';
+import api from './api';
 
 export async function getGenericUser(route) {
   try {
-    const api = getApi();
     const resp = await api
       .get(`user/${route}`, { withCredentials: true })
       .then((response) => {
@@ -19,7 +17,6 @@ export async function getGenericUser(route) {
 
 export async function postGenericUser(route, data, reloadUser = false) {
   try {
-    const api = getApi();
     const resp = await api
       .post(`user/${route}`, data, { withCredentials: true })
       .then((response) => {
@@ -38,7 +35,6 @@ export async function postGenericUser(route, data, reloadUser = false) {
 export async function getUser() {
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
-    const api = getApi();
     // Use stored user data if available
     const user = JSON.parse(storedUser);
     const user_details = await api
@@ -54,7 +50,6 @@ export async function getUser() {
 export async function assignUnits(units) {
   if (currentUser) {
     try {
-      const api = getApi();
       const response = await api
         .post(
           `/assign-units`,
