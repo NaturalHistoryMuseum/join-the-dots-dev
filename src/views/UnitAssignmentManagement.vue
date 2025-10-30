@@ -2,7 +2,7 @@
   <OverlayMessage />
   <div class="main-header">
     <div class="">
-      <h1>Manage Units Permissions</h1>
+      <p class="h1-style">Manage Units Permissions</p>
       <p>Manage who can edit units under you.</p>
     </div>
   </div>

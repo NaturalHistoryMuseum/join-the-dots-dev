@@ -12,9 +12,6 @@
 #         @wraps(fn)
 #         def decorator(*args, **kwargs):
 #             verify_jwt_in_request(optional=False)
-#             print('this is the request,')
-
-#             print('this is the request,', request)
 #             # Extract raw token
 #             auth_header = request.headers.get("Authorization", None)
 #             if not auth_header:
@@ -84,14 +81,10 @@ def microsoft_jwt_required(role=None):
                     audience=Config.AUDIENCE,
                     issuer=Config.VALID_ISSUERS,
                 )
-                print('post decoded')
-
-                print('this is the decoded token', decoded)
 
                 # Check roles claim (for client credentials flow)
                 if role:
                     roles = decoded.get('roles', [])
-                    print('this is the roles claim,', roles)
                     if role not in roles:
                         return jsonify({'msg': 'Missing required role'}), 403
 

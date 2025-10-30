@@ -9,7 +9,11 @@
       v-if="!minimal"
       :class="column_direction ? 'sidebar-header-col' : 'sidebar-header-row'"
     >
-      <zoa-button @click="toggleSidebar" class="toggle-btn">
+      <zoa-button
+        @click="toggleSidebar"
+        class="toggle-btn"
+        :title="is_collapsed ? 'Show Filters' : 'Hide Filters'"
+      >
         <!-- {{ is_collapsed ? <i class="bi bi-list"></i> : '<' }} -->
         <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
         <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
@@ -51,7 +55,7 @@
     </div>
     <div v-if="!is_collapsed">
       <div :class="column_direction ? 'filters-column' : 'filters-row'">
-        <h4 v-if="!minimal">Filters</h4>
+        <p class="h4-style" v-if="!minimal">Filters</p>
 
         <zoa-input
           v-if="show_filters.includes('show_own')"
@@ -345,7 +349,7 @@ export default {
   display: flex;
   flex-direction: column;
   z-index: 1;
-  border-left: 5px solid #f2bab0;
+  border-left: 5px solid var(--accent-col);
 }
 
 .tab-title {

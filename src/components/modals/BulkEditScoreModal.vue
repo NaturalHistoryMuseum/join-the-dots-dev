@@ -97,7 +97,7 @@
                       edited_unit.metric_json.length > 0
                     "
                   >
-                    <h4 class="indent">Metrics</h4>
+                    <p class="h4-style indent">Metrics</p>
                     <div
                       v-for="(metric, index) in edited_unit.metric_json"
                       :key="index"
@@ -115,7 +115,7 @@
                     </div>
                   </div>
                   <div v-if="edited_unit.unit_comment">
-                    <h4>Unit Comment</h4>
+                    <p class="h4-style">Unit Comment</p>
                     <p>{{ edited_unit.unit_comment }}</p>
                   </div>
                   <div
@@ -124,12 +124,12 @@
                       edited_unit.ranks_json.length > 0
                     "
                   >
-                    <h4 class="indent">Scores</h4>
+                    <p class="h4-style indent">Scores</p>
                     <div
                       v-for="(criterion, index) in edited_unit.ranks_json"
                       :key="index"
                     >
-                      <h5>{{ criterion[0].criterion_name }}</h5>
+                      <p class="h5-style">{{ criterion[0].criterion_name }}</p>
                       <div class="changed-container">
                         <div
                           v-for="(rank, rankIndex) in criterion"

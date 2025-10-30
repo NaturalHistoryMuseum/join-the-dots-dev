@@ -9,7 +9,11 @@
     >
       <div class="sidebar-header">
         <!-- Button to show/hide unit names -->
-        <zoa-button @click="toggleSidebar" class="toggle-btn">
+        <zoa-button
+          @click="toggleSidebar"
+          :title="is_collapsed ? 'Show Units' : 'Hide Units'"
+          class="toggle-btn"
+        >
           <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
           <div v-else>
             <i class="bi bi-x-lg btn-icon"></i>
@@ -151,7 +155,7 @@ export default {
   flex-direction: column;
   width: 15rem;
   z-index: 1;
-  border-left: 5px solid #f2bab0;
+  border-left: 5px solid var(--accent-col);
 }
 
 .tab-title {

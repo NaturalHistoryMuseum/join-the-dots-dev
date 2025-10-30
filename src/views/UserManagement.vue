@@ -3,7 +3,7 @@
 
   <div class="main-header">
     <div class="">
-      <h1>Manage User Permissions</h1>
+      <p class="h1-style">Manage User Permissions</p>
       <p>Manage the role and permissions of users in your division</p>
     </div>
   </div>
@@ -63,7 +63,7 @@ export default {
         { label: 'Name', key: 'name' },
         { label: 'Role', key: 'role' },
         { label: 'Email', key: 'email' },
-        { label: '', key: 'edit_user_btn' },
+        { label: 'Actions', key: 'edit_user_btn' },
       ],
       filtered_users: [],
       divisions: [],

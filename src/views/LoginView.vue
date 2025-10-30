@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <h1>Login</h1>
+      <p class="h1-style">Login</p>
     </div>
     <div v-if="currentUser" class="content">
       <p>You are already logged in</p>

@@ -2,9 +2,12 @@
   <div v-if="rescore && !bulk_edit" class="unit-header">
     <!-- Unit Tile and link to unit -->
     <div class="unit-link-container">
-      <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">
+      <p
+        class="h4-style unit-link"
+        @click="navigateUnit(unit.collection_unit_id)"
+      >
         {{ unit.unit_name }}
-      </h4>
+      </p>
     </div>
     <!-- Button for managing whole units complete status -->
     <zoa-button
@@ -120,6 +123,8 @@
         <textarea
           v-if="rescore"
           class="text-area"
+          id="Unit Comment"
+          aria-label="Unit Comment"
           rows="7"
           v-model="local_unit.unit_comment"
           @change="handleCommentChange"
@@ -168,10 +173,10 @@
               <!-- Modal pop up for the criteria with its info -->
               <CriterionDefModal :crit="crit" :unit="unit" />
               <!-- Criterion Title -->
-              <h6 class="criterion-name">
+              <p class="criterion-name">
                 {{ crit.criterion_code }} -
                 {{ crit.criterion_name.split('/').join(' / ') }}
-              </h6>
+              </p>
             </div>
             <!-- Loop through each rank in the criterion -->
             <div

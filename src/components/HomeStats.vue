@@ -1,6 +1,6 @@
 <template>
   <div class="boader-header">
-    <h2 class="boader-header-title">Statistics</h2>
+    <p class="h2-style boader-header-title">Statistics</p>
   </div>
   *Not live data
   <div v-if="currentUser.level == 1" class="row">
@@ -17,35 +17,35 @@
       <p v-if="!stats.category_percent">loading...</p>
     </div>
     <div class="col-md-4 stats-summary">
-      <!-- <h4>Stats Summary</h4> -->
+      <!-- <p class="h4-style">Stats Summary</p> -->
       <div class="stats-card">
-        <h4>Units Count:</h4>
-        <h4>{{ stats.total_units }}</h4>
+        <p class="h4-style">Units Count:</p>
+        <p class="h4-style">{{ stats.total_units }}</p>
       </div>
       <div class="stats-card">
-        <h4>Units Count:</h4>
-        <h4>{{ stats.total_units }}</h4>
+        <p class="h4-style">Units Count:</p>
+        <p class="h4-style">{{ stats.total_units }}</p>
       </div>
     </div>
   </div>
   <div v-if="currentUser.level == 2" class="row">
     <div class="stats-numbers">
-      <!-- <h4>Stats Summary</h4> -->
+      <!-- <p class="h4-style">Stats Summary</p> -->
       <div class="stats-card">
-        <h4>Last Rescored:</h4>
-        <h4>{{ stats.last_rescored_formatted }}</h4>
+        <p class="h4-style">Last Rescored:</p>
+        <p class="h4-style">{{ stats.last_rescored_formatted }}</p>
       </div>
       <div class="stats-card">
-        <h4>Assigned Units:</h4>
-        <h4>{{ stats.unit_count }}</h4>
+        <p class="h4-style">Assigned Units:</p>
+        <p class="h4-style">{{ stats.unit_count }}</p>
       </div>
       <div class="stats-card">
-        <h4>Last Rescored:</h4>
-        <h4>{{ stats.last_rescored_formatted }}</h4>
+        <p class="h4-style">Last Rescored:</p>
+        <p class="h4-style">{{ stats.last_rescored_formatted }}</p>
       </div>
       <div class="stats-card">
-        <h4>Your Unit Count:</h4>
-        <h4>{{ stats.unit_count }}</h4>
+        <p class="h4-style">Your Unit Count:</p>
+        <p class="h4-style">{{ stats.unit_count }}</p>
       </div>
     </div>
     <div class="row">
@@ -60,22 +60,22 @@
   </div>
   <div v-if="currentUser.level == 3" class="row">
     <div class="stats-numbers">
-      <!-- <h4>Stats Summary</h4> -->
+      <!-- <p class="h4-style">Stats Summary</p> -->
       <div class="stats-card">
-        <h4>Division Units:</h4>
-        <h4>{{ 200 }}</h4>
+        <p class="h4-style">Division Units:</p>
+        <p class="h4-style">{{ 200 }}</p>
       </div>
       <div class="stats-card">
-        <h4>Rescored this Year:</h4>
-        <h4>{{ 40 + ' (20%)' }}</h4>
+        <p class="h4-style">Rescored this Year:</p>
+        <p class="h4-style">{{ 40 + ' (20%)' }}</p>
       </div>
       <div class="stats-card">
-        <h4>Left to Rescore:</h4>
-        <h4>{{ 160 + ' (80%)' }}</h4>
+        <p class="h4-style">Left to Rescore:</p>
+        <p class="h4-style">{{ 160 + ' (80%)' }}</p>
       </div>
       <div class="stats-card">
-        <h4>Deadline:</h4>
-        <h4>{{ '2026-04-01' }}</h4>
+        <p class="h4-style">Deadline:</p>
+        <p class="h4-style">{{ '2026-04-01' }}</p>
       </div>
     </div>
     <div class="row">

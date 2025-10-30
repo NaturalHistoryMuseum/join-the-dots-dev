@@ -1,10 +1,10 @@
 <template>
   <div class="account-page">
     <OverlayMessage />
-    <h1>Account</h1>
+    <p class="h1-style">Account</p>
     <div v-if="currentUser" class="content">
       <div class="account-section">
-        <h2>User Details</h2>
+        <p class="h2-style">User Details</p>
         <div class="account-fields-box">
           <div class="account-field">
             <zoa-input
@@ -165,7 +165,7 @@
         </div>
       </div>
       <div v-if="role_id >= 3" class="account-section">
-        <h2>Manager Actions</h2>
+        <p class="h2-style">Manager Actions</p>
         <div class="manager-actions">
           <zoa-button
             label="Manage User Permissions"

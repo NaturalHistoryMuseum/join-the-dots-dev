@@ -1735,8 +1735,6 @@ def update_assessed_date():
     unit_ids = data.get('unit_ids')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
-    print(unit_ids)
-    print(','.join(map(str, unit_ids)))
     try:
         # Dynamically build placeholders for each category_id
         placeholders = ', '.join(['%s'] * len(unit_ids))
