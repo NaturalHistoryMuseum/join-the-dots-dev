@@ -67,7 +67,8 @@ def auth_redirect():
             (str(user_info['oid']),),
         )
         user = cursor.fetchone()
-        cursor.execute('SET @current_person_id = %s', (user['person_id'],))
+        person_id = user['person_id'] if user else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
 
         if not user:
             # Add user if not present
@@ -234,11 +235,7 @@ def insert_person_to_existing_user(user_id, first_name, last_name, job_title=Non
     """
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
-    # Get user details
-    user_details = get_user_by_id(user_id)
-    cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+    cursor.execute('SET @current_person_id = %s', (None,))
     cursor.execute(
         f'INSERT INTO {database_name}.person (first_name, last_name, job_title) VALUES (%s, %s, %s)',
         (first_name, last_name, job_title),
