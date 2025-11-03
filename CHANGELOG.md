@@ -1,3 +1,37 @@
+## v0.5.0 (2025-11-03)
+
+### Feature
+
+- **power-bi-api**: added multiple endpoints to facili tate reporting
+- **power-bi-api**: adding more apis for the power bi data
+- **rescore-management**: added ability to mark no change on units
+- add selected units count to table comp
+- remove last rescore total
+- bulk unit scores warning messages appear when changes made
+- rename department to discipline
+- **unit-actions**: unit actions will not perform on open rescore units
+- **audit-tracking**: app data changes tracked in audit tables
+
+### Fix
+
+- revert the front end env variables to use vite
+- **headers**: change how headers are managed in app
+- fix action modals listing too many units and rescore table select issue
+- fix removing editors and restrict user role changes
+- multiple fixes from uat feedback
+- **front-end-env-vars**: front end ev variables now passed through config that will be serviced through k8s
+- unit permissions fetch fix
+
+### Refactor
+
+- refactor ruff formatting
+- formatting and removing redundant file
+- moving modal comps to own folder
+
+### Minor UI Changes
+
+- **accessibility**: changes based on accessibility review
+
 ## v0.4.1 (2025-10-20)
 
 ### Fix
