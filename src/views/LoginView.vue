@@ -18,6 +18,20 @@
     </div>
   </div>
 
+  <p v-if="APP_ENV == 'qa'" class="h5-style temp-warning env-warning">
+    <SmallMessages
+      message_type="warning"
+      message_text="User Acceptance Testing is now concluded and this environment may not
+    function as expected
+    ."
+    />
+  </p>
+  <p v-if="APP_ENV == 'prod'" class="h5-style temp-warning env-warning">
+    <SmallMessages
+      message_type="warning"
+      message_text="This environment is not yet live. Please do not access."
+    />
+  </p>
   <p class="temp-warning">
     *Please note: This web app is still in development. No changes will affect
     actual JtD data.
@@ -25,11 +39,16 @@
 </template>
 
 <script>
+import SmallMessages from '@/components/SmallMessages.vue';
+import { APP_ENV } from '@/utils/utils';
 import { currentUser, login, logout } from '../services/authService';
 
 export default {
+  components: { SmallMessages },
   data() {
-    return {};
+    return {
+      APP_ENV,
+    };
   },
   setup() {
     return { currentUser };
@@ -46,5 +65,10 @@ export default {
 <style scoped>
 .temp-warning {
   margin: 2rem;
+}
+
+.env-warning {
+  display: flex;
+  justify-content: center;
 }
 </style>
