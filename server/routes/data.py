@@ -50,7 +50,8 @@ def get_mark_rescore_open():
     cursor = connection.cursor(dictionary=True)
     # Get user details
     user_details = get_user_by_id(user_id)
-    cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+    person_id = user_details['person_id'] if user_details else None
+    cursor.execute('SET @current_person_id = %s', (person_id,))
     try:
         # Insert session
         query = f"""
@@ -102,7 +103,7 @@ def submit_rescore_complete():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     user = get_user_by_id(user_id)
-    person_id = user.get('person_id')
+    person_id = user['person_id'] if user else None
 
     try:
         connection = get_db_connection()
@@ -656,7 +657,8 @@ def submit_unit():
         cursor = connection.cursor(dictionary=True)
         # Get user details
         user_details = get_user_by_id(user_id)
-        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
         # Execute the query and return the new unit ID
         cursor.execute(sql_query, values)
         new_unit_id = cursor.lastrowid
@@ -815,7 +817,8 @@ def split_unit():
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         user_details = get_user_by_id(user_id)
-        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
         # Add structural change entry
         # Higher structure change
         cursor.execute(
@@ -888,7 +891,8 @@ def combine_unit():
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         user_details = get_user_by_id(user_id)
-        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
         # Add structural change entry
         # Higher structure change
         cursor.execute(
@@ -1231,7 +1235,8 @@ def reassign_responsible_curator():
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         user_details = get_user_by_id(user_id)
-        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
         # Transfer units the old user was responsible for to the new user
         cursor.execute(f"""
                     INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
@@ -1683,7 +1688,8 @@ def delete_units():
         cursor = connection.cursor(dictionary=True)
         # Get user details
         user_details = get_user_by_id(user_id)
-        cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
 
         for unit_id in unit_ids:
             # Delete units from collection_unit table

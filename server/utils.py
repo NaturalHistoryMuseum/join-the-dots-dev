@@ -37,7 +37,8 @@ def execute_query(query, params=None, return_lastrowid=False):
     user_id = get_jwt_identity()
     # Get user details
     user_details = get_user_by_id(user_id)
-    cursor.execute('SET @current_person_id = %s', (user_details['person_id'],))
+    person_id = user_details['person_id'] if user_details else None
+    cursor.execute('SET @current_person_id = %s', (person_id,))
     # Format the query with the database name
     formatted_query = query.format(database_name=database_name)
     cursor.execute(formatted_query, params or ())
