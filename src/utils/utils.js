@@ -7,4 +7,4 @@ export default function fieldNameCalc(db_name) {
   return string;
 }
 
-export const ENV = import.meta.env.VITE_ENV;
+export const APP_ENV = import.meta.env.VITE_APP_ENV;
