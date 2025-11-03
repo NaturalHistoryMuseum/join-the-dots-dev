@@ -1,13 +1,12 @@
 <template>
   <zoa-modal class="modal-btn criterion-modal" kind="info">
     <template v-slot:button>
-      <zoa-button title="definition">
-        <i
-          title="Criterion Definition"
-          aria-label="Definition"
-          class="bi bi-info-circle help-icon"
-        ></i>
-      </zoa-button>
+      <p class="hidden">Criterion Definition</p>
+      <i
+        title="Criterion Definition"
+        aria-label="Definition"
+        class="bi bi-info-circle help-icon"
+      ></i>
     </template>
     <template v-slot:header>
       Definition - {{ crit.criterion_code }}: {{ crit.criterion_name }}
@@ -75,5 +74,10 @@ export default {
 .criterion-definitions-content {
   max-height: 75vh;
   overflow: auto;
+}
+
+.hidden {
+  visibility: hidden;
+  display: none;
 }
 </style>
