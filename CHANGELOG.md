@@ -1,3 +1,9 @@
+## v0.5.1 (2025-11-03)
+
+### Minor UI Changes
+
+- Adding warning message to login page
+
 ## v0.5.0 (2025-11-03)
 
 ### Feature
