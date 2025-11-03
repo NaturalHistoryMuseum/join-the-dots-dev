@@ -1,3 +1,10 @@
+## v0.5.2 (2025-11-03)
+
+### Fix
+
+- **accessibility**: fixed accessibility issue on criterion modal
+- **login**: fix for new viewers not being able to access application
+
 ## v0.5.1 (2025-11-03)
 
 ### Minor UI Changes
