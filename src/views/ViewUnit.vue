@@ -13,7 +13,7 @@
     <div class="main-header">
       <div class="row" v-if="(unit && unit_id) || !add_unit_mode">
         <div class="col-md-4">
-          <h1>View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
+          <p class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</p>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
         <div class="col-md-8" v-if="allow_edit">
@@ -25,7 +25,7 @@
       </div>
       <div v-else class="row">
         <div class="col-md-6">
-          <h1>Add New Unit</h1>
+          <p class="h1-style">Add New Unit</p>
           <p>
             Please fill out all required units (<span style="color: red">*</span
             >) and the scoring page to create this unit.
@@ -74,7 +74,7 @@
                   v-for="sub in section.sub_sections"
                   :key="sub.sub_section_id"
                 >
-                  <h4 class="subheading">{{ sub.sub_section_name }}</h4>
+                  <p class="h4-style subheading">{{ sub.sub_section_name }}</p>
                   <div
                     v-if="sub.fields && sub.fields.length > 0"
                     class="fields-box"
@@ -101,23 +101,36 @@
                     "
                     class=""
                   >
-                    <div class="required-tag">*</div>
-                    <zoa-input
-                      class="field-container"
-                      zoa-type="multiselect"
-                      label="Please select editors"
-                      v-model="assigned_users"
-                      @change="handleEditorChange(true)"
-                      help="The users who will be able to edit this unit"
-                      help-position="right"
-                      :config="{
-                        options: curators_options,
-                        itemName: 'Curator',
-                        itemNamePlural: 'Curators',
-                        placeholder: 'Please select....',
-                        enableSearch: true,
-                      }"
-                    />
+                    <div class="editors-field">
+                      <div>
+                        <div class="required-tag">*</div>
+                        <zoa-input
+                          class="field-container"
+                          zoa-type="multiselect"
+                          label="Please select editors"
+                          v-model="assigned_users"
+                          @change="handleEditorChange(true)"
+                          help="The users who will be able to edit this unit"
+                          help-position="right"
+                          :config="{
+                            options: curators_options,
+                            itemName: 'Curator',
+                            itemNamePlural: 'Curators',
+                            placeholder: 'Please select....',
+                            enableSearch: true,
+                          }"
+                        />
+                      </div>
+                      <div>
+                        <zoa-button
+                          class="remove-btn"
+                          @click="removeAllEditors()"
+                        >
+                          Remove All Editors
+                          <i class="bi bi-x-lg"></i>
+                        </zoa-button>
+                      </div>
+                    </div>
                     <div
                       class="fields-box"
                       v-if="
@@ -250,7 +263,7 @@ export default {
         publish_flag: 'yes',
         unit_active: 'yes',
       };
-      this.assigned_users = [this.currentUser.user_id];
+      this.assigned_users = [];
     } else {
       this.add_unit_mode = false;
       this.fetchUnitData();
@@ -267,11 +280,17 @@ export default {
     async fetchAssignedUsers() {
       if (this.unit_id) {
         const resp = await getGeneric(`all-assigned-users/${this.unit_id}`);
-        this.assigned_users = resp.map((user) => user.user_id);
+        this.assigned_users = resp.map((user) => user.user_id.toString());
       }
     },
     async fetchAllCurators() {
-      this.curators_options = await getGeneric(`all-curators`);
+      getGeneric(`all-curators`).then((response) => {
+        this.curators_options = response.map((user) => ({
+          ...user,
+          value: user.user_id.toString(),
+        }));
+        this.handleEditorChange(false);
+      });
     },
     async fetchUnitData() {
       if (!this.add_unit_mode && this.unit_id) {
@@ -290,16 +309,24 @@ export default {
     },
     removeEditor(user_id) {
       this.assigned_users = this.assigned_users.filter(
-        (user) => user != user_id,
+        (user) => user != user_id.toString(),
       );
       this.handleEditorChange(!this.add_unit_mode && this.allow_edit);
+    },
+    removeAllEditors() {
+      // Remove all editors except the responsible curator
+      this.assigned_users = [this.unit.responsible_curator_id.toString()];
+      // Submit the change
+      this.handleEditorChange(this.allow_edit);
     },
     async handleEditorChange(submit = false) {
       if (
         this.unit.responsible_curator_id &&
-        !this.assigned_users.includes(this.unit.responsible_curator_id)
+        !this.assigned_users.includes(
+          this.unit.responsible_curator_id.toString(),
+        )
       ) {
-        this.assigned_users.push(this.unit.responsible_curator_id);
+        this.assigned_users.push(this.unit.responsible_curator_id.toString());
       }
       if (submit && !this.add_unit_mode && this.allow_edit) {
         const response = await submitDataGeneric('submit-unit-assigned', {
@@ -488,7 +515,7 @@ export default {
 }
 
 .required-tag {
-  color: red;
+  color: darkred;
   margin-bottom: -1.5rem;
 }
 
@@ -503,6 +530,11 @@ export default {
   flex-wrap: wrap;
 }
 
+.editors-field {
+  display: flex;
+  gap: 2rem;
+  align-items: end;
+}
 .remove-btn {
   background-color: #ff5957 !important;
   color: white !important ;

@@ -16,24 +16,34 @@
     <template v-slot:button>Combine Units</template>
     <template v-slot:header> Combine Units </template>
     <div class="flex flex-col center gap-4 action-modal-content">
-      <div v-if="selected_units && !success && !loading">
-        <p v-if="open_rescore">
-          <strong
-            >*A rescore is currently open, please note that performing actions
-            on units with an open rescore can have negative side
-            affects.*</strong
-          >
-        </p>
-        <p>Unit selected to be combined:</p>
-        <div
-          v-for="unit in selected_units"
-          :key="unit.collection_unit_id"
-          class="units-list"
-        >
+      <div v-if="included_in_rescore">
+        <p>
           <strong>
-            {{ unit.collection_unit_id }} -
-            {{ unit.unit_name }}
+            Warning: this action cannot be performed on a unit that is part of a
+            current rescore.
           </strong>
+        </p>
+        <p>
+          <strong>
+            Please complete or close the rescore to perform this action.
+          </strong>
+        </p>
+      </div>
+      <div
+        v-if="selected_units && !success && !loading && !included_in_rescore"
+      >
+        <p>Unit selected to be combined:</p>
+        <div class="view-dropdown-field">
+          <div
+            class="view-field text-left"
+            v-for="unit in selected_units"
+            :key="unit.collection_unit_id"
+          >
+            <strong>
+              {{ unit.collection_unit_id }} -
+              {{ unit.unit_name }}
+            </strong>
+          </div>
         </div>
         <p class="message">
           Please select the unit that you would like to be the primary unit.
@@ -56,7 +66,7 @@
           <zoa-button
             class="confirm-btn"
             label="Save Changes"
-            @click="handleConformChanges"
+            @click="handleConfirmChanges"
           />
         </div>
       </div>
@@ -85,7 +95,7 @@ export default {
   name: 'CombineModal',
   props: {
     selected_units: Object,
-    open_rescore: Object,
+    included_in_rescore: Boolean,
   },
   data() {
     return {
@@ -98,7 +108,7 @@ export default {
   },
   methods: {
     fieldNameCalc,
-    async handleConformChanges() {
+    async handleConfirmChanges() {
       this.loading = true;
       const resp = await submitDataGeneric('combine-unit', {
         primary_unit_id: this.primary_unit_id,
@@ -165,15 +175,6 @@ export default {
 
 .new-count {
   justify-self: center;
-}
-
-.action-modal-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 2rem;
-  margin-top: 1rem;
 }
 
 .actions-modal {

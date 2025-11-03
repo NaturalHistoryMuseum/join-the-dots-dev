@@ -16,24 +16,39 @@
     <template v-slot:button> Delete Unit </template>
     <template v-slot:header> Delete Unit </template>
     <div class="flex flex-col center gap-4 action-modal-content">
-      <div v-if="selected_units.length > 0 && !success && !loading">
-        <p v-if="open_rescore">
-          <strong
-            >*A rescore is currently open, please note that performing actions
-            on units with an open rescore can have negative side
-            affects.*</strong
-          >
-        </p>
-        <div>Delete the following units:</div>
-        <div
-          v-for="unit in selected_units"
-          :key="unit.collection_unit_id"
-          class="units-list"
-        >
+      <div v-if="included_in_rescore">
+        <p>
           <strong>
-            {{ unit.collection_unit_id }} -
-            {{ unit.unit_name }}
+            Warning: this action cannot be performed on a unit that is part of a
+            current rescore.
           </strong>
+        </p>
+        <p>
+          <strong>
+            Please complete or close the rescore to perform this action.
+          </strong>
+        </p>
+      </div>
+      <div
+        v-if="
+          selected_units.length > 0 &&
+          !success &&
+          !loading &&
+          !included_in_rescore
+        "
+      >
+        <div>Delete the following units:</div>
+        <div class="view-dropdown-field">
+          <div
+            class="view-field text-left"
+            v-for="unit in selected_units"
+            :key="unit.collection_unit_id"
+          >
+            <strong>
+              {{ unit.collection_unit_id }} -
+              {{ unit.unit_name }}
+            </strong>
+          </div>
         </div>
         <div class="action-desc">
           <p>This will remove the selected unit(s). This cannot be undone.</p>
@@ -52,7 +67,7 @@
             v-if="confirm_changes"
             class="confirm-btn"
             label="Delete Unit(s)"
-            @click="handleConformChanges"
+            @click="handleConfirmChanges"
           />
         </div>
       </div>
@@ -77,7 +92,7 @@ export default {
   props: {
     selected_units: Array,
     navigate_on_success: Boolean,
-    open_rescore: Object,
+    included_in_rescore: Boolean,
   },
   data() {
     return {
@@ -87,7 +102,7 @@ export default {
     };
   },
   methods: {
-    async handleConformChanges() {
+    async handleConfirmChanges() {
       this.loading = true;
       await submitDataGeneric('delete-units', {
         unit_ids: this.selected_units.map((unit) => unit.collection_unit_id),
@@ -99,7 +114,7 @@ export default {
         setTimeout(() => {
           // Redirect to view units page
           this.$router.push({ path: '/view-units' });
-        }, 1000);
+        }, 2000);
       } else {
         // Emit update
         this.$emit('update:refreshData');
@@ -138,10 +153,6 @@ export default {
   gap: 1rem;
   width: auto;
   margin-top: 1rem;
-}
-
-.action-modal-content {
-  text-align: center;
 }
 
 .split-unit {

@@ -2,7 +2,7 @@
   <OverlayMessage />
   <div class="main-header">
     <div class="">
-      <h1>Manage Units Permissions</h1>
+      <p class="h1-style">Manage Units Permissions</p>
       <p>Manage who can edit units under you.</p>
     </div>
   </div>
@@ -128,12 +128,6 @@ export default {
 </script>
 
 <style>
-.filters-row {
-  display: flex;
-  gap: 3rem;
-  align-items: center;
-  margin-bottom: 20px;
-}
 .unit-row {
   display: flex;
   flex-wrap: wrap;
@@ -144,13 +138,5 @@ export default {
   width: 18rem;
   text-align: left;
   justify-self: center;
-}
-
-.table-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
 }
 </style>

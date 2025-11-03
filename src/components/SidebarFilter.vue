@@ -9,7 +9,11 @@
       v-if="!minimal"
       :class="column_direction ? 'sidebar-header-col' : 'sidebar-header-row'"
     >
-      <zoa-button @click="toggleSidebar" class="toggle-btn">
+      <zoa-button
+        @click="toggleSidebar"
+        class="toggle-btn"
+        :title="is_collapsed ? 'Show Filters' : 'Hide Filters'"
+      >
         <!-- {{ is_collapsed ? <i class="bi bi-list"></i> : '<' }} -->
         <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
         <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
@@ -51,7 +55,7 @@
     </div>
     <div v-if="!is_collapsed">
       <div :class="column_direction ? 'filters-column' : 'filters-row'">
-        <h4 v-if="!minimal">Filters</h4>
+        <p class="h4-style" v-if="!minimal">Filters</p>
 
         <zoa-input
           v-if="show_filters.includes('show_own')"
@@ -239,7 +243,7 @@ export default {
                 ? unit.curator_name.substring(0, this.dropdown_char_limit) +
                   '...'
                 : unit.curator_name,
-            value: unit.responsible_curator_id,
+            value: unit.responsible_curator_id.toString(),
           });
         }
       });
@@ -280,7 +284,9 @@ export default {
           // Filter by responsible curator
           (this.search_curators.length > 0
             ? this.search_curators.includes(
-                unit.responsible_curator_id ? unit.responsible_curator_id : '',
+                unit.responsible_curator_id.toString()
+                  ? unit.responsible_curator_id.toString()
+                  : '',
               )
             : true) &&
           // Filter by active/inactive status
@@ -299,6 +305,8 @@ export default {
       this.search_id_query = '';
       this.active_tab = 0;
       this.search_section = [];
+      this.search_division = [];
+      this.search_curators = [];
     },
   },
 };
@@ -326,7 +334,7 @@ export default {
   color: white;
   display: flex;
   flex-direction: column;
-  margin: 10px;
+  margin: 1rem 1rem 0rem 1rem;
   /* width: 50px; */
 }
 
@@ -341,7 +349,7 @@ export default {
   display: flex;
   flex-direction: column;
   z-index: 1;
-  border-left: 5px solid #f2bab0;
+  border-left: 5px solid var(--accent-col);
 }
 
 .tab-title {
@@ -392,6 +400,7 @@ export default {
 
 .filters-row {
   margin-top: 1rem;
+  gap: 2rem;
   text-align: left;
   color: black;
   display: flex;

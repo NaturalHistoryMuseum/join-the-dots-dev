@@ -22,17 +22,20 @@ import BootstrapVue3 from 'bootstrap-vue-3';
 import { loadUser } from './services/authService';
 
 async function init() {
+  // Load user
   await loadUser();
 
+  // Create Vue app
   const app = createApp(App);
-
   const pinia = createPinia();
-  app.use(pinia);
 
+  // Register plugins
+  app.use(pinia);
   app.use(router);
   app.use(BootstrapVue3);
   app.use(Zoa);
 
+  // Mount app
   app.mount('#app');
 }
 init();

@@ -36,7 +36,7 @@ export default {
   display: flex;
   flex-direction: row;
   width: 100%;
-  border-bottom: 3px solid #f2bab0;
+  border-bottom: 3px solid var(--accent-col);
   overflow-x: auto;
   white-space: nowrap;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */

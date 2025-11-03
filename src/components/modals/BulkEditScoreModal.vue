@@ -87,29 +87,35 @@
                   // edited_unit.metric_json && edited_unit.metric_json.length > 0
                   true
                 "
-                class="row"
+                class="row text-left"
               >
                 <div class="col-md-8">
                   <p>These are your changes:</p>
-                  <h4>Metrics</h4>
                   <div
-                    v-for="(metric, index) in edited_unit.metric_json"
-                    :key="index"
+                    v-if="
+                      edited_unit.metric_json &&
+                      edited_unit.metric_json.length > 0
+                    "
                   >
-                    <div class="changed-container metric">
-                      <div class="changed-item">
-                        <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
-                        <p>{{ metric.metric_value }}</p>
-                      </div>
-                      <div class="changed-item">
-                        <p>Confidence:</p>
-                        <p>{{ metric.confidence_level }}</p>
+                    <p class="h4-style indent">Metrics</p>
+                    <div
+                      v-for="(metric, index) in edited_unit.metric_json"
+                      :key="index"
+                    >
+                      <div class="changed-container metric">
+                        <div class="changed-item">
+                          <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
+                          <p>{{ metric.metric_value }}</p>
+                        </div>
+                        <div class="changed-item">
+                          <p>Confidence:</p>
+                          <p>{{ metric.confidence_level }}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-
                   <div v-if="edited_unit.unit_comment">
-                    <h4>Unit Comment</h4>
+                    <p class="h4-style">Unit Comment</p>
                     <p>{{ edited_unit.unit_comment }}</p>
                   </div>
                   <div
@@ -118,12 +124,12 @@
                       edited_unit.ranks_json.length > 0
                     "
                   >
-                    <h4>Scores</h4>
+                    <p class="h4-style indent">Scores</p>
                     <div
                       v-for="(criterion, index) in edited_unit.ranks_json"
                       :key="index"
                     >
-                      <h5>{{ criterion[0].criterion_name }}</h5>
+                      <p class="h5-style">{{ criterion[0].criterion_name }}</p>
                       <div class="changed-container">
                         <div
                           v-for="(rank, rankIndex) in criterion"
@@ -138,6 +144,19 @@
                         </div>
                       </div>
                     </div>
+                  </div>
+                  <div
+                    v-if="
+                      !(
+                        edited_unit.ranks_json &&
+                        edited_unit.ranks_json.length > 0 &&
+                        edited_unit.metric_json &&
+                        edited_unit.metric_json.length > 0 &&
+                        edited_unit.unit_comment
+                      )
+                    "
+                  >
+                    <p class="text-center">No changes.</p>
                   </div>
                 </div>
                 <div class="col-md-4 endited-units">
@@ -172,9 +191,9 @@
 <script>
 import { submitDataGeneric } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
-import StepperComp from './StepperComp.vue';
-import TableCheckbox from './TableCheckbox.vue';
-import UnitScores from './UnitScores.vue';
+import StepperComp from '../StepperComp.vue';
+import TableCheckbox from '../TableCheckbox.vue';
+import UnitScores from '../UnitScores.vue';
 
 export default {
   name: 'BulkEditScoreModal',
@@ -188,7 +207,7 @@ export default {
     refresh_page_data: Function,
   },
   async mounted() {
-    const data = await import('../utils/ranks_json_temp.json');
+    const data = await import('../../utils/ranks_json_temp.json');
     this.rank_json = data.default;
     this.resetModal();
   },

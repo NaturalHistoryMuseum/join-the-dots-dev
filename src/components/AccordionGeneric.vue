@@ -11,9 +11,9 @@
       @click="accordion_open_function(accordion_id)"
     >
       <!-- Accordion header -->
-      <h6 class="accordion-header">
+      <p class="accordion-header">
         {{ accordion_title }}
-      </h6>
+      </p>
       <!-- Arrow button -->
       <div v-if="accordion_open" class="accordion-arrow">
         <i class="bi bi-chevron-up accordion-icon"></i>

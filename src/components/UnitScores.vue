@@ -2,9 +2,12 @@
   <div v-if="rescore && !bulk_edit" class="unit-header">
     <!-- Unit Tile and link to unit -->
     <div class="unit-link-container">
-      <h4 class="unit-link" @click="navigateUnit(unit.collection_unit_id)">
+      <p
+        class="h4-style unit-link"
+        @click="navigateUnit(unit.collection_unit_id)"
+      >
         {{ unit.unit_name }}
-      </h4>
+      </p>
     </div>
     <!-- Button for managing whole units complete status -->
     <zoa-button
@@ -120,6 +123,8 @@
         <textarea
           v-if="rescore"
           class="text-area"
+          id="Unit Comment"
+          aria-label="Unit Comment"
           rows="7"
           v-model="local_unit.unit_comment"
           @change="handleCommentChange"
@@ -168,10 +173,10 @@
               <!-- Modal pop up for the criteria with its info -->
               <CriterionDefModal :crit="crit" :unit="unit" />
               <!-- Criterion Title -->
-              <h6 class="criterion-name">
+              <p class="criterion-name">
                 {{ crit.criterion_code }} -
                 {{ crit.criterion_name.split('/').join(' / ') }}
-              </h6>
+              </p>
             </div>
             <!-- Loop through each rank in the criterion -->
             <div
@@ -213,10 +218,7 @@
           <!-- Container for other criterion interations -->
           <div
             class="row"
-            v-if="
-              !bulk_edit &&
-              (rescore || countCriterionComments(crit.criterion_id) > 0)
-            "
+            v-if="rescore || countCriterionComments(crit.criterion_id) > 0"
           >
             <!-- Show comments asigned to ranks in this criterion -->
             <div class="show-comments">
@@ -230,11 +232,20 @@
                 </div>
                 <!-- Show warnings / Messages -->
                 <RanksWarnings
+                  v-if="
+                    (bulk_edit &&
+                      editedRanks[crit.criterion_id].reduce(
+                        (sum, r) => sum + (r.percentage || 0),
+                        0,
+                      ) > 0) ||
+                    !bulk_edit
+                  "
                   :criterion_id="crit.criterion_id"
                   :editedRanks="editedRanks"
                   :ranks="ranks"
                   :checkEdited="checkEdited"
                   :checkErrors="checkErrors"
+                  :show_success="!bulk_edit"
                 />
               </div>
               <div v-else class="show-comments">
@@ -245,11 +256,20 @@
                 </div>
                 <!-- Show warnings / Messages -->
                 <RanksWarnings
+                  v-if="
+                    (bulk_edit &&
+                      editedRanks[crit.criterion_id].reduce(
+                        (sum, r) => sum + (r.percentage || 0),
+                        0,
+                      ) > 0) ||
+                    !bulk_edit
+                  "
                   :criterion_id="crit.criterion_id"
                   :editedRanks="editedRanks"
                   :ranks="ranks"
                   :checkEdited="checkEdited"
                   :checkErrors="checkErrors"
+                  :show_success="!bulk_edit"
                 />
               </div>
             </div>
@@ -305,8 +325,8 @@ import {
   submitDraftRrank,
 } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
-import CriterionDefModal from './CriterionDefModal.vue';
-import EditCommentsModal from './EditCommentsModal.vue';
+import CriterionDefModal from './modals/CriterionDefModal.vue';
+import EditCommentsModal from './modals/EditCommentsModal.vue';
 import PercentageInput from './PercentageInput.vue';
 import RanksWarnings from './RanksWarnings.vue';
 import RescoreAccordionComp from './RescoreAccordionComp.vue';
@@ -747,7 +767,8 @@ export default {
       if (
         this.unit &&
         errors.length == 0 &&
-        this.saving_criterion_id !== criterion_id
+        this.saving_criterion_id !== criterion_id &&
+        !this.bulk_edit
       ) {
         // Check that there was a change
         const was_changed = this.checkChanged(criterion_id);

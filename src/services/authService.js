@@ -1,6 +1,6 @@
+import api from '@/services/api';
 import { ref } from 'vue';
 import router from '../router/router';
-import api from './api';
 import { getCookie } from './cookies';
 
 export const currentUser = ref(null);

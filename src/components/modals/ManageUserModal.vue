@@ -144,7 +144,7 @@
           <zoa-button label="Back" @click="mode = 'view'" class="back-btn" />
         </div>
         <div v-show="mode == 'role'">
-          <h4>Change Role</h4>
+          <p class="h4-style">Change Role</p>
           <p>Please select what their new role should be.</p>
           <div class="text-left assigned-units-editor">
             <zoa-input
@@ -228,7 +228,7 @@
           </div>
         </div>
         <div class="show-box" v-show="mode == 'units'">
-          <h4>Change Assigned Units</h4>
+          <p class="h4-style">Change Assigned Units</p>
           <p>
             Please select the units that should be assigned to this user, this
             allows them to edit said units. Please note you cannot unassign
@@ -248,7 +248,7 @@
             />
           </div>
           <zoa-button label="Save Changes" @click="saveAssignedUnits" />
-          <h4 class="margin-top">Change Responsible Units</h4>
+          <p class="h4-style margin-top">Change Responsible Units</p>
           <p>
             Changing the units this user is responsible for can be done per unit
             in the 'Manage Units Permissions' Page.

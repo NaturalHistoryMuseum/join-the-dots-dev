@@ -3,7 +3,7 @@
 
   <div class="main-header">
     <div class="">
-      <h1>Manage User Permissions</h1>
+      <p class="h1-style">Manage User Permissions</p>
       <p>Manage the role and permissions of users in your division</p>
     </div>
   </div>
@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import ManageUserModel from '@/components/modals/ManageUserModel.vue';
+import ManageUserModel from '@/components/modals/ManageUserModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { currentUser } from '@/services/authService';
@@ -63,7 +63,7 @@ export default {
         { label: 'Name', key: 'name' },
         { label: 'Role', key: 'role' },
         { label: 'Email', key: 'email' },
-        { label: '', key: 'edit_user_btn' },
+        { label: 'Actions', key: 'edit_user_btn' },
       ],
       filtered_users: [],
       divisions: [],
@@ -133,12 +133,6 @@ export default {
 </script>
 
 <style>
-.filters-row {
-  display: flex;
-  gap: 3rem;
-  align-items: center;
-  margin-bottom: 20px;
-}
 .user-row {
   display: flex;
   flex-wrap: wrap;
@@ -155,13 +149,5 @@ export default {
   width: 10rem;
   text-align: left;
   justify-self: center;
-}
-
-.table-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  width: 100%;
 }
 </style>

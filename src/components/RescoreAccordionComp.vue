@@ -13,10 +13,10 @@
       @click="toggleAccordion(accordion_id)"
     >
       <!-- Accordion header -->
-      <h6 class="accordion-header">{{ header }}</h6>
-      <h6 class="accordion-complete" v-if="rescore">
+      <p class="accordion-header">{{ header }}</p>
+      <p class="accordion-complete" v-if="rescore">
         {{ complete ? 'Complete' : 'Incomplete' }}
-      </h6>
+      </p>
       <zoa-button
         v-if="rescore"
         size="sm"

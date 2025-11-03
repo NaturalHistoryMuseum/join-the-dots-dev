@@ -46,3 +46,6 @@ build/
 
 db-changes/*
 db-changes
+
+
+public/config.json

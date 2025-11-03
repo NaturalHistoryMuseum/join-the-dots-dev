@@ -1,15 +1,15 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <h1>Reports</h1>
+      <p class="h1-style">Reports</p>
       <p>Coming soon...</p>
-      <h5>For now, use the following link</h5>
+      <p>For now, use the following link</p>
       <a
         href="https://app.powerbi.com/groups/00c58706-93bc-4ec1-84d9-0b51d7d6561e/reports/e617e09b-0285-442d-b16c-cbfff8c5db22/ReportSection?experience=power-bi"
         target="_blank"
         >Power Bi Reports</a
       >
-      <h1>Exports</h1>
+      <p class="h1-style">Exports</p>
       <div class="row">
         <p>Coming soon...</p>
         <!-- <div class="col-md-4">
@@ -46,7 +46,7 @@
         </div> -->
       </div>
 
-      <!-- <h1>LtC Export</h1>
+      <!-- <p class="h1-style">LtC Export</p>
       <div class="row">
         <div class="col-md-4">
           <zoa-button label="JSON LtC Export" @click="downloadLtcExport" />
@@ -157,7 +157,7 @@ export default {
 <!--
 <template>
   <div>
-    <h2>Power BI Embedded Report</h2>
+    <p class="h2-style">Power BI Embedded Report</p>
     <div ref="reportContainer" style="width: 800px; height: 600px"></div>
   </div>
 </template>

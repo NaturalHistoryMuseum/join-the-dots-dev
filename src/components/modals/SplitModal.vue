@@ -16,14 +16,20 @@
     <template v-slot:button>Split Unit</template>
     <template v-slot:header> Split Unit </template>
     <div class="flex flex-col center gap-4 action-modal-content">
-      <div v-if="selected_unit && !success && !loading">
-        <p v-if="open_rescore">
-          <strong
-            >*A rescore is currently open, please note that performing actions
-            on units with an open rescore can have negative side
-            affects.*</strong
-          >
+      <div v-if="included_in_rescore">
+        <p>
+          <strong>
+            Warning: this action cannot be performed on a unit that is part of a
+            current rescore.
+          </strong>
         </p>
+        <p>
+          <strong>
+            Please complete or close the rescore to perform this action.
+          </strong>
+        </p>
+      </div>
+      <div v-if="selected_unit && !success && !loading && !included_in_rescore">
         <p>Unit selected for split:</p>
         <p>
           <strong
@@ -49,7 +55,7 @@
           <zoa-button
             class="confirm-btn"
             label="Save Changes"
-            @click="handleConformChanges"
+            @click="handleConfirmChanges"
           />
         </div>
         <div v-else-if="split_new_units == 1">
@@ -86,7 +92,7 @@ export default {
   props: {
     selected_unit: Object,
     navigate_on_success: Boolean,
-    open_rescore: Object,
+    included_in_rescore: Boolean,
   },
   data() {
     return {
@@ -99,7 +105,7 @@ export default {
   },
   methods: {
     fieldNameCalc,
-    async handleConformChanges() {
+    async handleConfirmChanges() {
       this.loading = true;
       const resp = await submitDataGeneric('split-unit', {
         unit_id: this.selected_unit.collection_unit_id,
@@ -116,7 +122,7 @@ export default {
         setTimeout(() => {
           // Redirect to view units page
           this.$router.push({ path: '/view-units' });
-        }, 1000);
+        }, 2000);
       } else {
         // Emit update
         this.$emit('update:refreshData');
@@ -167,6 +173,7 @@ export default {
   text-align: center;
   margin-bottom: 2rem;
   margin-top: 1rem;
+  margin: 1rem 2rem 2rem 2rem;
 }
 
 .split-unit {

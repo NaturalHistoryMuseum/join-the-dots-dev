@@ -1,4 +1,4 @@
-import { api, API_URL } from './api';
+import api from '@/services/api';
 
 export async function getGeneric(route) {
   const resp = await api
@@ -11,7 +11,7 @@ export async function getGeneric(route) {
 
 export async function downloadCSV(view) {
   try {
-    const response = await fetch(`${API_URL}/export-view/${view}`);
+    const response = await api.get(`/export-view/${view}`);
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -49,22 +49,23 @@ export async function downloadLtCjson() {
   }
 }
 
-export async function markRescoreOpen(units) {
-  try {
-    const response = await api.post(
-      `data/mark-rescore-open`,
-      { units: units },
-      {
-        headers: { 'Content-Type': 'application/json' },
-        withCredentials: true,
-      },
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error marking rescore open:', error);
-    throw error;
-  }
-}
+// export async function markRescoreOpen(units) {
+//   try {
+//     const api = getApi();
+//     const response = await api.post(
+//       `data/mark-rescore-open`,
+//       { units: units },
+//       {
+//         headers: { 'Content-Type': 'application/json' },
+//         withCredentials: true,
+//       },
+//     );
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error marking rescore open:', error);
+//     throw error;
+//   }
+// }
 export async function markRescoreComplete(rescore_session_id) {
   try {
     const response = await api.post(`data/end-rescore/${rescore_session_id}`, {

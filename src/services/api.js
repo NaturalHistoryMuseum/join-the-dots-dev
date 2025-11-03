@@ -2,10 +2,9 @@ import axios from 'axios';
 import { logout } from './authService';
 import { getCookie } from './cookies';
 
-// export const API_URL = import.meta.env.VITE_API_URL;
-export const API_URL = 'https://jtd-qa.nhm.ac.uk/api/';
+export const API_URL = import.meta.env.VITE_API_URL;
 
-export const api = axios.create({
+const api = axios.create({
   baseURL: API_URL,
   timeout: 10000,
   withCredentials: true,
@@ -15,7 +14,6 @@ export const api = axios.create({
   xsrfCookieName: 'csrf_access_token',
   xsrfHeaderName: 'X-CSRF-TOKEN',
 });
-
 // Add a request interceptor to inject CSRF token into header
 api.interceptors.request.use((config) => {
   // Only set the CSRF header if it’s not already set manually

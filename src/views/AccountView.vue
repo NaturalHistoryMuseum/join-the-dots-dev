@@ -1,10 +1,10 @@
 <template>
   <div class="account-page">
     <OverlayMessage />
-    <h1>Account</h1>
+    <p class="h1-style">Account</p>
     <div v-if="currentUser" class="content">
       <div class="account-section">
-        <h2>User Details</h2>
+        <p class="h2-style">User Details</p>
         <div class="account-fields-box">
           <div class="account-field">
             <zoa-input
@@ -40,7 +40,13 @@
             <zoa-input
               zoa-type="dropdown"
               label="Role"
-              :config="{ options: role_options, placeholder }"
+              :config="{
+                options: role_options.filter(
+                  (role) =>
+                    parseInt(role.role_id) <= parseInt(currentUser.role_id),
+                ),
+                placeholder,
+              }"
               @change="(value) => handleRoleChange(value)"
               v-model="role_id"
               help="The access role assigned to your account for this JtD application"
@@ -49,7 +55,7 @@
           </div>
           <div class="account-field" v-if="currentUser.level > 1">
             <zoa-input
-              v-if="role_id >= 3"
+              v-if="role_id >= 4"
               zoa-type="dropdown"
               label="Division"
               :config="{ options: division_options }"
@@ -159,7 +165,7 @@
         </div>
       </div>
       <div v-if="role_id >= 3" class="account-section">
-        <h2>Manager Actions</h2>
+        <p class="h2-style">Manager Actions</p>
         <div class="manager-actions">
           <zoa-button
             label="Manage User Permissions"

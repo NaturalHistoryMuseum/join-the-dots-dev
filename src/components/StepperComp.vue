@@ -66,7 +66,7 @@ export default {
   border-radius: 50%;
   border: 2px solid #ff5957;
   background-color: white;
-  color: #ff5957;
+  color: black;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -75,7 +75,7 @@ export default {
 }
 .selected-step {
   background-color: #ff5957;
-  color: white;
+  color: black;
 }
 
 .step-title {

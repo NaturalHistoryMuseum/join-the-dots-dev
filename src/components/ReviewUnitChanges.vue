@@ -33,7 +33,7 @@
             "
             class="change-container"
           >
-            <h4>Metrics</h4>
+            <p class="h4-style">Metrics</p>
             <div
               v-for="(metric, index) in edited_unit.metric_json.filter(
                 (metric) => metric.is_draft,
@@ -57,21 +57,21 @@
             v-if="edited_unit.unit_comment && edited_unit.unit_comment_is_draft"
             class="change-container"
           >
-            <h4>Unit Comment</h4>
+            <p class="h4-style">Unit Comment</p>
             <p class="change-item">{{ edited_unit.unit_comment }}</p>
           </div>
           <div
             v-if="edited_unit.editedRanks && edited_unit.editedRanks"
             class="change-container"
           >
-            <h4>Scores</h4>
+            <p class="h4-style">Scores</p>
             <div
               v-for="(crit, index) in edited_unit.editedRanks"
               :key="index"
               class="change-item"
             >
               <div v-if="crit.some((rank) => rank.is_draft)">
-                <h5>
+                <p class="h5-style">
                   {{
                     criterion.find(
                       (criteria) =>
@@ -85,7 +85,7 @@
                         crit[0].criterion_id == criteria.criterion_id,
                     ).criterion_name
                   }}
-                </h5>
+                </p>
                 <div class="changed-container">
                   <div
                     v-for="(rank, rankIndex) in crit"
