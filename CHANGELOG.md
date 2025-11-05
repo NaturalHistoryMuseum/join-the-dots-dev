@@ -1,3 +1,10 @@
+## v0.6.0 (2025-11-05)
+
+### Feature
+
+- managers can upgrade viewers permissions
+- **power-bi-api**: add new flexible data api
+
 ## v0.5.2 (2025-11-03)
 
 ### Fix
