@@ -145,3 +145,36 @@ def edit_user_division():
         (division_id, user_id),
     )
     return jsonify({'data': data, 'success': True}), 201
+
+
+@user_bp.route('/upgrade-viewer', methods=['POST'])
+@jwt_required()
+def upgrade_viewer():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    division_id = data.get('division_id')
+
+    data = execute_query(
+        """UPDATE jtd_live.users u
+            SET u.role_id = 2, u.division_id = %s
+            WHERE u.user_id = %s
+                   """,
+        (
+            division_id,
+            user_id,
+        ),
+    )
+    return jsonify({'data': data, 'success': True}), 201
+
+
+@user_bp.route('/all-viewers', methods=['GET'])
+@jwt_required()
+def all_viewers():
+    data = fetch_data(
+        """SELECT u.*, r.role, FALSE AS selected
+            FROM {database_name}.users u
+            JOIN {database_name}.roles r ON u.role_id = r.role_id
+            WHERE u.role_id = 1
+            """
+    )
+    return jsonify(data)

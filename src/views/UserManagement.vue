@@ -6,7 +6,12 @@
       <p class="h1-style">Manage User Permissions</p>
       <p>Manage the role and permissions of users in your division</p>
     </div>
+    <UpgradeViewerModal
+      :divisions="divisions"
+      @update:refreshData="fetchAllUsers"
+    />
   </div>
+
   <div class="">
     <div class="users-assignment">
       <TableCheckbox
@@ -31,6 +36,7 @@
 
 <script>
 import ManageUserModel from '@/components/modals/ManageUserModal.vue';
+import UpgradeViewerModal from '@/components/modals/UpgradeViewerModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { currentUser } from '@/services/authService';
@@ -43,6 +49,7 @@ export default {
     TableCheckbox,
     OverlayMessage,
     ManageUserModel,
+    UpgradeViewerModal,
   },
   data() {
     return {
@@ -61,8 +68,8 @@ export default {
       user_table_fields: [
         { label: 'User ID', key: 'user_id' },
         { label: 'Name', key: 'name' },
-        { label: 'Role', key: 'role' },
         { label: 'Email', key: 'email' },
+        { label: 'Role', key: 'role' },
         { label: 'Actions', key: 'edit_user_btn' },
       ],
       filtered_users: [],
