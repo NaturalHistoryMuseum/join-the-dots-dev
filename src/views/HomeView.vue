@@ -26,7 +26,7 @@
         <p class="h2-style">About</p>
         <p>Understand the JtD process further</p>
         <zoa-button
-          label="Rescore"
+          label="About"
           @click="navigate('/about')"
           class="card-btn"
         />
