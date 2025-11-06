@@ -1,3 +1,9 @@
+## v0.6.2 (2025-11-06)
+
+### Fix
+
+- remove actions for only one unit rescore
+
 ## v0.6.1 (2025-11-06)
 
 ### Fix
