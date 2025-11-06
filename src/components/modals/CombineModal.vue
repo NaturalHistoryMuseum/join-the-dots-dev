@@ -30,7 +30,12 @@
         </p>
       </div>
       <div
-        v-if="selected_units && !success && !loading && !included_in_rescore"
+        v-if="
+          selected_units.length > 1 &&
+          !success &&
+          !loading &&
+          !included_in_rescore
+        "
       >
         <p>Unit selected to be combined:</p>
         <div class="view-dropdown-field">
@@ -48,7 +53,7 @@
         <p class="message">
           Please select the unit that you would like to be the primary unit.
           (The combination will take on all data from this unit and you will
-          need to manually make change the new unit)
+          need to manually make changes the new unit)
         </p>
         <zoa-input
           zoa-type="dropdown"
@@ -70,8 +75,8 @@
           />
         </div>
       </div>
-      <div v-if="!success && !selected_units && !loading">
-        <p>Please select a unit to split.</p>
+      <div v-if="!success && selected_units.length < 2 && !loading">
+        <p>Please select more than one unit to combine.</p>
       </div>
       <div v-if="success && !loading">
         <p>Merge successful! The new unit ID is: {{ new_unit_id }}</p>

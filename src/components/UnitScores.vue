@@ -48,6 +48,7 @@
           <!-- Add each metrics value field and confidence field -->
           <div class="row">
             <div class="col-md-6">
+              <div class="required-tag">*</div>
               <zoa-input
                 v-if="rescore"
                 zoa-type="number"
@@ -76,6 +77,7 @@
               </div>
             </div>
             <div class="col-md-6 mb-2">
+              <div class="required-tag">*</div>
               <zoa-input
                 v-if="rescore"
                 zoa-type="dropdown"
@@ -205,7 +207,9 @@
                 <p class="view-field">
                   <!-- Only show where there are scores -->
                   <strong>{{
-                    rank.percentage ? rank.percentage * 100 : ''
+                    rank.percentage
+                      ? parseFloat((rank.percentage * 100).toFixed(2))
+                      : ''
                   }}</strong>
                 </p>
               </div>
@@ -221,12 +225,15 @@
             v-if="rescore || countCriterionComments(crit.criterion_id) > 0"
           >
             <!-- Show comments asigned to ranks in this criterion -->
-            <div class="show-comments">
+            <div>
               <div
                 v-if="expanded_criterion_comment == crit.criterion_id"
                 class="show-comments"
               >
-                <div @click="showCriterionComments(crit.criterion_id)">
+                <div
+                  class="pointer"
+                  @click="showCriterionComments(crit.criterion_id)"
+                >
                   <i class="bi bi-chevron-up"></i>
                   {{ commentsTitle(crit.criterion_id) }}
                 </div>
@@ -250,7 +257,10 @@
               </div>
               <div v-else class="show-comments">
                 <!-- Show comments asigned to ranks in this criterion -->
-                <div @click="showCriterionComments(crit.criterion_id)">
+                <div
+                  class="pointer"
+                  @click="showCriterionComments(crit.criterion_id)"
+                >
                   <i class="bi bi-chevron-down"></i>
                   {{ commentsTitle(crit.criterion_id) }}
                 </div>
@@ -372,6 +382,7 @@ export default {
       ranks: this.unit.ranks_json,
       editedRanks: {},
       metric_definitions: [],
+      metrics: [],
       saving_criterion_id: 0,
     };
   },
@@ -381,6 +392,9 @@ export default {
       handler(new_val, old_val) {
         const currentAccordion = this.expanded_accordion;
         this.local_unit = { ...new_val };
+        if (this.metrics.length > 0) {
+          this.mapMetricsToUnit();
+        }
         // Only reinitialize if ranks_json changed
         if (
           !old_val ||
@@ -418,21 +432,25 @@ export default {
     fetchMetrics() {
       if (this.local_unit.metric_json) {
         getGeneric('metric-definitions').then((response) => {
-          this.metric_definitions = response.map((metric) => {
-            const this_metric = this.local_unit.metric_json.find(
-              (met) =>
-                metric.collection_unit_metric_definition_id ==
-                met.collection_unit_metric_definition_id,
-            ) || { metric_value: null, confidence_level: null };
-            return {
-              ...metric,
-              metric_value: this_metric.metric_value,
-              confidence_level: this_metric.confidence_level,
-              is_draft: this_metric.is_draft || false,
-            };
-          });
+          this.metrics = response;
+          this.mapMetricsToUnit();
         });
       }
+    },
+    mapMetricsToUnit() {
+      this.metric_definitions = this.metrics.map((metric) => {
+        const this_metric = this.local_unit.metric_json.find(
+          (met) =>
+            metric.collection_unit_metric_definition_id ==
+            met.collection_unit_metric_definition_id,
+        ) || { metric_value: null, confidence_level: null };
+        return {
+          ...metric,
+          metric_value: this_metric.metric_value,
+          confidence_level: this_metric.confidence_level,
+          is_draft: this_metric.is_draft || false,
+        };
+      });
     },
     toggleAccordion(accord_id) {
       if (this.expanded_accordion === accord_id) {
@@ -980,11 +998,14 @@ export default {
 }
 
 .show-comments {
-  cursor: pointer;
   margin: 0.25rem 0;
   display: flex;
   justify-content: space-between;
   width: 100%;
+}
+
+.pointer {
+  cursor: pointer;
 }
 
 .edit-comments {

@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="units-content">
-      <div class="actions-bar">
+      <div class="actions-bar" v-show="currentUser.role_id > 1">
         <ActionsBtnGroup :force_show="selectedUnitIds.length > 0">
           <DeleteModal
             :selected_units="
@@ -33,6 +33,7 @@
             "
           />
           <CombineModal
+            v-if="selectedUnitIds.length == 0 || selectedUnitIds.length > 1"
             :selected_units="
               units.filter((unit) =>
                 selectedUnitIds.includes(unit.collection_unit_id),
@@ -46,7 +47,7 @@
               )
             "
           />
-          <zoa-button kind="alt" label="Add Unit" @click="navAddUnit" />
+          <zoa-button label="Add Unit" @click="navAddUnit" />
           <zoa-button
             kind="alt"
             label="Manage Units Permissions"
@@ -120,7 +121,7 @@ import DeleteModal from '@/components/modals/DeleteModal.vue';
 import SplitModal from '@/components/modals/SplitModal.vue';
 import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
-import { loadUser } from '@/services/authService';
+import { currentUser, loadUser } from '@/services/authService';
 import { getGeneric } from '@/services/dataService';
 
 export default {
@@ -135,6 +136,7 @@ export default {
   },
   data() {
     return {
+      currentUser,
       actions: [
         {
           action: 'Delete',

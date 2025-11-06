@@ -374,7 +374,7 @@ export default {
 }
 
 .view-dropdown-field {
-  height: 10rem;
+  max-height: 10rem;
   overflow-y: scroll;
 }
 

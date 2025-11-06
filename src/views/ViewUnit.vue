@@ -16,7 +16,7 @@
           <p class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</p>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
-        <div class="col-md-8" v-if="allow_edit">
+        <div class="col-md-8" v-if="allow_edit && currentUser.role_id > 1">
           <ActionsBtnGroup>
             <DeleteModal :selected_units="[unit]" :navigate_on_success="true" />
             <SplitModal :selected_unit="unit" :navigate_on_success="true" />

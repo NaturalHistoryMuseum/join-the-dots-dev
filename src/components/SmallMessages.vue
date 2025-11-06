@@ -39,6 +39,7 @@ export default {
   margin-right: 1rem;
   border-radius: 10px;
   padding: 0.25rem 1rem;
+  cursor: auto;
 }
 
 .error-msg {

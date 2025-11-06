@@ -10,10 +10,14 @@
         />
       </button>
       <div class="footer-title">
-        <p>
-          This is a development/testing environment, no data changes will affect
-          JtD data.
+        <p v-if="APP_ENV == 'qa'">
+          This is a testing environment, no data changes will affect JtD data.
         </p>
+        <p v-if="APP_ENV == 'dev'">
+          This is a development environment, no data changes will affect JtD
+          data.
+        </p>
+        <p v-if="APP_ENV == 'prod'"></p>
         <p>
           If you have any issues please reach out to: andrew.roberts@nhm.ac.uk
         </p>
@@ -23,8 +27,14 @@
 </template>
 
 <script>
+import { APP_ENV } from '@/utils/utils';
 export default {
   name: 'FooterView',
+  data() {
+    return {
+      APP_ENV,
+    };
+  },
 };
 </script>
 
