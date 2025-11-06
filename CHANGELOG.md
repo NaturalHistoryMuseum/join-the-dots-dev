@@ -1,3 +1,9 @@
+## v0.6.1 (2025-11-06)
+
+### Fix
+
+- pre live final fixes
+
 ## v0.6.0 (2025-11-05)
 
 ### Feature
