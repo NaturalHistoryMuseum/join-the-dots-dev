@@ -102,35 +102,6 @@
               @click="handleAssignedUnitsSave"
             />
           </div>
-          <!-- <div
-            class="account-field"
-            v-else-if="currentUser.level = 2 && units && units.length > 0"
-          >
-            <zoa-input
-              zoa-type="empty"
-              label="Assigned Units"
-              class="comments-title"
-              help="The collection units that you are assigned to be able to edit"
-              help-position="right"
-            />
-            <div
-              class="view-dropdown-field"
-              v-if="assigned_units && assigned_units.length > 0"
-            >
-              <div
-                class="view-field"
-                v-for="unit in assigned_units"
-                :key="unit"
-              >
-                {{ unit }} -
-                {{
-                  units.find((u) => u.value.toString() === unit.toString())
-                    ?.label
-                }}
-              </div>
-            </div>
-            <div v-else class="view-field">No units currently assigned</div>
-          </div> -->
           <div
             class="account-field"
             v-if="currentUser.level > 1 && units && units.length > 0"

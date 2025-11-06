@@ -168,7 +168,7 @@ export default {
       if (!this._internalChange) {
         this.filtered_units = JSON.parse(JSON.stringify(filtered_units));
         if (filtered_units.length > 0) {
-          this.$refs.rescoreTable.resetPage();
+          this.$refs.rescoreTable?.resetPage();
         }
       }
     },

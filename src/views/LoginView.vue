@@ -32,9 +32,11 @@
       message_text="This environment is not yet live. Please do not access."
     />
   </p>
-  <p class="temp-warning">
-    *Please note: This web app is still in development. No changes will affect
-    actual JtD data.
+  <p v-if="APP_ENV == 'dev'" class="h5-style temp-warning env-warning">
+    <SmallMessages
+      message_type="warning"
+      message_text="This environment is dev."
+    />
   </p>
 </template>
 

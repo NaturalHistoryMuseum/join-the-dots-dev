@@ -9,7 +9,7 @@
     "
     @closed="
       () => {
-        resetModal();
+        checkRedirect();
       }
     "
   >
@@ -109,13 +109,7 @@ export default {
       });
       this.loading = false;
       this.success = true;
-      if (this.navigate_on_success) {
-        // Wait a moment for user to see the success message
-        setTimeout(() => {
-          // Redirect to view units page
-          this.$router.push({ path: '/view-units' });
-        }, 2000);
-      } else {
+      if (!this.navigate_on_success) {
         // Emit update
         this.$emit('update:refreshData');
       }
@@ -126,6 +120,14 @@ export default {
       this.confirm_changes = false;
       this.success = false;
       this.loading = false;
+    },
+    checkRedirect() {
+      if (this.navigate_on_success && this.success) {
+        // Redirect to view units page
+        this.$router.push({ path: '/view-units' });
+      } else {
+        this.resetModal();
+      }
     },
   },
 };
