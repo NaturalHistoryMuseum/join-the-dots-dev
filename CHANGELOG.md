@@ -1,3 +1,9 @@
+## v1.0.1 (2025-11-07)
+
+### Minor UI Changes
+
+- change page title
+
 ## v1.0.0 (2025-11-07)
 
 ### Minor UI Changes
