@@ -17,7 +17,7 @@
           This is a development environment, no data changes will affect JtD
           data.
         </p>
-        <p v-if="APP_ENV == 'prod'"></p>
+        <p v-if="APP_ENV == 'prod'">This is the Live JtD Application.</p>
         <p>
           If you have any issues please reach out to: andrew.roberts@nhm.ac.uk
         </p>
