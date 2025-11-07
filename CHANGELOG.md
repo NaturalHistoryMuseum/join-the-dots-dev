@@ -1,3 +1,9 @@
+## v1.0.0 (2025-11-07)
+
+### Minor UI Changes
+
+- remove login prod error
+
 ## v0.6.4 (2025-11-07)
 
 ### Fix
