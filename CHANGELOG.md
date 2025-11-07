@@ -1,3 +1,9 @@
+## v0.6.4 (2025-11-07)
+
+### Fix
+
+- stopping % loophole to add over 100
+
 ## v0.6.3 (2025-11-07)
 
 ### Fix
