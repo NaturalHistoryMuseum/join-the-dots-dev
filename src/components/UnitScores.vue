@@ -35,7 +35,7 @@
     :changeCatComplete="() => changeCatComplete([0])"
   >
     <div v-if="!bulk_edit" class="date-title">
-      Last Edited: {{ metricDate() }}
+      Last Edited: {{ metricDate() ? metricDate() : 'No Data' }}
     </div>
     <!-- Metrics Section -->
     <div class="row">
@@ -64,7 +64,7 @@
                     metric.collection_unit_metric_definition_id,
                   )
                 "
-                :config="{ min: 0 }"
+                :config="{ min: 0, step: 'any' }"
               />
               <div v-else>
                 <!-- Display the metric name and value -->
@@ -107,6 +107,25 @@
               </div>
             </div>
           </div>
+          <!-- Show message if errors -->
+          <SmallMessages
+            v-if="
+              metric.metric_units == '%' &&
+              metric.metric_value != null &&
+              metric.metric_value < 0
+            "
+            message_text="Total percentage is less than 100%"
+            message_type="error"
+          />
+          <SmallMessages
+            v-if="
+              metric.metric_units == '%' &&
+              metric.metric_value != null &&
+              metric.metric_value > 100
+            "
+            message_text="Total percentage exceeds 100%"
+            message_type="error"
+          />
           <!-- Show saved message if metric came from drafts -->
           <SmallMessages
             v-if="metric.is_draft && !bulk_edit"
@@ -501,7 +520,7 @@ export default {
       if (!latestDate || comment_date > latestDate) {
         latestDate = comment_date;
       }
-      if (!latestDate) return null;
+      if (!latestDate || latestDate < new Date('2017-01-01')) return null;
       const finalDate = latestDate.toISOString().split('T')[0];
       return finalDate;
     },
