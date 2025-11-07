@@ -13,7 +13,6 @@ version = "0.6.4"
 tag_format = "v$version"
 update_changelog_on_bump = true
 changelog_incremental = true
-major_version_zero = true
 version_provider = "npm"
 version_files = [
     "pyproject.toml:version"

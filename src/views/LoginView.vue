@@ -26,12 +26,6 @@
     ."
     />
   </p>
-  <p v-if="APP_ENV == 'prod'" class="h5-style temp-warning env-warning">
-    <SmallMessages
-      message_type="warning"
-      message_text="This environment is not yet live. Please do not access."
-    />
-  </p>
   <p v-if="APP_ENV == 'dev'" class="h5-style temp-warning env-warning">
     <SmallMessages
       message_type="warning"

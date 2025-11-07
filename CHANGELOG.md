@@ -4,6 +4,10 @@
 
 - stopping % loophole to add over 100
 
+### Minor UI Changes
+
+- remove login prod error
+
 ## v0.6.3 (2025-11-07)
 
 ### Fix
