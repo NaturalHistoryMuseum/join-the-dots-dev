@@ -128,7 +128,15 @@
           />
           <!-- Show saved message if metric came from drafts -->
           <SmallMessages
-            v-if="metric.is_draft && !bulk_edit"
+            v-if="
+              metric.is_draft &&
+              !bulk_edit &&
+              !(
+                metric.metric_units == '%' &&
+                metric.metric_value != null &&
+                metric.metric_value > 100
+              )
+            "
             message_text="Change Saved"
             message_type="success"
           />
@@ -623,23 +631,24 @@ export default {
     },
 
     submitMetricsChanges(collection_unit_metric_definition_id) {
+      const edited_metric = this.metric_definitions.find(
+        (metric) =>
+          metric.collection_unit_metric_definition_id ==
+          collection_unit_metric_definition_id,
+      );
       if (this.bulk_edit) {
-        const currentMetric = this.metric_definitions.find(
-          (metric) =>
-            metric.collection_unit_metric_definition_id ==
-            collection_unit_metric_definition_id,
+        const return_draft = !(
+          edited_metric.metric_value == null ||
+          edited_metric.metric_value < 0 ||
+          edited_metric.confidence_level == null ||
+          (edited_metric.metric_units == '%' &&
+            edited_metric.metric_value > 100)
         );
-        if (
-          currentMetric.metric_value == null ||
-          currentMetric.metric_value < 0 ||
-          currentMetric.confidence_level == null
-        )
-          return;
         this.metric_definitions.find(
           (metric) =>
             metric.collection_unit_metric_definition_id ==
             collection_unit_metric_definition_id,
-        ).is_draft = true;
+        ).is_draft = return_draft;
         this.returnBulkEdit();
       } else {
         const edited_metric = this.metric_definitions.find(
@@ -650,7 +659,11 @@ export default {
         // Check the the metric value and confidence is valid
         if (
           edited_metric.metric_value >= 0 &&
-          edited_metric.confidence_level !== null
+          edited_metric.confidence_level !== null &&
+          !(
+            edited_metric.metric_units == '%' &&
+            edited_metric.metric_value > 100
+          )
         ) {
           // Submit the metric change
           submitDataGeneric('submit-draft-metrics', {
