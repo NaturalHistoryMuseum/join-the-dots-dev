@@ -1,3 +1,9 @@
+## v0.6.3 (2025-11-07)
+
+### Fix
+
+- **rescore-metrics**: fixes errors for metrics and adds warning for %'s
+
 ## v0.6.2 (2025-11-06)
 
 ### Fix
