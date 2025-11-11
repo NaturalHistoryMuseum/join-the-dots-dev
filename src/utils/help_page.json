@@ -1,0 +1,23 @@
+[
+  {
+    "section_id": 0,
+    "section_name": "Useful Info",
+    "section_desc": "Here you can find useful information about using the Join the Dots platform, including; descisions made during development, how...........",
+    "accordions": [
+      {
+        "header": "How to edit user and unit permissions",
+        "file": "user_permissions.md"
+      }
+    ]
+  },
+  {
+    "section_id": 1,
+    "section_name": "Tutorials",
+    "section_desc": "Here you can find tutorials to help you get started with Join the Dots."
+  },
+  {
+    "section_id": 2,
+    "section_name": "Issues",
+    "section_desc": "Here you can find information on how to report issues or get help with problems you encounter."
+  }
+]

@@ -1,4 +1,5 @@
 import AdminView from '@/views/AdminView.vue';
+import HelpView from '@/views/HelpView.vue';
 import AssignmentManagement from '@/views/UnitAssignmentManagement.vue';
 import UserManagement from '@/views/UserManagement.vue';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -108,6 +109,12 @@ const router = createRouter({
       beforeEnter: (to, from, next) => {
         checkAuth(3, from, next);
       },
+    },
+    {
+      path: '/help',
+      name: 'help',
+      component: HelpView,
+      meta: { requiresAuth: true },
     },
   ],
 });
