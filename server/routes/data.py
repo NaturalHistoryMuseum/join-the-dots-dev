@@ -1757,3 +1757,29 @@ def update_assessed_date():
         ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# Issues endpoints
+
+
+@data_bp.route('/submit-issue', methods=['POST'])
+@jwt_required()
+def submit_issue():
+    data = request.get_json()
+    issue = data.get('issue')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        execute_query(
+            f"""
+            INSERT INTO {database_name}.issues (
+                issue, user_id, date_added
+            ) VALUES (%s, %s, NOW() );
+            """,
+            (issue, user_id),
+        )
+        return jsonify(
+            {'message': 'Issue submitted successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
