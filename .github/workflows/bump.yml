@@ -22,7 +22,6 @@ jobs:
           github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           changelog_increment_filename: CURRENT.md
           extra_requirements: 'cz-nhm'
-          commitizen_version: '4.8.2'
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
