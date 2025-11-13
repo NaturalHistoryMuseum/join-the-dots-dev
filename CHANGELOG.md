@@ -1,3 +1,13 @@
+## v1.1.1 (2025-11-13)
+
+### Fix
+
+- **help-page**: resolve issue of md content not showing on help page
+
+### Refactor
+
+- bump cz version change
+
 ## v1.1.0 (2025-11-13)
 
 ### Feature
