@@ -1,3 +1,19 @@
+## v1.1.0 (2025-11-13)
+
+### Feature
+
+- adds ability to raise issues in the app
+- **help-page**: add guidance and issues to help page
+- help page concept added
+
+### Refactor
+
+- ruff file formatting
+
+### Minor UI Changes
+
+- move issue modal button
+
 ## v1.0.1 (2025-11-07)
 
 ### Minor UI Changes
