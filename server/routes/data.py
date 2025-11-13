@@ -1757,3 +1757,12 @@ def update_assessed_date():
         ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/all-issues', methods=['GET'])
+@jwt_required()
+def get_all_issues():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.issues ;
+                   """)
+    return jsonify(data)

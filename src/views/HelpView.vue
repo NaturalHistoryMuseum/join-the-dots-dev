@@ -16,17 +16,34 @@
           {{ section.section_desc }}
         </p>
         <div
-          v-for="accordion in section.accordions"
+          v-for="(accordion, index) in section.accordions"
           :key="accordion.accordion_id"
         >
           <AccordionGeneric
-            :accordion_open="expanded_accordion === accordion.accordion_id"
+            :accordion_open="expanded_accordion === index"
             :accordion_title="accordion.header"
             :accordion_open_function="toggleAccordion"
             :accordion_eror="false"
-            :accordion_id="accordion.accordion_id"
+            :accordion_id="index"
           >
             <div v-if="accordion.content" v-html="accordion.content"></div>
+            <div v-else-if="accordion.issues_table">
+              Please see below the current issues that have been raised.
+              <TableCheckbox
+                v-if="issues?.length > 0"
+                :units="issues"
+                :fields="issue_fields"
+              >
+                <template #cell(date_added)="row">
+                  {{
+                    new Date(row.item.date_added).toISOString().split('T')[0]
+                  }}
+                </template>
+                <template #cell(completed)="row">
+                  {{ row.item.completed ? 'Resolved' : 'Open' }}
+                </template>
+              </TableCheckbox>
+            </div>
           </AccordionGeneric>
         </div>
       </div>
@@ -36,21 +53,32 @@
 
 <script>
 import AccordionGeneric from '@/components/AccordionGeneric.vue';
+import TableCheckbox from '@/components/TableCheckbox.vue';
 import TopTabs from '@/components/TopTabs.vue';
+import { getGeneric } from '@/services/dataService';
 import { marked } from 'marked';
 
 export default {
   name: 'HelpView',
-  components: { TopTabs, AccordionGeneric },
+  components: { TopTabs, AccordionGeneric, TableCheckbox },
   data() {
     return {
       page_data: [],
       active_tab: 0,
-      expanded_accordion: 0,
+      expanded_accordion: null,
+      issues: [],
+      issue_fields: [
+        // { label: '', key: 'select', class: 'text-center' }, // Checkbox column
+        { label: 'Issue ID', key: 'issue_id' },
+        { label: 'Issue', key: 'issue' },
+        { label: 'Date Raised', key: 'date_added' },
+        { label: 'Status', key: 'completed' },
+      ],
     };
   },
   created() {
     this.setPageData();
+    this.getIssueData();
   },
   methods: {
     async setPageData() {
@@ -73,6 +101,10 @@ export default {
           }
         }
       }
+    },
+    async getIssueData() {
+      const resp = await getGeneric('all-issues');
+      this.issues = resp;
     },
     changeTab(index) {
       this.active_tab = index;
