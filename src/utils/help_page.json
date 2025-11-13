@@ -1,0 +1,64 @@
+[
+  {
+    "section_id": 0,
+    "section_name": "Guidance",
+    "section_desc": "Here you can find useful guidance about using the Join the Dots platform.",
+    "accordions": [
+      {
+        "header": "Basic navigation",
+        "file": "navigation.md"
+      },
+      {
+        "header": "How to view Join the Dots units",
+        "file": "view_units.md"
+      },
+      {
+        "header": "How to edit Join the Dots units",
+        "file": "edit_units.md"
+      },
+      {
+        "header": "How to create a new unit",
+        "file": "create_unit.md"
+      },
+      {
+        "header": "How to Split and Combine Join the Dots units",
+        "file": "unit_actions.md"
+      },
+      {
+        "header": "How to rescore a unit",
+        "file": "rescore.md"
+      },
+      {
+        "header": "Mark units as having no changes",
+        "file": "no_change.md"
+      },
+      {
+        "header": "How to perform bulk updates",
+        "file": "bulk_update.md"
+      },
+      {
+        "header": "Correcting mistakes",
+        "file": "correct_mistakes.md"
+      },
+      {
+        "header": "How to edit user and unit permissions",
+        "file": "user_permissions.md"
+      }
+    ]
+  },
+  {
+    "section_id": 1,
+    "section_name": "Issues / Enhancements",
+    "section_desc": "Here you can find information what issues have been reported and what is currently being worked on.",
+    "accordions": [
+      {
+        "header": "Issues",
+        "issues_table": true
+      },
+      {
+        "header": "Upcoming Enhancements",
+        "file": "ongoing_development.md"
+      }
+    ]
+  }
+]

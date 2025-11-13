@@ -20,6 +20,10 @@ function handleBackPage() {
         <i class="bi bi-arrow-left"></i>
         Back
       </zoa-button>
+      <zoa-button @click="$router.push('/help')">
+        <i class="bi bi-question-circle"></i>
+        Help
+      </zoa-button>
     </div>
     <RouterView />
   </div>
@@ -43,7 +47,7 @@ function handleBackPage() {
 
 .nav-buttons {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   margin-left: 1rem;
 }
 </style>

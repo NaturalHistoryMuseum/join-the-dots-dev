@@ -1761,6 +1761,14 @@ def update_assessed_date():
 
 # Issues endpoints
 
+@data_bp.route('/all-issues', methods=['GET'])
+@jwt_required()
+def get_all_issues():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.issues ;
+                   """)
+    return jsonify(data)
+
 
 @data_bp.route('/submit-issue', methods=['POST'])
 @jwt_required()
