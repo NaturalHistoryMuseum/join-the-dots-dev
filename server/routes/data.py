@@ -1761,6 +1761,7 @@ def update_assessed_date():
 
 # Issues endpoints
 
+
 @data_bp.route('/all-issues', methods=['GET'])
 @jwt_required()
 def get_all_issues():
