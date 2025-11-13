@@ -64,7 +64,7 @@ footer {
 
 .footer-header {
   display: flex;
-  width: 75%;
+  /* width: 75%; */
 }
 
 .nav-footer {
