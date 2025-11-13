@@ -6,43 +6,43 @@
     "accordions": [
       {
         "header": "Basic navigation",
-        "file": "navigation.md"
+        "file": "navigation_help.vue"
       },
       {
         "header": "How to view Join the Dots units",
-        "file": "view_units.md"
+        "file": "view_units.vue"
       },
       {
         "header": "How to edit Join the Dots units",
-        "file": "edit_units.md"
+        "file": "edit_units.vue"
       },
       {
         "header": "How to create a new unit",
-        "file": "create_unit.md"
+        "file": "create_unit.vue"
       },
       {
         "header": "How to Split and Combine Join the Dots units",
-        "file": "unit_actions.md"
+        "file": "unit_actions.vue"
       },
       {
         "header": "How to rescore a unit",
-        "file": "rescore.md"
+        "file": "rescore_help.vue"
       },
       {
         "header": "Mark units as having no changes",
-        "file": "no_change.md"
+        "file": "no_change.vue"
       },
       {
         "header": "How to perform bulk updates",
-        "file": "bulk_update.md"
+        "file": "bulk_update.vue"
       },
       {
         "header": "Correcting mistakes",
-        "file": "correct_mistakes.md"
+        "file": "correct_mistakes.vue"
       },
       {
         "header": "How to edit user and unit permissions",
-        "file": "user_permissions.md"
+        "file": "user_permissions.vue"
       }
     ]
   },
@@ -57,7 +57,7 @@
       },
       {
         "header": "Upcoming Enhancements",
-        "file": "ongoing_development.md"
+        "file": "ongoing_development.vue"
       }
     ]
   }
