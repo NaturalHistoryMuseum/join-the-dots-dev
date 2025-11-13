@@ -13,7 +13,7 @@
   "dependencies": {
     "@azure/msal-browser": "^4.15.0",
     "@babel/helpers": "^7.28.4",
-    "@nhm-data/zoa": "^0.12.2-a2",
+    "@nhm-data/zoa": "^0.13.0",
     "axios": "^1.12.0",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
@@ -22,6 +22,7 @@
     "eslint-config-prettier": "^10.1.5",
     "form-data": "^4.0.4",
     "jwt-decode": "^4.0.0",
+    "marked": "^17.0.0",
     "pinia": "^2.3.1",
     "powerbi-client": "^2.23.1",
     "powerbi-client-vue-js": "^1.1.1",

@@ -18,20 +18,25 @@
           data.
         </p>
         <p v-if="APP_ENV == 'prod'">This is the Live JtD Application.</p>
-        <p>
-          If you have any issues please reach out to: andrew.roberts@nhm.ac.uk
-        </p>
+        <p>If you have any issues please reach out to: jointhedots@nhm.ac.uk</p>
       </div>
+    </div>
+    <div>
+      <FeedackModal v-if="currentUser" />
     </div>
   </footer>
 </template>
 
 <script>
+import FeedackModal from '@/components/modals/FeedackModal.vue';
+import { currentUser } from '@/services/authService';
 import { APP_ENV } from '@/utils/utils';
 export default {
   name: 'FooterView',
+  components: { FeedackModal },
   data() {
     return {
+      currentUser,
       APP_ENV,
     };
   },
@@ -59,7 +64,7 @@ footer {
 
 .footer-header {
   display: flex;
-  width: 100%;
+  /* width: 75%; */
 }
 
 .nav-footer {
