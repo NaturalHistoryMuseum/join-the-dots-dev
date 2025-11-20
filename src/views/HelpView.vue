@@ -15,7 +15,12 @@
         <p v-if="section.section_desc">
           {{ section.section_desc }}
         </p>
-        <div
+        <component
+          v-if="section.component"
+          :is="section.component"
+          :edit_mode="false"
+        />
+        <!-- <div
           v-for="(accordion, index) in section.accordions"
           :key="accordion.accordion_id"
         >
@@ -26,7 +31,6 @@
             :accordion_eror="false"
             :accordion_id="index"
           >
-            <!-- <div v-if="accordion.content" v-html="accordion.content"></div> -->
             <component v-if="accordion.component" :is="accordion.component" />
             <div
               v-else-if="accordion.rendered_html"
@@ -50,7 +54,7 @@
               </TableCheckbox>
             </div>
           </AccordionGeneric>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -58,16 +62,16 @@
 
 <script>
 import AccordionGeneric from '@/components/AccordionGeneric.vue';
+import GuidanceView from '@/components/admin/GuidanceView.vue';
+import HelpIssuesView from '@/components/HelpIssuesView.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import TopTabs from '@/components/TopTabs.vue';
-import { getGeneric } from '@/services/dataService';
 // import { marked } from 'marked';
 export default {
   name: 'HelpView',
   components: { TopTabs, AccordionGeneric, TableCheckbox },
   data() {
     return {
-      page_data: [],
       active_tab: 0,
       expanded_accordion: null,
       issues: [],
@@ -78,62 +82,26 @@ export default {
         { label: 'Date Raised', key: 'date_added' },
         { label: 'Status', key: 'completed' },
       ],
+      page_data: [
+        {
+          section_id: 0,
+          section_name: 'Guidance',
+          section_desc:
+            'Here you can find useful guidance about using the Join the Dots platform.',
+          component: GuidanceView,
+        },
+        {
+          section_id: 1,
+          section_name: 'Issues / Enhancements',
+          section_desc:
+            'Here you can find information what issues have been reported and what is currently being worked on.',
+          component: HelpIssuesView,
+        },
+      ],
     };
   },
-  created() {
-    this.setPageData();
-    this.getIssueData();
-  },
-  methods: {
-    async setPageData() {
-      const data = await import('../utils/help_page.json');
-      this.page_data = data.default;
-      this.setAccContent();
-    },
-    async setAccContent() {
-      // Load the markdown files
-      // for (const section of this.page_data) {
-      //   if (section.accordions) {
-      //     for (const acc of section.accordions) {
-      //       if (acc.file) {
-      //         const md = await import(
-      //           `@/assets/help_page/content/${acc.file}`
-      //         ).then((r) => r.text());
-      //         // Convert Markdown to HTML
-      //         acc.content = marked(md);
-      //       }
-      //     }
-      //   }
-      const all_components = import.meta.glob(
-        '../components/help-content/*.vue',
-      );
 
-      this.page_data = await Promise.all(
-        this.page_data.map(async (section) => {
-          if (section.accordions) {
-            section.accordions = await Promise.all(
-              section.accordions.map(async (acc) => {
-                if (acc.file) {
-                  const comp_path = `../components/help-content/${acc.file}`;
-                  if (all_components[comp_path]) {
-                    const module = await all_components[comp_path]();
-                    acc.component = module.default;
-                  } else {
-                    console.warn(`Component not found: ${comp_path}`);
-                  }
-                }
-                return acc;
-              }),
-            );
-          }
-          return section;
-        }),
-      );
-    },
-    async getIssueData() {
-      const resp = await getGeneric('all-issues');
-      this.issues = resp;
-    },
+  methods: {
     changeTab(index) {
       this.active_tab = index;
       this.expanded_accordion = null;

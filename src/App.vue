@@ -25,18 +25,14 @@ function handleBackPage() {
         Help
       </zoa-button>
     </div>
-    <RouterView />
+    <main>
+      <RouterView />
+    </main>
   </div>
   <FooterView class="footer" />
 </template>
 
 <style scoped lang="scss">
-// @import 'fonts';
-
-// body {
-//   font-family: 'NHM Wallop Text', sans-serif;
-// }
-
 .content {
   display: flex;
   flex-direction: column;
