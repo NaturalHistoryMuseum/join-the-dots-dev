@@ -1,3 +1,13 @@
+## v1.2.0 (2025-11-20)
+
+### Feature
+
+- **guidance**: added admin ability to edit guidance stored in a table
+
+### Refactor
+
+- add main tag to app
+
 ## v1.1.1 (2025-11-13)
 
 ### Fix
