@@ -1792,3 +1792,82 @@ def submit_issue():
         ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# Help guidance endpoints
+
+
+@data_bp.route('/all-guidance', methods=['GET'])
+@jwt_required()
+def get_all_guidance():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.help_guidance ;
+                   """)
+    return jsonify(data)
+
+
+@data_bp.route('/update-guidance', methods=['POST'])
+@jwt_required()
+def update_guidance():
+    guidance = request.get_json()
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        execute_query(
+            f"""
+             UPDATE {database_name}.help_guidance
+            SET header = %s, guidance = %s
+            WHERE guidance_id = %s;
+            """,
+            (guidance['header'], guidance['guidance'], int(guidance['guidance_id'])),
+        )
+        return jsonify(
+            {'message': 'Guidance updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/add-guidance', methods=['POST'])
+@jwt_required()
+def add_guidance():
+    guidance = request.get_json()
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        execute_query(
+            f"""
+            INSERT INTO {database_name}.help_guidance
+            (
+                header, guidance
+            ) VALUES (%s, %s);
+            """,
+            (guidance['header'], guidance['guidance']),
+        )
+        return jsonify(
+            {'message': 'Guidance updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/remove-guidance', methods=['POST'])
+@jwt_required()
+def remove_guidance():
+    data = request.get_json()
+    guidance_id = data.get('guidance_id')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    try:
+        execute_query(
+            f"""
+            DELETE FROM {database_name}.help_guidance
+            WHERE guidance_id = %s;
+            """,
+            (guidance_id,),
+        )
+        return jsonify(
+            {'message': 'Guidance updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
