@@ -32,6 +32,38 @@
             </zoa-button>
           </div>
           <div v-html="guidance.guidance"></div>
+          <!-- Pop out of the recordings -->
+          <div v-if="guidance.recording_url">
+            <div class="pointer" @click="show_recording = !show_recording">
+              <div class="h5-style">
+                <strong>
+                  {{
+                    show_recording
+                      ? 'Hide Recorded Guidance'
+                      : 'Show Recorded Guidance'
+                  }}
+
+                  <i
+                    :class="
+                      show_recording ? 'bi bi-chevron-up' : 'bi bi-chevron-down'
+                    "
+                  ></i>
+                </strong>
+              </div>
+            </div>
+            <transition name="fade">
+              <div v-if="show_recording" class="row comments-list">
+                <iframe
+                  :src="guidance.recording_url"
+                  height="500"
+                  frameborder="0"
+                  scrolling="no"
+                  allowfullscreen
+                  :title="guidance.header + ' Recording'"
+                ></iframe>
+              </div>
+            </transition>
+          </div>
         </div>
         <div v-else>
           <div class="guidance-control">
@@ -43,17 +75,29 @@
             <zoa-button @click="resetGuidanceTab">
               {{
                 guidance.guidance_id === 0
-                  ? 'Dicard Guidance'
-                  : 'Dicard Changes'
+                  ? 'Discard Guidance'
+                  : 'Discard Changes'
               }}
             </zoa-button>
           </div>
-          <div class="field-container guidance-field">
-            <zoa-input
-              v-model="guidance.header"
-              zoa-type="textbox"
-              label="Guidance Header"
-            />
+          <div class="guidance-edit-fields">
+            <div class="field-container guidance-field">
+              <div class="required-tag">*</div>
+              <zoa-input
+                v-model="guidance.header"
+                zoa-type="textbox"
+                label="Guidance Header"
+              />
+            </div>
+            <div class="field-container guidance-field">
+              <zoa-input
+                v-model="guidance.recording_url"
+                zoa-type="textbox"
+                help="Please copy the embed URL from the 'src' attribute of the iframe code provided by Microsoft Stream."
+                help-position="right"
+                label="Guidance Recording Embed URL (not full iframe)"
+              />
+            </div>
           </div>
           <div class="field-container">
             <zoa-input
@@ -91,6 +135,7 @@ export default {
       expanded_accordion: null,
       edit_guidance: false,
       delete_guidance: false,
+      show_recording: false,
     };
   },
   setup() {
@@ -108,6 +153,7 @@ export default {
     resetGuidanceTab() {
       this.fetchGuidance();
       this.edit_guidance = false;
+      this.show_recording = false;
     },
     async saveGuidance(guidance) {
       this.edit_guidance = false;
@@ -127,6 +173,7 @@ export default {
     },
     toggleAccordion(accord_id) {
       this.edit_guidance = false;
+      this.show_recording = false;
       if (this.expanded_accordion === accord_id) {
         this.expanded_accordion = null;
       } else {
@@ -166,5 +213,13 @@ export default {
 
 .guidance-field {
   margin-bottom: 1rem;
+}
+
+.guidance-edit-fields {
+  display: flex;
+  justify-content: flex-start;
+  gap: 2rem;
+  flex-direction: row;
+  align-items: flex-end;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="editor" class="container">
+  <div v-if="editor" class="">
     <div class="control-group">
       <div class="button-group">
         <button
@@ -121,7 +121,7 @@
             'editor-btn',
           ]"
         >
-          Ordered list
+          Numbered list
         </button>
         <!-- <button
           @click="editor.chain().focus().toggleCodeBlock().run()"
@@ -152,14 +152,14 @@
           :class="{ 'is-active': editor.isActive('link') }"
           class="editor-btn"
         >
-          Set link
+          Add link
         </button>
         <button
           @click="editor.chain().focus().unsetLink().run()"
           :disabled="!editor.isActive('link')"
           class="editor-btn"
         >
-          Unset link
+          Remove link
         </button>
         <button
           @click="editor.chain().focus().undo().run()"
@@ -249,6 +249,13 @@ export default {
         .extendMarkRange('link')
         .setLink({ href: url })
         .run();
+    },
+    addIframe() {
+      const url = window.prompt('URL');
+
+      if (url) {
+        this.editor.chain().focus().setIframe({ src: url }).run();
+      }
     },
   },
   beforeUnmount() {
