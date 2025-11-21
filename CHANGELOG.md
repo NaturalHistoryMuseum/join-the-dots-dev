@@ -1,3 +1,9 @@
+## v1.3.0 (2025-11-21)
+
+### Feature
+
+- **guidance**: add ability to include recording embed link to guidance
+
 ## v1.2.0 (2025-11-20)
 
 ### Feature
