@@ -1816,10 +1816,15 @@ def update_guidance():
         execute_query(
             f"""
              UPDATE {database_name}.help_guidance
-            SET header = %s, guidance = %s
+            SET header = %s, guidance = %s, recording_url = %s
             WHERE guidance_id = %s;
             """,
-            (guidance['header'], guidance['guidance'], int(guidance['guidance_id'])),
+            (
+                guidance['header'],
+                guidance['guidance'],
+                guidance['recording_url'],
+                int(guidance['guidance_id']),
+            ),
         )
         return jsonify(
             {'message': 'Guidance updated successfully', 'success': True}
@@ -1839,10 +1844,10 @@ def add_guidance():
             f"""
             INSERT INTO {database_name}.help_guidance
             (
-                header, guidance
-            ) VALUES (%s, %s);
+                header, guidance,recording_url
+            ) VALUES (%s, %s,%s, %s);
             """,
-            (guidance['header'], guidance['guidance']),
+            (guidance['header'], guidance['guidance'], guidance['recording_url']),
         )
         return jsonify(
             {'message': 'Guidance updated successfully', 'success': True}

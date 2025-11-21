@@ -5,7 +5,7 @@
       <p>Coming soon...</p>
       <p>For now, use the following link</p>
       <a
-        href="https://app.powerbi.com/groups/00c58706-93bc-4ec1-84d9-0b51d7d6561e/reports/e617e09b-0285-442d-b16c-cbfff8c5db22/ReportSection?experience=power-bi"
+        href="https://app.powerbi.com/links/kVh2Sta1yX?ctid=73a29c01-4e78-437f-a0d4-c8553e1960c1&pbi_source=linkShare"
         target="_blank"
         >Power Bi Reports</a
       >
