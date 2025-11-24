@@ -1766,9 +1766,43 @@ def update_assessed_date():
 @jwt_required()
 def get_all_issues():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.issues ;
+                   FROM {database_name}.issues
+                      order by date_added DESC;
                    """)
     return jsonify(data)
+
+
+@data_bp.route('/visible-issues', methods=['GET'])
+@jwt_required()
+def get_visible_issues():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.issues
+                    WHERE visible = 1
+                      order by date_added DESC;
+                   """)
+    return jsonify(data)
+
+
+@data_bp.route('/update-issue', methods=['POST'])
+@jwt_required()
+def update_issue():
+    data = request.get_json()
+    issue_id = data.get('issue')
+    visible = data.get('visible')
+    status = data.get('status')
+    date_resolved = data.get('date_resolved')
+    try:
+        execute_query(
+            f"""
+                UPDATE {database_name}.issues
+            SET visible = %s, status = %s, date_resolved = %s
+            WHERE issue_id = %s;
+            """,
+            (visible, status, date_resolved, issue_id),
+        )
+        return jsonify({'message': 'Issue updated successfully', 'success': True}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @data_bp.route('/submit-issue', methods=['POST'])
