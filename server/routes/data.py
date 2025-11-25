@@ -1702,6 +1702,7 @@ def get_ltc_json():
 def delete_units():
     data = request.get_json()
     unit_ids = data.get('unit_ids')
+    justification = data.get('justification')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -1749,6 +1750,16 @@ def delete_units():
             ) VALUES (%s, %s, 'delete')
             """,
                 (structural_changes_higher_id, unit_id),
+            )
+
+            # Add justifcation comment
+            cursor.execute(
+                f"""
+            INSERT INTO {database_name}.structural_changes_comments (
+                structural_changes_higher_id, comment, date_added
+            ) VALUES (%s, %s, NOW())
+            """,
+                (structural_changes_higher_id, justification),
             )
         # Commit the transaction queries
         connection.commit()
