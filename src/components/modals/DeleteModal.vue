@@ -37,7 +37,9 @@
           !included_in_rescore
         "
       >
-        <div>Delete the following units:</div>
+        <div>
+          Delete the following unit{{ selected_units.length > 1 ? 's' : '' }}:
+        </div>
         <div class="view-dropdown-field">
           <div
             class="view-field text-left"
@@ -51,22 +53,29 @@
           </div>
         </div>
         <div class="action-desc">
-          <p>This will remove the selected unit(s). This cannot be undone.</p>
+          <p>
+            This will remove the selected unit{{
+              selected_units.length > 1 ? 's' : ''
+            }}
+            from JtD.
+          </p>
         </div>
 
         <div class="confrim-container">
-          <p>Please confirm the change</p>
           <zoa-input
-            class="check"
-            zoa-type="checkbox"
-            label="Confirm change"
-            label-position="left"
-            v-model="confirm_changes"
+            zoa-type="empty"
+            :label="`Please provide justification for deleting the unit${selected_units.length > 1 ? 's' : ''}`"
+            class="comments-title"
           />
+          <textarea
+            class="text-area"
+            rows="2"
+            v-model="justification_text"
+          ></textarea>
           <zoa-button
-            v-if="confirm_changes"
+            v-if="justification_text.length > 0"
             class="confirm-btn"
-            label="Delete Unit(s)"
+            :label="`Delete Unit${selected_units.length > 1 ? 's' : ''}`"
             @click="handleConfirmChanges"
           />
         </div>
@@ -96,9 +105,9 @@ export default {
   },
   data() {
     return {
-      confirm_changes: false,
       success: false,
       loading: false,
+      justification_text: '',
     };
   },
   methods: {
@@ -106,6 +115,7 @@ export default {
       this.loading = true;
       await submitDataGeneric('delete-units', {
         unit_ids: this.selected_units.map((unit) => unit.collection_unit_id),
+        justification: this.justification_text,
       });
       this.loading = false;
       this.success = true;
@@ -113,11 +123,10 @@ export default {
         // Emit update
         this.$emit('update:refreshData');
       }
-
-      this.confirm_changes = false;
+      this.justification_text = '';
     },
     resetModal() {
-      this.confirm_changes = false;
+      this.justification_text = '';
       this.success = false;
       this.loading = false;
     },
