@@ -13,11 +13,20 @@
         :units="issues"
         :fields="issue_fields"
       >
+        <template #cell(status)="row">
+          {{
+            row.item.status.charAt(0).toUpperCase() + row.item.status.slice(1)
+          }}
+        </template>
         <template #cell(date_added)="row">
           {{ new Date(row.item.date_added).toISOString().split('T')[0] }}
         </template>
-        <template #cell(completed)="row">
-          {{ row.item.completed ? 'Resolved' : 'Open' }}
+        <template #cell(date_resolved)="row">
+          {{
+            row.item.date_resolved
+              ? new Date(row.item.date_resolved).toISOString().split('T')[0]
+              : ''
+          }}
         </template>
       </TableCheckbox>
     </div>
@@ -62,10 +71,15 @@ export default {
       expanded_accordion: null,
       issues: [],
       issue_fields: [
-        { key: 'issue_id', label: 'ID', thStyle: { width: '10%' } },
-        { key: 'issue', label: 'Issue', thStyle: { width: '70%' } },
+        { key: 'issue_id', label: 'ID', thStyle: { width: '5%' } },
+        { key: 'issue', label: 'Issue', thStyle: { width: '65%' } },
+        { key: 'status', label: 'Status', thStyle: { width: '10%' } },
         { key: 'date_added', label: 'Date Added', thStyle: { width: '10%' } },
-        { key: 'completed', label: 'Status', thStyle: { width: '10%' } },
+        {
+          key: 'date_resolved',
+          label: 'Date Resolved',
+          thStyle: { width: '10%' },
+        },
       ],
       enhancements_fields: [
         { key: 'ticket_id', label: 'Ticket ID', thStyle: { width: '20%' } },
@@ -83,6 +97,11 @@ export default {
           exp_date: 'Dec 2025',
         },
         { ticket_id: 25, description: 'Data exports', exp_date: 'Dec 2025' },
+        {
+          ticket_id: 64,
+          description: 'Add justification to unit deletions',
+          exp_date: 'Dec 2025',
+        },
         {
           ticket_id: 24,
           description: 'Personalised home page statistics / reminders',
@@ -102,7 +121,7 @@ export default {
   },
   methods: {
     async getIssueData() {
-      const resp = await getGeneric('all-issues');
+      const resp = await getGeneric('visible-issues');
       this.issues = resp;
     },
     toggleAccordion(accordion_id) {

@@ -49,14 +49,15 @@
           />
           <zoa-button label="Add Unit" @click="navAddUnit" />
           <zoa-button
-            kind="alt"
-            label="Manage Units Permissions"
-            @click="navUnitAssignment"
-          />
-          <zoa-button
+            v-if="currentUser.role_id >= 3"
             kind="alt"
             label="Manage User Permissions"
             @click="$router.push('/user-management')"
+          />
+          <zoa-button
+            kind="alt"
+            label="Manage Units Permissions"
+            @click="navUnitAssignment"
           />
         </ActionsBtnGroup>
       </div>

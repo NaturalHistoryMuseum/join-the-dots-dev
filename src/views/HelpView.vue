@@ -20,41 +20,6 @@
           :is="section.component"
           :edit_mode="false"
         />
-        <!-- <div
-          v-for="(accordion, index) in section.accordions"
-          :key="accordion.accordion_id"
-        >
-          <AccordionGeneric
-            :accordion_open="expanded_accordion === index"
-            :accordion_title="accordion.header"
-            :accordion_open_function="toggleAccordion"
-            :accordion_eror="false"
-            :accordion_id="index"
-          >
-            <component v-if="accordion.component" :is="accordion.component" />
-            <div
-              v-else-if="accordion.rendered_html"
-              v-html="rendered_html"
-            ></div>
-            <div v-else-if="accordion.issues_table">
-              Please see below the current issues that have been raised.
-              <TableCheckbox
-                v-if="issues?.length > 0"
-                :units="issues"
-                :fields="issue_fields"
-              >
-                <template #cell(date_added)="row">
-                  {{
-                    new Date(row.item.date_added).toISOString().split('T')[0]
-                  }}
-                </template>
-                <template #cell(completed)="row">
-                  {{ row.item.completed ? 'Resolved' : 'Open' }}
-                </template>
-              </TableCheckbox>
-            </div>
-          </AccordionGeneric>
-        </div> -->
       </div>
     </div>
   </div>
@@ -76,7 +41,6 @@ export default {
       expanded_accordion: null,
       issues: [],
       issue_fields: [
-        // { label: '', key: 'select', class: 'text-center' }, // Checkbox column
         { label: 'Issue ID', key: 'issue_id' },
         { label: 'Issue', key: 'issue' },
         { label: 'Date Raised', key: 'date_added' },
