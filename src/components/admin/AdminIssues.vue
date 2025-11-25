@@ -39,7 +39,7 @@ import { useMessagesStore } from '@/stores/messages';
 import OverlayMessage from '../OverlayMessage.vue';
 import TableCheckbox from '../TableCheckbox.vue';
 export default {
-  name: 'GuidanceView',
+  name: 'AdminIssues',
   props: {},
   components: { TableCheckbox, OverlayMessage },
   data() {

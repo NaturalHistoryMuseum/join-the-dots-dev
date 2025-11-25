@@ -1150,10 +1150,22 @@ def get_units_assigned():
                 )
             case 4:
                 data = fetch_data(
-                    """SELECT cu.*,
+                    """SELECT cu.*, s.section_name, d.division_name, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS curator_name, cu.responsible_curator_id,
+                    (
+                        SELECT JSON_ARRAYAGG(
+	                        au.user_id
+	                    )
+                        FROM {database_name}.assigned_units au
+                        JOIN {database_name}.users u ON u.user_id = au.user_id
+                        WHERE au.collection_unit_id = cu.collection_unit_id
+                    ) AS assigned_editors
                     FROM {database_name}.collection_unit cu
+                    JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
+                    LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
+                    JOIN {database_name}.section s ON s.section_id = cu.section_id
+                    JOIN {database_name}.division d ON d.division_id = s.division_id
                     WHERE cu.unit_active = 'yes'
-                            """
+                            """,
                 )
         return jsonify(data)
     except Exception as e:
@@ -1189,31 +1201,46 @@ def get_division_users():
         user = get_user_by_id(user_id)
         role_id = user['role_id']
         if role_id >= 3:
-            data = fetch_data(
-                """SELECT u.user_id, u.role_id, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name, u.email, d.division_name, u.division_id, r.role,
-                (
-                    SELECT JSON_ARRAYAGG(
-                        au.collection_unit_id
-                    )
-                    FROM {database_name}.assigned_units au
-                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
-                    WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
-                ) AS assigned_units,
-                (
-                    SELECT JSON_ARRAYAGG(
-                        cu.collection_unit_id
-                    )
-                    FROM {database_name}.collection_unit cu
-                    WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
-                ) AS responsible_units
+            base_query = f"""
+                SELECT
+                    u.user_id,
+                    u.role_id,
+                    COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
+                    u.email,
+                    d.division_name,
+                    u.division_id,
+                    r.role,
+                    (
+                        SELECT JSON_ARRAYAGG(au.collection_unit_id)
+                        FROM {database_name}.assigned_units au
+                        JOIN {database_name}.collection_unit cu
+                            ON cu.collection_unit_id = au.collection_unit_id
+                        WHERE au.user_id = u.user_id
+                        AND cu.unit_active = 'yes'
+                    ) AS assigned_units,
+                    (
+                        SELECT JSON_ARRAYAGG(cu.collection_unit_id)
+                        FROM {database_name}.collection_unit cu
+                        WHERE cu.responsible_curator_id = u.user_id
+                        AND cu.unit_active = 'yes'
+                    ) AS responsible_units
                 FROM {database_name}.users u
                 LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                 JOIN {database_name}.roles r ON r.role_id = u.role_id
                 JOIN {database_name}.division d ON d.division_id = u.division_id
-                WHERE u.division_id = %s AND u.role_id > 1;
-                        """,
-                (user['division_id'],),
-            )
+                WHERE u.role_id > 1
+            """
+
+            params = []
+
+            # Only return one divisions for managers
+            if role_id == 3:
+                base_query += ' AND u.division_id = %s'
+                params.append(user['division_id'])
+
+            base_query += ';'
+
+            data = fetch_data(base_query, tuple(params))
             return jsonify(data)
         else:
             return jsonify({'error': 'You are not autorised.'}), 500
