@@ -1576,8 +1576,10 @@ def get_all_curators():
 def get_units_by_user():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
-    data = fetch_data(
-        """SELECT cu.*, s.section_name, d.division_name,
+    # Fetch user level
+    user = get_user_by_id(user_id)
+    role_id = user['role_id']
+    base_query = """SELECT cu.*, s.section_name, d.division_name,
 
            (
                 SELECT MAX(latest_date)
@@ -1608,10 +1610,19 @@ def get_units_by_user():
             JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
             JOIN {database_name}.section s ON s.section_id = cu.section_id
             JOIN {database_name}.division d ON d.division_id = s.division_id
-            WHERE au.user_id = %s AND cu.unit_active = 'yes';
-            """,
-        (user_id,),
-    )
+            WHERE cu.unit_active = 'yes'
+            """
+    params = []
+
+    # Only return one divisions for managers
+    if role_id < 4:
+        base_query += ' AND au.user_id = %s'
+        params.append(user_id)
+
+    base_query += """
+            GROUP BY cu.collection_unit_id;"""
+
+    data = fetch_data(base_query, tuple(params))
     return jsonify(data)
 
 
