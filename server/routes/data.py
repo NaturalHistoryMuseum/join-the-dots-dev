@@ -1150,10 +1150,22 @@ def get_units_assigned():
                 )
             case 4:
                 data = fetch_data(
-                    """SELECT cu.*,
+                    """SELECT cu.*, s.section_name, d.division_name, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS curator_name, cu.responsible_curator_id,
+                    (
+                        SELECT JSON_ARRAYAGG(
+	                        au.user_id
+	                    )
+                        FROM {database_name}.assigned_units au
+                        JOIN {database_name}.users u ON u.user_id = au.user_id
+                        WHERE au.collection_unit_id = cu.collection_unit_id
+                    ) AS assigned_editors
                     FROM {database_name}.collection_unit cu
+                    JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
+                    LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
+                    JOIN {database_name}.section s ON s.section_id = cu.section_id
+                    JOIN {database_name}.division d ON d.division_id = s.division_id
                     WHERE cu.unit_active = 'yes'
-                            """
+                            """,
                 )
         return jsonify(data)
     except Exception as e:
@@ -1189,31 +1201,46 @@ def get_division_users():
         user = get_user_by_id(user_id)
         role_id = user['role_id']
         if role_id >= 3:
-            data = fetch_data(
-                """SELECT u.user_id, u.role_id, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name, u.email, d.division_name, u.division_id, r.role,
-                (
-                    SELECT JSON_ARRAYAGG(
-                        au.collection_unit_id
-                    )
-                    FROM {database_name}.assigned_units au
-                    JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
-                    WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
-                ) AS assigned_units,
-                (
-                    SELECT JSON_ARRAYAGG(
-                        cu.collection_unit_id
-                    )
-                    FROM {database_name}.collection_unit cu
-                    WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
-                ) AS responsible_units
+            base_query = f"""
+                SELECT
+                    u.user_id,
+                    u.role_id,
+                    COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
+                    u.email,
+                    d.division_name,
+                    u.division_id,
+                    r.role,
+                    (
+                        SELECT JSON_ARRAYAGG(au.collection_unit_id)
+                        FROM {database_name}.assigned_units au
+                        JOIN {database_name}.collection_unit cu
+                            ON cu.collection_unit_id = au.collection_unit_id
+                        WHERE au.user_id = u.user_id
+                        AND cu.unit_active = 'yes'
+                    ) AS assigned_units,
+                    (
+                        SELECT JSON_ARRAYAGG(cu.collection_unit_id)
+                        FROM {database_name}.collection_unit cu
+                        WHERE cu.responsible_curator_id = u.user_id
+                        AND cu.unit_active = 'yes'
+                    ) AS responsible_units
                 FROM {database_name}.users u
                 LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                 JOIN {database_name}.roles r ON r.role_id = u.role_id
                 JOIN {database_name}.division d ON d.division_id = u.division_id
-                WHERE u.division_id = %s AND u.role_id > 1;
-                        """,
-                (user['division_id'],),
-            )
+                WHERE u.role_id > 1
+            """
+
+            params = []
+
+            # Only return one divisions for managers
+            if role_id == 3:
+                base_query += ' AND u.division_id = %s'
+                params.append(user['division_id'])
+
+            base_query += ';'
+
+            data = fetch_data(base_query, tuple(params))
             return jsonify(data)
         else:
             return jsonify({'error': 'You are not autorised.'}), 500
@@ -1549,8 +1576,10 @@ def get_all_curators():
 def get_units_by_user():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
-    data = fetch_data(
-        """SELECT cu.*, s.section_name, d.division_name,
+    # Fetch user level
+    user = get_user_by_id(user_id)
+    role_id = user['role_id']
+    base_query = """SELECT cu.*, s.section_name, d.division_name,
 
            (
                 SELECT MAX(latest_date)
@@ -1581,10 +1610,19 @@ def get_units_by_user():
             JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
             JOIN {database_name}.section s ON s.section_id = cu.section_id
             JOIN {database_name}.division d ON d.division_id = s.division_id
-            WHERE au.user_id = %s AND cu.unit_active = 'yes';
-            """,
-        (user_id,),
-    )
+            WHERE cu.unit_active = 'yes'
+            """
+    params = []
+
+    # Only return one divisions for managers
+    if role_id < 4:
+        base_query += ' AND au.user_id = %s'
+        params.append(user_id)
+
+    base_query += """
+            GROUP BY cu.collection_unit_id;"""
+
+    data = fetch_data(base_query, tuple(params))
     return jsonify(data)
 
 
@@ -1675,6 +1713,7 @@ def get_ltc_json():
 def delete_units():
     data = request.get_json()
     unit_ids = data.get('unit_ids')
+    justification = data.get('justification')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -1723,6 +1762,16 @@ def delete_units():
             """,
                 (structural_changes_higher_id, unit_id),
             )
+
+            # Add justifcation comment
+            cursor.execute(
+                f"""
+            INSERT INTO {database_name}.structural_changes_comments (
+                structural_changes_higher_id, comment, date_added
+            ) VALUES (%s, %s, NOW())
+            """,
+                (structural_changes_higher_id, justification),
+            )
         # Commit the transaction queries
         connection.commit()
         cursor.close()
@@ -1766,9 +1815,43 @@ def update_assessed_date():
 @jwt_required()
 def get_all_issues():
     data = fetch_data("""SELECT *
-                   FROM {database_name}.issues ;
+                   FROM {database_name}.issues
+                      order by date_added DESC;
                    """)
     return jsonify(data)
+
+
+@data_bp.route('/visible-issues', methods=['GET'])
+@jwt_required()
+def get_visible_issues():
+    data = fetch_data("""SELECT *
+                   FROM {database_name}.issues
+                    WHERE visible = 1
+                      order by date_added DESC;
+                   """)
+    return jsonify(data)
+
+
+@data_bp.route('/update-issue', methods=['POST'])
+@jwt_required()
+def update_issue():
+    data = request.get_json()
+    issue_id = data.get('issue')
+    visible = data.get('visible')
+    status = data.get('status')
+    date_resolved = data.get('date_resolved')
+    try:
+        execute_query(
+            f"""
+                UPDATE {database_name}.issues
+            SET visible = %s, status = %s, date_resolved = %s
+            WHERE issue_id = %s;
+            """,
+            (visible, status, date_resolved, issue_id),
+        )
+        return jsonify({'message': 'Issue updated successfully', 'success': True}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @data_bp.route('/submit-issue', methods=['POST'])

@@ -34,7 +34,12 @@
     </div>
     <SidebarFilter
       :units="units"
-      :show_filters="['unit_id', 'unit_name', 'section']"
+      :show_filters="[
+        'unit_id',
+        'unit_name',
+        'section',
+        currentUser.role_id === 4 ? 'show_own' : '',
+      ]"
       :column_direction="false"
       :minimal="true"
       @update:filteredUnits="handleFilteredUnits"
@@ -113,7 +118,11 @@ export default {
     },
     async fetchData() {
       // Fetch data
+      // if (this.currentUser.role_id === 4) {
+      //   this.units = await getGeneric('unit-department');
+      // } else {
       this.units = await getGeneric('units-by-user');
+      // }
     },
     navigateRescore() {
       // Emit the next step in stepper

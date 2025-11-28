@@ -298,7 +298,9 @@ export default {
         this.unit = unitData[0];
         this.handleEditorChange(false);
         // Check if the unit is assigned to the current user
-        if (this.currentUser.assigned_units) {
+        if (this.currentUser.role_id === 4) {
+          this.allow_edit = true;
+        } else if (this.currentUser.assigned_units) {
           this.allow_edit = JSON.parse(
             this.currentUser.assigned_units,
           ).includes(this.unit.collection_unit_id);

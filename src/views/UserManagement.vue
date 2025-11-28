@@ -6,16 +6,35 @@
       <p class="h1-style">Manage User Permissions</p>
       <p>Manage the role and permissions of users in your division</p>
     </div>
-    <UpgradeViewerModal
-      :divisions="divisions"
-      @update:refreshData="fetchAllUsers"
-    />
   </div>
 
   <div class="">
     <div class="users-assignment">
+      <div class="user-filter-row">
+        <div class="field-container text-left">
+          <zoa-input
+            zoa-type="textbox"
+            label="Search Name"
+            v-model="search_name"
+          />
+        </div>
+        <div class="field-container text-left">
+          <zoa-input
+            zoa-type="textbox"
+            label="Search Email"
+            v-model="search_email"
+          />
+        </div>
+
+        <div class="field-container">
+          <UpgradeViewerModal
+            :divisions="divisions"
+            @update:refreshData="fetchAllUsers"
+          />
+        </div>
+      </div>
       <TableCheckbox
-        :units="filtered_users"
+        :units="filteredUsers"
         :fields="user_table_fields"
         ref="usersTable"
       >
@@ -76,6 +95,8 @@ export default {
       divisions: [],
       roles: [],
       units: [],
+      search_email: '',
+      search_name: '',
     };
   },
   setup() {
@@ -136,6 +157,23 @@ export default {
       }));
     },
   },
+  computed: {
+    filteredUsers() {
+      return this.filtered_users.filter(
+        (user) =>
+          (this.search_email?.length > 0
+            ? user.email
+                ?.toLowerCase()
+                .includes(this.search_email.trim().toLowerCase())
+            : true) &&
+          (this.search_name?.length > 0
+            ? user.name
+                ?.toLowerCase()
+                .includes(this.search_name.trim().toLowerCase())
+            : true),
+      );
+    },
+  },
 };
 </script>
 
@@ -156,5 +194,13 @@ export default {
   width: 10rem;
   text-align: left;
   justify-self: center;
+}
+
+.user-filter-row {
+  display: flex;
+  flex-direction: row;
+  align-items: end;
+  gap: 3rem;
+  margin: 0 2rem;
 }
 </style>

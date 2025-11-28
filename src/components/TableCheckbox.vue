@@ -57,10 +57,11 @@
       <template #cell(select)="row">
         <zoa-input
           v-if="
-            this.currentUser.assigned_units &&
-            JSON.parse(this.currentUser.assigned_units).includes(
-              row.item.collection_unit_id,
-            )
+            (this.currentUser.assigned_units &&
+              JSON.parse(this.currentUser.assigned_units).includes(
+                row.item.collection_unit_id,
+              )) ||
+            currentUser.role_id === 4
           "
           class="check"
           zoa-type="checkbox"
