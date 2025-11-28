@@ -1,3 +1,16 @@
+## v1.4.0 (2025-11-28)
+
+### Feature
+
+- **delete-modal**: adds justification textbox to delete action
+- lets admins edit everyones permissions
+- **issues**: add admin ability to see and manage issues
+
+### Fix
+
+- admin able to see all units to rescore
+- **admin-unit-management**: admins can now edit any unit
+
 ## v1.3.0 (2025-11-21)
 
 ### Feature
