@@ -72,7 +72,6 @@ export default {
   display: flex;
   gap: 1rem;
   text-align: right;
-  /* margin-top: 0.5rem; */
   color: white;
   padding: 0;
 }
@@ -82,7 +81,6 @@ export default {
   color: #fff;
   text-decoration: none;
   font-size: 16px;
-  /* padding: 8px; */
   cursor: pointer;
 }
 
@@ -99,7 +97,6 @@ nav a {
 .active-bar,
 .hover-bar {
   position: absolute;
-  /* bottom: -12px; */
   bottom: -1.1rem;
   margin: 0 10px;
   left: 0;
@@ -116,7 +113,7 @@ nav a {
 
 @media (max-width: 768px) {
   .navbar {
-    gap: 0.5rem; /* Reduce gap for smaller screens */
+    gap: 0.5rem;
   }
 
   .nav-item {

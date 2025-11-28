@@ -88,16 +88,6 @@
             <template #cell(name)="row">
               {{ row.value.first }} {{ row.value.last }}
             </template>
-
-            <!-- Actions column -->
-            <!-- <template #cell(actions)="row">
-              <div class="row-actions">
-                <zoa-button @click="viewUnit(row.item)" class="view-btn">
-                  View Unit
-                </zoa-button>
-                <zoa-button class="delete-btn">Delete Unit</zoa-button>
-              </div>
-            </template> -->
             <template #cell(actions)="row">
               <zoa-button @click="() => viewUnit(row.item)" class="view-btn">
                 View Unit
@@ -169,10 +159,8 @@ export default {
         { label: '', key: 'select', class: 'text-center' }, // Checkbox column
         { label: 'Unit ID', key: 'collection_unit_id' },
         { label: 'Unit Name', key: 'unit_name' },
-        // { label: 'Named Collection', key: 'named_collection' },
         { label: 'Section', key: 'section_name' },
         { label: 'Division', key: 'division_name' },
-        // { label: 'Department', key: 'department_name' },
         { label: 'Actions', key: 'actions' },
       ],
       filteredUnits: [],
@@ -259,7 +247,6 @@ export default {
 .units-content {
   flex: 1;
   width: 100%;
-  /* padding: 10px 20px; */
 }
 
 .unit-table {

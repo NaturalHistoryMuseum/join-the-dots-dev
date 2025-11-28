@@ -37,8 +37,6 @@
             {{ selected_unit.unit_name }}</strong
           >
         </p>
-
-        <!-- <div class="row"> -->
         <p>
           How many units would you like to split this into? (This number should
           include the original unit)

@@ -36,7 +36,6 @@ export default {
 
 .unit-save-msg-container {
   position: fixed;
-  /* padding-top: 30rem; */
   left: 85%;
   z-index: 1;
   pointer-events: none;

@@ -50,9 +50,7 @@ export default {
   flex-wrap: wrap;
   align-items: flex-end;
   padding: 2rem 2rem;
-  /* margin-top: 3rem; */
   bottom: 0;
-  /* position: fixed; */
   width: 100%;
   background-color: var(--secondary-col);
 }
@@ -64,7 +62,6 @@ footer {
 
 .footer-header {
   display: flex;
-  /* width: 75%; */
 }
 
 .nav-footer {
@@ -92,7 +89,6 @@ footer {
   color: white;
   margin: 0;
   margin-left: 3rem;
-  /* font-size: 2.5rem; */
 }
 
 .icon-container {
@@ -118,7 +114,6 @@ footer {
     height: 2rem;
   }
   .footer-title {
-    /* font-size: 1.8rem; */
     margin-left: 2rem;
   }
 }
@@ -131,7 +126,6 @@ footer {
     height: 2rem;
   }
   .footer-title {
-    /* font-size: 1.2rem; */
     margin-left: 1.5rem;
   }
 }

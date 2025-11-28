@@ -22,9 +22,7 @@ export default {
     criterion_id: Number,
   },
   data() {
-    return {
-      // error: false,
-    };
+    return {};
   },
   emits: ['update:modelValue'],
   computed: {

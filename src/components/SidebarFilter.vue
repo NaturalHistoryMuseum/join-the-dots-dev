@@ -14,7 +14,6 @@
         class="toggle-btn"
         :title="is_collapsed ? 'Show Filters' : 'Hide Filters'"
       >
-        <!-- {{ is_collapsed ? <i class="bi bi-list"></i> : '<' }} -->
         <div v-if="is_collapsed"><i class="bi bi-list btn-icon"></i></div>
         <div v-else><i class="bi bi-x-lg btn-icon"></i></div>
       </zoa-button>
@@ -65,13 +64,6 @@
           label-position="right"
           v-model="filter_assigned"
         />
-        <!-- <zoa-input
-          zoa-type="checkbox"
-          :class="minimal ? '' : 'filter'"
-          label="Show Inactive"
-          label-position="right"
-          v-model="filter_inactive"
-        /> -->
         <zoa-input
           v-if="show_filters.includes('unit_id')"
           zoa-type="textbox"
@@ -167,7 +159,6 @@ export default {
       search_division: [],
       search_curators: [],
       filter_inactive: false,
-      // filter_assigned: this.currentUser.assigned_units ? true : false,
       filter_assigned:
         this.currentUser.assigned_units &&
         this.show_filters.includes('show_own'),
@@ -335,7 +326,6 @@ export default {
   display: flex;
   flex-direction: column;
   margin: 1rem 1rem 0rem 1rem;
-  /* width: 50px; */
 }
 
 .toggle-btn {

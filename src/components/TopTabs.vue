@@ -39,12 +39,12 @@ export default {
   border-bottom: 3px solid var(--accent-col);
   overflow-x: auto;
   white-space: nowrap;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  scrollbar-width: none; /* Hide scrollbar on Firefox */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
 
 .tab-container::-webkit-scrollbar {
-  display: none; /* Hide scrollbar on Chrome, Safari */
+  display: none;
 }
 
 .tab {

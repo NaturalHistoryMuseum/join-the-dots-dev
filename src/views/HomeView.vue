@@ -31,7 +31,6 @@
           class="card-btn"
         />
       </div>
-      <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
         <p class="h2-style">View Units</p>
@@ -45,7 +44,6 @@
           class="card-btn"
         />
       </div>
-      <!-- <div class="padd-card col-md-1"></div> -->
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
         <p class="h2-style">Reports</p>
@@ -84,15 +82,6 @@ export default {
     navigate(path) {
       this.$router.push({ path: path });
     },
-    // async getUserAzure() {
-    // const response = await api.post(
-    //   `auth/azure/user`,
-    //   { email: this.currentUser.email },
-    //   {
-    //     withCredentials: true,
-    //   },
-    // );
-    // },
   },
 };
 </script>
@@ -148,7 +137,6 @@ export default {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: stretch;
-  /* align-items: center; */
   flex: 1 1 0;
 }
 .home-card {

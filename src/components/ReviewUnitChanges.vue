@@ -94,7 +94,6 @@
                   >
                     <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
                     <p>{{ rank.percentage ? rank.percentage * 100 : '0' }}</p>
-                    <!-- Rank {{ rank.rank_value }}: {{ rank.percentage * 100 }}% -->
                   </div>
                 </div>
               </div>

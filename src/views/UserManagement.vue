@@ -1,13 +1,11 @@
 <template>
   <OverlayMessage />
-
   <div class="main-header">
     <div class="">
       <p class="h1-style">Manage User Permissions</p>
       <p>Manage the role and permissions of users in your division</p>
     </div>
   </div>
-
   <div class="">
     <div class="users-assignment">
       <div class="user-filter-row">
@@ -25,7 +23,6 @@
             v-model="search_email"
           />
         </div>
-
         <div class="field-container">
           <UpgradeViewerModal
             :divisions="divisions"
@@ -75,7 +72,6 @@ export default {
       currentUser,
       sections: [],
       users: [],
-      // units: [],
       fields: [
         { label: 'User ID', key: 'user_id' },
         { label: 'Name', key: 'name' },

@@ -5,11 +5,6 @@
   >
     <p class="h5-style">Rescore Open:</p>
     <p>Started : {{ open_rescore.created_at }}</p>
-    <!-- <zoa-button
-      label="Continue Rescore"
-      @click="navigateRescore()"
-      class="close-rescore-btn"
-    /> -->
     <zoa-button
       label="Close Rescore and Discard Changes"
       @click="closeRescore()"
@@ -118,11 +113,7 @@ export default {
     },
     async fetchData() {
       // Fetch data
-      // if (this.currentUser.role_id === 4) {
-      //   this.units = await getGeneric('unit-department');
-      // } else {
       this.units = await getGeneric('units-by-user');
-      // }
     },
     navigateRescore() {
       // Emit the next step in stepper
@@ -143,22 +134,6 @@ export default {
       this.fetchUnitsData();
       this.loadPage();
     },
-    // latestRescore() {
-    //   // Initialize to a very old date
-    //   let latest_date = new Date(0);
-    //   let is_latest_date = false;
-    //   this.units.forEach((unit) => {
-    //     if (unit.last_rescored) {
-    //       const date = new Date(unit.last_rescored);
-    //       if (!latest_date || date > latest_date) {
-    //         is_latest_date = true;
-    //         latest_date = date;
-    //       }
-    //     }
-    //   });
-
-    //   return is_latest_date ? this.formatDate(latest_date) : false;
-    // },
     // Navigate to the view unit page
     viewUnit(unit) {
       this.$router.push({

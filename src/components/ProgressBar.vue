@@ -55,7 +55,6 @@ const barColor = computed(() => {
 
 <style scoped>
 .progress-container {
-  /* width: 100%; */
   height: 24px;
   background-color: #eee;
   border-radius: 12px;

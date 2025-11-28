@@ -53,8 +53,6 @@ export default {
     // Logout function
     logoutUser() {
       logout();
-      // Navigate to login page
-      // this.$router.push('/login');
     },
     navigateAccount() {
       // Navigate to account page

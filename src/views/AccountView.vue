@@ -202,7 +202,7 @@ export default {
     assignUnits,
     // Page specific functions
     async fetchData() {
-      // get all roles and set them to options
+      // Get all roles and set them to options
       getGeneric(`all-roles`).then((response) => {
         this.role_options = response.map((role) => ({
           ...role,
