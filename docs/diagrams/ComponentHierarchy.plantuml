@@ -1,4 +1,4 @@
-@startuml
+@startuml component-hierarchy
 title Component Hierarchy
 
 skinparam componentStyle rectangle
