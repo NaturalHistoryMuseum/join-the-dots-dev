@@ -1836,7 +1836,7 @@ def get_visible_issues():
 @jwt_required()
 def update_issue():
     data = request.get_json()
-    issue_id = data.get('issue')
+    issue_id = data.get('issue_id')
     visible = data.get('visible')
     status = data.get('status')
     date_resolved = data.get('date_resolved')

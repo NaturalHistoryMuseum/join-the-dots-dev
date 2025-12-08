@@ -17,7 +17,6 @@
       <p v-if="!stats.category_percent">loading...</p>
     </div>
     <div class="col-md-4 stats-summary">
-      <!-- <p class="h4-style">Stats Summary</p> -->
       <div class="stats-card">
         <p class="h4-style">Units Count:</p>
         <p class="h4-style">{{ stats.total_units }}</p>
@@ -30,7 +29,6 @@
   </div>
   <div v-if="currentUser.level == 2" class="row">
     <div class="stats-numbers">
-      <!-- <p class="h4-style">Stats Summary</p> -->
       <div class="stats-card">
         <p class="h4-style">Last Rescored:</p>
         <p class="h4-style">{{ stats.last_rescored_formatted }}</p>
@@ -60,7 +58,6 @@
   </div>
   <div v-if="currentUser.level == 3" class="row">
     <div class="stats-numbers">
-      <!-- <p class="h4-style">Stats Summary</p> -->
       <div class="stats-card">
         <p class="h4-style">Division Units:</p>
         <p class="h4-style">{{ 200 }}</p>

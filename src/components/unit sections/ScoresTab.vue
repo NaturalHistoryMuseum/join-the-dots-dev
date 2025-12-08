@@ -1,10 +1,4 @@
 <template>
-  <!-- <div class="progress-header">
-    <ProgressBar
-      :progress="calcUnitCompletePercentage()"
-      class="scoring-progress-bar"
-    />
-  </div> -->
   <div v-if="unit_scores.length > 0" class="">
     <UnitScores v-if="!add_unit_mode" :unit="unit_scores[0]" :rescore="false" />
     <UnitScores
@@ -22,7 +16,6 @@
 
 <script>
 import { getGeneric } from '@/services/dataService';
-// import ProgressBar from '../ProgressBar.vue';
 import UnitScores from '../UnitScores.vue';
 
 export default {
@@ -34,7 +27,6 @@ export default {
   },
   components: {
     UnitScores,
-    // ProgressBar,
   },
   data() {
     return { unit_scores: [], edited_unit: [], rank_json: [] };

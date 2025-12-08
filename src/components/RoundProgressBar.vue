@@ -23,9 +23,13 @@
         :stroke-dashoffset="dashOffset"
         transform="rotate(-90 50 50)"
       />
-      <text x="50" y="54" text-anchor="middle" font-size="16" fill="#333">
-        <!-- {{ progress }}%   -->
-      </text>
+      <text
+        x="50"
+        y="54"
+        text-anchor="middle"
+        font-size="16"
+        fill="#333"
+      ></text>
     </svg>
   </div>
 </template>

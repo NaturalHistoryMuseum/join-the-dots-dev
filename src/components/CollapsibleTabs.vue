@@ -56,7 +56,6 @@
             <div v-if="checkUnitCompleted(unit)">
               <i class="bi bi-check-lg"></i>
             </div>
-            <!-- <div v-else><i class="bi bi-x-lg"></i></div> -->
           </span>
         </button>
       </div>
@@ -159,7 +158,6 @@ export default {
 }
 
 .tab-title {
-  /* display: inline-block; */
   display: flex;
   justify-content: space-between;
   padding-right: 1rem;
@@ -184,7 +182,6 @@ export default {
 
 .content {
   flex: 1;
-  /* padding: 10px 20px; */
 }
 
 .btn-icon {

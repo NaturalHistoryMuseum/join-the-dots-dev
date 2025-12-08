@@ -26,7 +26,6 @@
         measuring improvements where possible.
       </p>
       <p class="h2-style">Join the Dots - User Manual</p>
-      <!-- Embed in future -->
       <p>
         <a
           href="https://naturalhistorymuseum.sharepoint.com/sites/Intranet/Projects/digital/join-the-dots/Shared%20Documents/Join%20the%20Dots%20User%20Manual.pdf"
@@ -52,7 +51,6 @@
   text-align: left;
 }
 .sub-header-bar {
-  /* top: 0; */
   height: 3rem;
   background-color: var(--secondary-col);
   display: flex;

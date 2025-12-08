@@ -1,4 +1,4 @@
-@startuml
+@startuml full-stack-architecture
 title Full-Stack Architecture JtD
 
 skinparam componentStyle rectangle

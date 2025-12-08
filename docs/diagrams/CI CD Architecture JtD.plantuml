@@ -1,4 +1,4 @@
-@startuml
+@startuml ci-cd-architecture
 skinparam componentStyle rectangle
 
 /'actor "Developer" as Dev'/

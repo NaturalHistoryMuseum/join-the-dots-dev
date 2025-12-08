@@ -31,7 +31,6 @@ import GuidanceView from '@/components/admin/GuidanceView.vue';
 import HelpIssuesView from '@/components/HelpIssuesView.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import TopTabs from '@/components/TopTabs.vue';
-// import { marked } from 'marked';
 export default {
   name: 'HelpView',
   components: { TopTabs, AccordionGeneric, TableCheckbox },

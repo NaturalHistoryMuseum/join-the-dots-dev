@@ -1,9 +1,7 @@
 <template>
   <div class="rescore" v-show="!loading">
     <div class="row" v-if="!rescore_saved">
-      <!-- <p class="h1-style col-md-3 rescore-title">Rescore</p> -->
       <div class="col-md-3"></div>
-
       <StepperComp
         :steps="steps"
         :current_step="current_step"
@@ -26,7 +24,6 @@
         class="stepper-btn right-btn"
       />
     </div>
-    <!-- <div v-show="!loading"> -->
     <div v-if="current_step === 1">
       <ManageRescoreView
         @update:current_step="current_step++"
@@ -48,7 +45,6 @@
         @update:rescore_saved="rescore_saved = true"
       />
     </div>
-    <!-- </div> -->
   </div>
   <div v-show="loading">loading...</div>
 </template>
@@ -100,7 +96,6 @@ export default {
   },
   methods: {
     async fetchUnitsData() {
-      // this.loading = true;
       const rescoreResp = await getGeneric('open-rescore');
       // Check if there is an open rescore session
       this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};

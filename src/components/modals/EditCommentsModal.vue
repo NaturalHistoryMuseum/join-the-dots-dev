@@ -18,9 +18,6 @@
             @change="handleSave"
           ></textarea>
         </div>
-        <!-- <div class="">
-          <zoa-button label="Save" @click="handleSave" />
-        </div> -->
       </div>
     </div>
   </zoa-modal>

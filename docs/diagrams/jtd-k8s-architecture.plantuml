@@ -1,0 +1,36 @@
+@startuml jtd-k8s-architecture
+skinparam componentStyle rectangle
+
+actor "User" as user
+
+node "Kubernetes Cluster" {
+    node "Namespace: jtd-live" as namespace {
+        component "Ingress: ing-jtd" as ing
+        node "Service: svc-web" as svcWeb {
+            node "Deployment: dpl-web" as dplWeb {
+                component "Pod: dpl-web-[...]" as podWeb
+            }
+        }
+        node "Service: svc-api" as svcApi {
+            node "Deployment: dpl-api" as dplApi {
+                component "Pod: dpl-api-[...]" as podApi
+            }
+        }
+        node "Service: svc-database" as svcDatabase {
+            node "StatefulSet: sts-database" as stsDatabase {
+                database "mysql" as mysql
+            }
+        }
+
+    }
+    node "Namespace: Other NHM projects" as namespaceOther {
+        component "Example Project" as otherthings
+    }
+
+}
+
+user --> ing : Web Connection
+ing --> svcApi : Backend Ingress
+ing --> svcWeb : Frontend Ingress
+svcApi <--> svcDatabase : App Transactions
+@enduml

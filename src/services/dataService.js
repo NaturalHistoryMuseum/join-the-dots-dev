@@ -49,23 +49,6 @@ export async function downloadLtCjson() {
   }
 }
 
-// export async function markRescoreOpen(units) {
-//   try {
-//     const api = getApi();
-//     const response = await api.post(
-//       `data/mark-rescore-open`,
-//       { units: units },
-//       {
-//         headers: { 'Content-Type': 'application/json' },
-//         withCredentials: true,
-//       },
-//     );
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error marking rescore open:', error);
-//     throw error;
-//   }
-// }
 export async function markRescoreComplete(rescore_session_id) {
   try {
     const response = await api.post(`data/end-rescore/${rescore_session_id}`, {

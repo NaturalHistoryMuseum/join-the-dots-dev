@@ -356,9 +356,6 @@ export default {
       get() {
         return this.user;
       },
-      // set(value) {
-      //   return
-      // },
     },
   },
 };

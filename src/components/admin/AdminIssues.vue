@@ -113,7 +113,7 @@ export default {
     checkResolved(issue) {
       const resolved = issue.status === 'resolved';
       if (resolved && !issue.date_resolved) {
-        issue.date_resolved = new Date();
+        issue.date_resolved = new Date().toISOString().split('T')[0];
         issue.date_resolved_formatted = new Date().toISOString().split('T')[0];
       } else if (!resolved) {
         issue.date_resolved = null;

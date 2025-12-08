@@ -186,7 +186,7 @@
       "
     >
       <div class="">
-        <!-- last edited date for this whole category -->
+        <!-- Last edited date for this whole category -->
         <div v-if="!bulk_edit" class="date-title">
           Last Edited: {{ groupCategoryDate(cat) }}
         </div>
@@ -241,10 +241,6 @@
                 </p>
               </div>
             </div>
-            <!-- {{
-              // FOR TESTING PURPOSES ONLY
-              editedRanks[crit.criterion_id].reduce((sum, r) => sum + (r.percentage || 0), 0)
-            }} -->
           </div>
           <!-- Container for other criterion interations -->
           <div
@@ -623,11 +619,8 @@ export default {
           this.unit.rescore_session_units_id,
           submit_category_ids_arr,
           val,
-        ).then(() => {
-          // this.fetchUnitsData();
-        });
+        ).then(() => {});
       }
-      // this.local_unit.category_tracking = JSON.stringify(category_tracking);
     },
 
     submitMetricsChanges(collection_unit_metric_definition_id) {

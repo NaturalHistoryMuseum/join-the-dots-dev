@@ -33,10 +33,6 @@ export default {
       get() {
         return this.current_step;
       },
-      // ADD TO ALLOW PARENT TO UPDATE CURRENT_STEP
-      // set(val) {
-      //   this.$emit('update:current_step', val)
-      // },
     },
   },
 };

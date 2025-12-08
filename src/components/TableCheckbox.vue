@@ -222,7 +222,6 @@ export default {
 
 .table-options {
   display: flex;
-  /* justify-content: space-between; */
   align-items: center;
   padding: 1rem 2rem;
   width: 100%;

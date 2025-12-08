@@ -74,15 +74,6 @@ const router = createRouter({
         checkAuth(2, from, next);
       },
     },
-    // {
-    //   path: '/manage-rescore',
-    //   name: 'manage rescore',
-    //   component: ManageRescoreView,
-    //   meta: { requiresAuth: true },
-    //   beforeEnter: (to, from, next) => {
-    //     checkAuth(2, from, next);
-    //   },
-    // },
     {
       path: '/admin',
       name: 'admin',
@@ -135,13 +126,6 @@ async function checkAuth(level, from, next) {
   }
   // Check access
   if (!currentUser.value || currentUser.value.level < level) {
-    // Prevent infinite loop by doing nothing if already on "/"
-    // if (from.path === '/') {
-    //   return
-    // } else {
-    //   // Navigate home if unauthorised
-    //   next('/')
-    // }
     next('/');
   } else {
     // Proceed if authorised

@@ -64,7 +64,6 @@ export default {
   gap: 0.5rem;
 
   margin-left: auto;
-  /* margin-bottom: 0.5rem; */
 }
 .actions-group {
   display: flex;

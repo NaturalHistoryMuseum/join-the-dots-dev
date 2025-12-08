@@ -23,13 +23,6 @@
         >
           Strike
         </button>
-        <!-- <button
-          @click="editor.chain().focus().toggleCode().run()"
-          :disabled="!editor.can().chain().focus().toggleCode().run()"
-          :class="{ 'is-active': editor.isActive('code') }"
-        >
-          Code
-        </button> -->
         <button
           @click="editor.chain().focus().unsetAllMarks().run()"
           class="editor-btn"
@@ -42,15 +35,6 @@
         >
           Clear Formatting
         </button>
-        <!-- <button
-          @click="editor.chain().focus().setParagraph().run()"
-          :class="[
-            editor.isActive('paragraph') ? 'is-active' : '',
-            'editor-btn',
-          ]"
-        >
-          Paragraph
-        </button> -->
         <button
           @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
           :class="[
@@ -123,30 +107,12 @@
         >
           Numbered list
         </button>
-        <!-- <button
-          @click="editor.chain().focus().toggleCodeBlock().run()"
-          :class="{ 'is-active': editor.isActive('codeBlock') }"
-        >
-          Code block
-        </button> -->
-        <!-- <button
-          @click="editor.chain().focus().toggleBlockquote().run()"
-          :class="{ 'is-active': editor.isActive('blockquote') }"
-        >
-          Blockquote
-        </button> -->
         <button
           @click="editor.chain().focus().setHorizontalRule().run()"
           class="editor-btn"
         >
           Horizontal rule
         </button>
-        <!-- <button
-          @click="editor.chain().focus().setHardBreak().run()"
-          class="editor-btn"
-        >
-          Hard break
-        </button> -->
         <button
           @click="setLink"
           :class="{ 'is-active': editor.isActive('link') }"
@@ -175,14 +141,6 @@
         >
           Redo
         </button>
-        <!-- <button
-          @click="editor.chain().focus().setColor('#958DF1').run()"
-          :class="{
-            'is-active': editor.isActive('textStyle', { color: '#958DF1' }),
-          }"
-        >
-          Purple
-        </button> -->
       </div>
     </div>
     <editor-content :editor="editor" />
