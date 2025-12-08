@@ -1,3 +1,18 @@
+## v1.4.1 (2025-12-08)
+
+### Fix
+
+- **issues-management**: can edit and manage issues in the admin area
+
+### Refactor
+
+- remove redundant code comments
+
+### Docs
+
+- change file types for documentation
+- removing diagram images
+
 ## v1.4.0 (2025-11-28)
 
 ### Feature
