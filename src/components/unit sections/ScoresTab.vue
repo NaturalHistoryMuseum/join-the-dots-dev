@@ -15,6 +15,7 @@
       :rescore="add_unit_mode || draft_unit"
       :bulk_edit="add_unit_mode || draft_unit"
       @newUnit="handleUnitUpdate"
+      :hide_comments="false"
     />
   </div>
   <div v-else class="content row centered">

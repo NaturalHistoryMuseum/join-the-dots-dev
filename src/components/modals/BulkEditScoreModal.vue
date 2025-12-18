@@ -55,6 +55,7 @@
             :rescore="true"
             :bulk_edit="true"
             @newUnit="handleBulkUnitUpdate"
+            :hide_comments="true"
           />
         </div>
         <div v-show="current_step === 3" class="modal-step-content">

@@ -256,6 +256,7 @@
                 <div
                   class="pointer"
                   @click="showCriterionComments(crit.criterion_id)"
+                  v-show="!hide_comments"
                 >
                   <i class="bi bi-chevron-up"></i>
                   {{ commentsTitle(crit.criterion_id) }}
@@ -284,6 +285,7 @@
                 <div
                   class="pointer"
                   @click="showCriterionComments(crit.criterion_id)"
+                  v-show="!hide_comments"
                 >
                   <i class="bi bi-chevron-down"></i>
                   {{ commentsTitle(crit.criterion_id) }}
@@ -330,13 +332,9 @@
                     </div>
                   </div>
                 </div>
-                <div
-                  class="col-md-2 edit-comments"
-                  v-if="rescore && !bulk_edit"
-                >
+                <div class="col-md-2 edit-comments">
                   <!-- Modal pop out to edit the comments for each rank in this criterion -->
                   <EditCommentsModal
-                    v-if="rescore && !bulk_edit"
                     :criterion_id="crit.criterion_id"
                     :criterion_name="`${crit.criterion_code}: ${crit.criterion_name.split('/').join(' / ')}`"
                     :ranks="editedRanks[crit.criterion_id]"
@@ -374,6 +372,7 @@ export default {
     rescore: Boolean,
     bulk_edit: Boolean,
     fetchUnitsData: Function,
+    hide_comments: Boolean,
   },
   components: {
     RescoreAccordionComp,
@@ -727,7 +726,13 @@ export default {
           (sum, r) => sum + (r.percentage || 0),
           0,
         );
-        if (percentage_total == 1) {
+        const has_comments = criterion.some((r) => r.comment != null);
+        if (
+          percentage_total == 1 ||
+          (this.bulk_edit &&
+            !this.hide_comments &&
+            (has_comments || percentage_total > 0))
+        ) {
           let temp_ranks = criterion.map((rank) => ({
             ...rank,
             criterion_name: this.criterion.find(
