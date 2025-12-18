@@ -69,6 +69,7 @@
           :unit="units.find((unit) => unit.collection_unit_id == active_tab)"
           :rescore="true"
           :fetchUnitsData="fetchUnitsData"
+          :hide_comments="false"
         />
       </div>
     </div>

@@ -410,7 +410,7 @@ RESCORE_UNITS = """
 							    )
 							  ) AS metric_json
 							  FROM (
-							    -- 🟦 Drafts
+							    -- Drafts
 							    SELECT
 							      NULL AS collection_unit_metric_id,
 							      umd.metric_value,
@@ -421,7 +421,7 @@ RESCORE_UNITS = """
 							    FROM {database_name}.unit_metric_draft umd
 							    WHERE umd.rescore_session_units_id = rsu.rescore_session_units_id
 							    UNION
-							    -- 🟩 Final Metrics (only if not overridden by drafts)
+							    -- Final Metrics (only if not overridden by drafts)
 							    SELECT
 							      cum.collection_unit_metric_id,
 							      cum.metric_value,

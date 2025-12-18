@@ -256,6 +256,7 @@
                 <div
                   class="pointer"
                   @click="showCriterionComments(crit.criterion_id)"
+                  v-show="!hide_comments"
                 >
                   <i class="bi bi-chevron-up"></i>
                   {{ commentsTitle(crit.criterion_id) }}
@@ -264,6 +265,7 @@
                 <RanksWarnings
                   v-if="
                     (bulk_edit &&
+                      editedRanks[crit.criterion_id] &&
                       editedRanks[crit.criterion_id].reduce(
                         (sum, r) => sum + (r.percentage || 0),
                         0,
@@ -283,6 +285,7 @@
                 <div
                   class="pointer"
                   @click="showCriterionComments(crit.criterion_id)"
+                  v-show="!hide_comments"
                 >
                   <i class="bi bi-chevron-down"></i>
                   {{ commentsTitle(crit.criterion_id) }}
@@ -291,6 +294,7 @@
                 <RanksWarnings
                   v-if="
                     (bulk_edit &&
+                      editedRanks[crit.criterion_id] &&
                       editedRanks[crit.criterion_id].reduce(
                         (sum, r) => sum + (r.percentage || 0),
                         0,
@@ -328,13 +332,9 @@
                     </div>
                   </div>
                 </div>
-                <div
-                  class="col-md-2 edit-comments"
-                  v-if="rescore && !bulk_edit"
-                >
+                <div class="col-md-2 edit-comments">
                   <!-- Modal pop out to edit the comments for each rank in this criterion -->
                   <EditCommentsModal
-                    v-if="rescore && !bulk_edit"
                     :criterion_id="crit.criterion_id"
                     :criterion_name="`${crit.criterion_code}: ${crit.criterion_name.split('/').join(' / ')}`"
                     :ranks="editedRanks[crit.criterion_id]"
@@ -372,6 +372,7 @@ export default {
     rescore: Boolean,
     bulk_edit: Boolean,
     fetchUnitsData: Function,
+    hide_comments: Boolean,
   },
   components: {
     RescoreAccordionComp,
@@ -418,8 +419,11 @@ export default {
         if (this.metrics.length > 0) {
           this.mapMetricsToUnit();
         }
-        // Only reinitialize if ranks_json changed
-        if (
+        // Check if data has been loaded initially
+        if (this.criterion.length == 0 || this.categories.length == 0) {
+          this.fetchData();
+        } else if (
+          // Only reinitialise if ranks_json changed
           !old_val ||
           JSON.stringify(new_val.ranks_json) !==
             JSON.stringify(old_val.ranks_json)
@@ -432,34 +436,22 @@ export default {
       deep: true,
     },
   },
-  mounted() {
-    this.fetchCriterionData();
-    this.fetchCategoryData();
-    this.fetchMetrics();
-    if (!this.editedRanks || Object.keys(this.editedRanks).length === 0) {
-      this.initializeEditedRanks(this.unit);
-    }
-  },
   methods: {
-    fieldNameCalc,
-    fetchCriterionData() {
-      getGeneric('criterion').then((response) => {
-        this.criterion = response;
-      });
-    },
-    fetchCategoryData() {
-      getGeneric('category').then((response) => {
-        this.categories = response;
-      });
-    },
-    fetchMetrics() {
+    async fetchData() {
+      const criterion_resp = await getGeneric('criterion');
+      this.criterion = criterion_resp;
+      const category_resp = await getGeneric('category');
+      this.categories = category_resp;
       if (this.local_unit.metric_json) {
-        getGeneric('metric-definitions').then((response) => {
-          this.metrics = response;
-          this.mapMetricsToUnit();
-        });
+        const metric_resp = await getGeneric('metric-definitions');
+        this.metrics = metric_resp;
+        this.mapMetricsToUnit();
+      }
+      if (!this.editedRanks || Object.keys(this.editedRanks).length === 0) {
+        this.initializeEditedRanks(this.unit);
       }
     },
+    fieldNameCalc,
     mapMetricsToUnit() {
       this.metric_definitions = this.metrics.map((metric) => {
         const this_metric = this.local_unit.metric_json.find(
@@ -486,8 +478,8 @@ export default {
       this.$router.push({ path: '/view-unit', query: { unit_id: unit_id } });
     },
     groupCategoryDate(category) {
-      if (!this.unit) return null;
       const ranks_json = this.ranks;
+      if (!this.unit || !this.criterion || !ranks_json) return null;
 
       const filteredCriterion = this.criterion.filter(
         (criterion) => criterion.category_id == category.category_id,
@@ -514,6 +506,8 @@ export default {
       if (!this.unit) return null;
       const comment_date = this.unit.unit_comment_date_added;
       const metric_json = this.unit.metric_json;
+      if (!metric_json || metric_json.length == 0) return null;
+
       let latestDate = null;
       metric_json.forEach((metric) => {
         const date = new Date(metric.date_from);
@@ -732,15 +726,21 @@ export default {
           (sum, r) => sum + (r.percentage || 0),
           0,
         );
-        if (percentage_total == 1) {
+        const has_comments = criterion.some((r) => r.comment != null);
+        if (
+          percentage_total == 1 ||
+          (this.bulk_edit &&
+            !this.hide_comments &&
+            (has_comments || percentage_total > 0))
+        ) {
           let temp_ranks = criterion.map((rank) => ({
             ...rank,
             criterion_name: this.criterion.find(
               (c) => c.criterion_id === rank.criterion_id,
-            ).criterion_name,
+            )?.criterion_name,
             category_id: this.criterion.find(
               (c) => c.criterion_id === rank.criterion_id,
-            ).category_id,
+            )?.category_id,
           }));
           new_ranks.push(temp_ranks);
         }
@@ -749,14 +749,16 @@ export default {
     },
     getCatDraftId(criterion_id) {
       const category_tracking = this.unit.category_tracking;
-      // Find the category for the criterion
-      const category = category_tracking.find(
-        (cat) =>
-          cat.category_id ===
-          this.criterion.find((c) => c.criterion_id === criterion_id)
-            .category_id,
-      );
-      return category.category_draft_id;
+      if (category_tracking) {
+        // Find the category for the criterion
+        const category = category_tracking.find(
+          (cat) =>
+            cat.category_id ===
+            this.criterion.find((c) => c.criterion_id === criterion_id)
+              .category_id,
+        );
+        return category.category_draft_id;
+      }
     },
     // Function to check for errors in a while category
     checkCategoryErrors(category_id) {
@@ -896,7 +898,7 @@ export default {
       return grouped;
     },
     initializeEditedRanks(unit) {
-      const ranks = unit.ranks_json;
+      const ranks = JSON.parse(JSON.stringify(unit.ranks_json));
       const grouped = {};
       if (!ranks || ranks.length === 0) {
         this.editedRanks = {};
@@ -907,11 +909,14 @@ export default {
         return;
       }
       ranks.forEach((rank) => {
-        if (!grouped[rank.criterion_id]) grouped[rank.criterion_id] = [];
-        grouped[rank.criterion_id].push({ ...rank }); // make a copy
-      });
+        if (!grouped[rank.criterion_id]) {
+          grouped[rank.criterion_id] = [];
+        }
 
+        grouped[rank.criterion_id].push({ ...rank });
+      });
       this.editedRanks = grouped;
+      this.returnBulkEdit();
     },
     handleCommentChange() {
       if (this.bulk_edit) {
