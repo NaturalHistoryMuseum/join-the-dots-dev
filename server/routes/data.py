@@ -35,6 +35,49 @@ def get_unit_scores(unitId):
     return jsonify(data)
 
 
+def create_rescore_session(cursor, units, user_id):
+    try:
+        # Insert session
+        query = f"""
+            INSERT INTO {database_name}.rescore_session (user_id, status)
+            VALUES (%s, 'in_progress');
+        """
+        cursor.execute(query, (user_id,))
+
+        # Get ID of last inserted row
+        rescore_session_id = cursor.lastrowid
+
+        category_ids = [0, 1, 2, 3, 4]
+        category_draft_ids = []
+        # Insert units into session
+        for unit in units:
+            query = f"""
+                INSERT INTO {database_name}.rescore_session_units (rescore_session_id, collection_unit_id)
+                VALUES (%s, %s);
+            """
+            cursor.execute(query, (str(rescore_session_id), str(unit)))
+            # Get ID of last inserted row
+            rescore_session_units_id = cursor.lastrowid
+            for category_id in category_ids:
+                query = f"""
+                    INSERT INTO {database_name}.unit_category_draft (rescore_session_units_id, category_id, complete)
+                    VALUES (%s, %s, 0);
+                """
+                cursor.execute(query, (str(rescore_session_units_id), str(category_id)))
+                category_draft_id = cursor.lastrowid
+                category_draft_ids.append(
+                    {
+                        'category_id': category_id,
+                        'category_draft_id': category_draft_id,
+                        'rescore_session_units_id': rescore_session_units_id,
+                    }
+                )
+
+        return (rescore_session_id, category_draft_ids)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @data_bp.route('/mark-rescore-open', methods=['POST'])
 @jwt_required()
 def get_mark_rescore_open():
@@ -53,35 +96,9 @@ def get_mark_rescore_open():
     person_id = user_details['person_id'] if user_details else None
     cursor.execute('SET @current_person_id = %s', (person_id,))
     try:
-        # Insert session
-        query = f"""
-            INSERT INTO {database_name}.rescore_session (user_id, status)
-            VALUES (%s, 'in_progress');
-        """
-        # formatted_query = query.format(database_name=database_name)
-        cursor.execute(query, (user_id,))
-
-        # Get ID of last inserted row
-        rescore_session_id = cursor.lastrowid
-
-        category_ids = [0, 1, 2, 3, 4]
-
-        # Insert units into session
-        for unit in units:
-            query = f"""
-                INSERT INTO {database_name}.rescore_session_units (rescore_session_id, collection_unit_id)
-                VALUES (%s, %s);
-            """
-            cursor.execute(query, (rescore_session_id, unit))
-            # Get ID of last inserted row
-            rescore_session_units_id = cursor.lastrowid
-            for category_id in category_ids:
-                query = f"""
-                    INSERT INTO {database_name}.unit_category_draft (rescore_session_units_id, category_id, complete)
-                    VALUES (%s, %s, 0);
-                """
-                cursor.execute(query, (rescore_session_units_id, category_id))
-
+        rescore_session_id, rescore_session_units_ids = create_rescore_session(
+            cursor, units, user_id
+        )
         connection.commit()
         return jsonify({'rescore_session_id': rescore_session_id, 'success': True}), 201
 
@@ -111,185 +128,17 @@ def submit_rescore_complete():
         cursor.execute('SET @current_person_id = %s', (person_id,))
         connection.start_transaction()
         # Submit draft comments
-
-        cursor.execute(
-            f""" insert into {database_name}.unit_comment (collection_unit_id, unit_comment, date_added)
-                select rsu.collection_unit_id , ucd.unit_comment , NOW() as date_added
-                from {database_name}.unit_comment_draft ucd
-                join {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
-                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                where rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
-        # Remove draft comments
-        cursor.execute(
-            f""" DELETE ucd
-                    FROM {database_name}.unit_comment_draft ucd
-                    JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
-                    JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                    WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
+        upgrade_draft_comments(cursor, rescore_session_id, user_id)
 
         # Submit draft metrics
-
-        # Set old metrics that are about to be inserted as not current
-        cursor.execute(
-            f"""
-                UPDATE {database_name}.collection_unit_metric cum
-                JOIN (
-                    SELECT rsu.collection_unit_id, umd.collection_unit_metric_definition_id
-                    FROM {database_name}.unit_metric_draft umd
-                    JOIN {database_name}.rescore_session_units rsu
-                        ON umd.rescore_session_units_id = rsu.rescore_session_units_id
-                    JOIN {database_name}.rescore_session rs
-                        ON rsu.rescore_session_id = rs.rescore_session_id
-                    WHERE rsu.rescore_session_id = %s
-                        AND rs.user_id = %s
-                        AND rs.status = 'in_progress'
-                ) AS targets
-                ON cum.collection_unit_id = targets.collection_unit_id
-                AND cum.collection_unit_metric_definition_id = targets.collection_unit_metric_definition_id
-                SET cum.current = 'no', date_to = NOW()
-                WHERE cum.current = 'yes'
-            """,
-            (rescore_session_id, user_id),
-        )
-
-        # Insert metrics from drafts
-        cursor.execute(
-            f""" insert into {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id ,metric_value, confidence_level, date_from, `current`)
-                select rsu.collection_unit_id, umd.collection_unit_metric_definition_id, umd.metric_value, umd.confidence_level, NOW() as date_from, 'yes' as `current`
-                from {database_name}.unit_metric_draft umd
-                join {database_name}.rescore_session_units rsu ON umd.rescore_session_units_id = rsu.rescore_session_units_id
-                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                where rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
-
-        # Remove draft metrics
-        cursor.execute(
-            f""" DELETE umd
-                    FROM {database_name}.unit_metric_draft umd
-                    JOIN {database_name}.rescore_session_units rsu ON umd.rescore_session_units_id = rsu.rescore_session_units_id
-                    JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                    WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
+        upgrade_draft_metrics(cursor, rescore_session_id, user_id)
 
         # Submit draft ranks
-        # Set old ranks that are about to be inserted as not current
-        cursor.execute(
-            f"""
-            UPDATE {database_name}.unit_assessment_criterion uac
-            JOIN (
-                SELECT rsu.collection_unit_id, urd.criterion_id
-                FROM {database_name}.unit_rank_draft urd
-                JOIN {database_name}.unit_category_draft ucd
-                    ON urd.category_draft_id = ucd.category_draft_id
-                JOIN {database_name}.rescore_session_units rsu
-                    ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
-                JOIN {database_name}.rescore_session rs
-                    ON rsu.rescore_session_id = rs.rescore_session_id
-                WHERE rsu.rescore_session_id = %s
-                    AND rs.user_id = %s
-                    AND rs.status = 'in_progress'
-            ) AS targets
-            ON uac.collection_unit_id = targets.collection_unit_id
-            AND uac.criterion_id = targets.criterion_id
-            SET uac.current = 'no', date_to = NOW()
-            WHERE uac.current = 'yes'
-            """,
-            (rescore_session_id, user_id),
-        )
+        upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id)
 
-        # Get draft ranks
-        cursor.execute(
-            f"""
-                SELECT rsu.collection_unit_id, urd.*
-                 FROM {database_name}.unit_rank_draft urd
-                 JOIN {database_name}.unit_category_draft ucd ON urd.category_draft_id = ucd.category_draft_id
-                 JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
-                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                 WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
-        draft_rows = cursor.fetchall()
-        # Group rows by collection_unit_id and criterion_id
-        grouped_assessment = defaultdict(list)
-        for row in draft_rows:
-            key = (row['collection_unit_id'], row['criterion_id'])
-            grouped_assessment[key].append(row)
-        # Insert assessment_criterion rows
-        inserted_ids = {}
-        for (
-            collection_unit_id,
-            criterion_id,
-        ), group_rows in grouped_assessment.items():
-            cursor.execute(
-                f"""
-                INSERT INTO {database_name}.unit_assessment_criterion (
-                    collection_unit_id, criterion_id, assessor_id,
-                    date_assessed, date_from, current
-                ) VALUES (%s, %s, %s, NOW(), NOW(), 'yes')
-            """,
-                (collection_unit_id, criterion_id, person_id),
-            )
-            inserted_id = cursor.lastrowid
+        # Close the rescore and remove draft categories
+        close_rescore(cursor, rescore_session_id, user_id)
 
-            inserted_ids[(collection_unit_id, criterion_id)] = inserted_id
-
-        # Insert all ranks referencing the correct assessment_criterion_id
-        for row in draft_rows:
-            criterion_key = (row['collection_unit_id'], row['criterion_id'])
-            assessment_criterion_id = inserted_ids[criterion_key]
-            cursor.execute(
-                f"""
-                INSERT INTO {database_name}.unit_assessment_rank (
-                    unit_assessment_criterion_id, rank_id, percentage, comment
-                ) VALUES (%s, %s, %s, %s)
-            """,
-                (
-                    assessment_criterion_id,
-                    row['rank_id'],
-                    row['percentage'],
-                    row['comment'],
-                ),
-            )
-        # Remove draft ranks
-        cursor.execute(
-            f""" DELETE urd
-                    FROM {database_name}.unit_rank_draft urd
-                    JOIN {database_name}.unit_category_draft ucd ON ucd.category_draft_id = urd.category_draft_id
-                    JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
-                    JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                    WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
-        # Remove draft categories
-        cursor.execute(
-            f""" DELETE ucd
-                    FROM {database_name}.unit_category_draft ucd
-                    JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
-                    JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                    WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
-            """,
-            (rescore_session_id, user_id),
-        )
-        # Close the rescore session
-        cursor.execute(
-            f"""UPDATE {database_name}.rescore_session
-                        SET status = 'complete', completed_at = NOW()
-                        WHERE rescore_session_id = %s AND user_id = %s;
-                   """,
-            (rescore_session_id, user_id),
-        )
         connection.commit()
 
         return jsonify(
@@ -303,6 +152,192 @@ def submit_rescore_complete():
         connection.close()
 
 
+def close_rescore(cursor, rescore_session_id, user_id):
+    # Remove draft categories
+    cursor.execute(
+        f""" DELETE ucd
+                FROM {database_name}.unit_category_draft ucd
+                JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+        """,
+        (rescore_session_id, user_id),
+    )
+    # Close the rescore session
+    cursor.execute(
+        f"""UPDATE {database_name}.rescore_session
+                    SET status = 'complete', completed_at = NOW()
+                    WHERE rescore_session_id = %s AND user_id = %s;
+                """,
+        (rescore_session_id, user_id),
+    )
+
+
+def upgrade_draft_comments(cursor, rescore_session_id, user_id):
+    # Insert comments
+    cursor.execute(
+        f""" insert into {database_name}.unit_comment (collection_unit_id, unit_comment, date_added)
+                select rsu.collection_unit_id , ucd.unit_comment , NOW() as date_added
+                from {database_name}.unit_comment_draft ucd
+                join {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                where rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+            """,
+        (rescore_session_id, user_id),
+    )
+    # Remove draft comments
+    cursor.execute(
+        f""" DELETE ucd
+                FROM {database_name}.unit_comment_draft ucd
+                JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+        """,
+        (rescore_session_id, user_id),
+    )
+
+
+def upgrade_draft_metrics(cursor, rescore_session_id, user_id):
+    # Set old metrics that are about to be inserted as not current
+    cursor.execute(
+        f"""
+            UPDATE {database_name}.collection_unit_metric cum
+            JOIN (
+                SELECT rsu.collection_unit_id, umd.collection_unit_metric_definition_id
+                FROM {database_name}.unit_metric_draft umd
+                JOIN {database_name}.rescore_session_units rsu
+                    ON umd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs
+                    ON rsu.rescore_session_id = rs.rescore_session_id
+                WHERE rsu.rescore_session_id = %s
+                    AND rs.user_id = %s
+                    AND rs.status = 'in_progress'
+            ) AS targets
+            ON cum.collection_unit_id = targets.collection_unit_id
+            AND cum.collection_unit_metric_definition_id = targets.collection_unit_metric_definition_id
+            SET cum.current = 'no', date_to = NOW()
+            WHERE cum.current = 'yes'
+        """,
+        (rescore_session_id, user_id),
+    )
+
+    # Insert metrics from drafts
+    cursor.execute(
+        f""" insert into {database_name}.collection_unit_metric (collection_unit_id, collection_unit_metric_definition_id ,metric_value, confidence_level, date_from, `current`)
+            select rsu.collection_unit_id, umd.collection_unit_metric_definition_id, umd.metric_value, umd.confidence_level, NOW() as date_from, 'yes' as `current`
+            from {database_name}.unit_metric_draft umd
+            join {database_name}.rescore_session_units rsu ON umd.rescore_session_units_id = rsu.rescore_session_units_id
+            JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+            where rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+        """,
+        (rescore_session_id, user_id),
+    )
+
+    # Remove draft metrics
+    cursor.execute(
+        f""" DELETE umd
+                FROM {database_name}.unit_metric_draft umd
+                JOIN {database_name}.rescore_session_units rsu ON umd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+        """,
+        (rescore_session_id, user_id),
+    )
+
+
+def upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id):
+    # Set old ranks that are about to be inserted as not current
+    cursor.execute(
+        f"""
+        UPDATE {database_name}.unit_assessment_criterion uac
+        JOIN (
+            SELECT rsu.collection_unit_id, urd.criterion_id
+            FROM {database_name}.unit_rank_draft urd
+            JOIN {database_name}.unit_category_draft ucd
+                ON urd.category_draft_id = ucd.category_draft_id
+            JOIN {database_name}.rescore_session_units rsu
+                ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+            JOIN {database_name}.rescore_session rs
+                ON rsu.rescore_session_id = rs.rescore_session_id
+            WHERE rsu.rescore_session_id = %s
+                AND rs.user_id = %s
+                AND rs.status = 'in_progress'
+        ) AS targets
+        ON uac.collection_unit_id = targets.collection_unit_id
+        AND uac.criterion_id = targets.criterion_id
+        SET uac.current = 'no', date_to = NOW()
+        WHERE uac.current = 'yes'
+        """,
+        (rescore_session_id, user_id),
+    )
+
+    # Get draft ranks
+    cursor.execute(
+        f"""
+            SELECT rsu.collection_unit_id, urd.*
+                FROM {database_name}.unit_rank_draft urd
+                JOIN {database_name}.unit_category_draft ucd ON urd.category_draft_id = ucd.category_draft_id
+                JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+        """,
+        (rescore_session_id, user_id),
+    )
+    draft_rows = cursor.fetchall()
+    # Group rows by collection_unit_id and criterion_id
+    grouped_assessment = defaultdict(list)
+    for row in draft_rows:
+        key = (row['collection_unit_id'], row['criterion_id'])
+        grouped_assessment[key].append(row)
+    # Insert assessment_criterion rows
+    inserted_ids = {}
+    for (
+        collection_unit_id,
+        criterion_id,
+    ), group_rows in grouped_assessment.items():
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.unit_assessment_criterion (
+                collection_unit_id, criterion_id, assessor_id,
+                date_assessed, date_from, current
+            ) VALUES (%s, %s, %s, NOW(), NOW(), 'yes')
+        """,
+            (collection_unit_id, criterion_id, person_id),
+        )
+        inserted_id = cursor.lastrowid
+
+        inserted_ids[(collection_unit_id, criterion_id)] = inserted_id
+
+    # Insert all ranks referencing the correct assessment_criterion_id
+    for row in draft_rows:
+        criterion_key = (row['collection_unit_id'], row['criterion_id'])
+        assessment_criterion_id = inserted_ids[criterion_key]
+        cursor.execute(
+            f"""
+            INSERT INTO {database_name}.unit_assessment_rank (
+                unit_assessment_criterion_id, rank_id, percentage, comment
+            ) VALUES (%s, %s, %s, %s)
+        """,
+            (
+                assessment_criterion_id,
+                row['rank_id'],
+                row['percentage'],
+                row['comment'],
+            ),
+        )
+    # Remove draft ranks
+    cursor.execute(
+        f""" DELETE urd
+                FROM {database_name}.unit_rank_draft urd
+                JOIN {database_name}.unit_category_draft ucd ON ucd.category_draft_id = urd.category_draft_id
+                JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
+                JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
+                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+        """,
+        (rescore_session_id, user_id),
+    )
+
+
 @data_bp.route('/open-rescore', methods=['GET'])
 @jwt_required()
 def get_open_rescore():
@@ -310,9 +345,11 @@ def get_open_rescore():
     user_id = get_jwt_identity()
     data = fetch_data(
         """SELECT *
-                        FROM {database_name}.rescore_session
-                      WHERE status = 'in_progress' AND user_id = %s;
-                   """,
+            FROM {database_name}.rescore_session rs
+            JOIN {database_name}.rescore_session_units rsu ON rs.rescore_session_id = rsu.rescore_session_id
+            JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = rsu.collection_unit_id
+             WHERE rs.status = 'in_progress' AND rs.user_id = %s  AND cu.draft_unit <> 1;
+        """,
         (user_id,),
     )
     return jsonify(data)
@@ -343,43 +380,65 @@ def submit_draft_rank():
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not criterion_id:
         return jsonify({'error': 'criterion_id is required'}), 400
-    handle_draft_rank(criterion_id, ranks, category_draft_id)
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    # Get user details
+    user_details = get_user_by_id(user_id)
+    person_id = user_details['person_id'] if user_details else None
+    cursor.execute('SET @current_person_id = %s', (person_id,))
+    # Handle the draft ranks
+    handle_draft_rank(cursor, criterion_id, ranks, category_draft_id)
+    connection.commit()
+    cursor.close()
+    connection.close()
     return jsonify({'message': 'Draft rank submitted successfully'}), 201
 
 
-def handle_draft_rank(criterion_id, ranks, category_draft_id):
+def handle_draft_rank(
+    cursor, criterion_id, ranks, category_draft_id, insert_only=False
+):
     try:
-        data = fetch_data(
-            """
+        # Only check if it exists if we dont know if we need to insert - saves time
+        if not insert_only:
+            cursor.execute(
+                f"""
                     select urd.*
                     from {database_name}.unit_rank_draft urd
                     join {database_name}.unit_category_draft ucd ON urd.category_draft_id = ucd.category_draft_id
                     where urd.criterion_id = %s and urd.category_draft_id = %s ;
-                   """,
-            (criterion_id, category_draft_id),
-        )
+                    """,
+                (criterion_id, category_draft_id),
+            )
+            data = cursor.fetchall()
         # Loop through the ranks and update or insert them
         for sumbit_rank in ranks:
             in_db = False
             rank_id = sumbit_rank['rank_id']
             percentage = sumbit_rank['percentage']
             comment = sumbit_rank['comment']
-            # Check if the rank already exists in the database and update it if it does
-            for db_rank in data:
-                if db_rank['rank_id'] == sumbit_rank['rank_id']:
-                    execute_query(
-                        """UPDATE {database_name}.unit_rank_draft
-                                SET percentage = %s, comment = %s, updated_at = NOW()
-                                WHERE category_draft_id = %s AND criterion_id = %s AND rank_id = %s;
-                        """,
-                        (percentage, comment, category_draft_id, criterion_id, rank_id),
-                    )
-                    in_db = True
+            if not insert_only and data is not None:
+                # Check if the rank already exists in the database and update it if it does
+                for db_rank in data:
+                    if db_rank['rank_id'] == sumbit_rank['rank_id']:
+                        cursor.execute(
+                            f"""UPDATE {database_name}.unit_rank_draft
+                                    SET percentage = %s, comment = %s, updated_at = NOW()
+                                    WHERE category_draft_id = %s AND criterion_id = %s AND rank_id = %s;
+                            """,
+                            (
+                                percentage,
+                                comment,
+                                category_draft_id,
+                                criterion_id,
+                                rank_id,
+                            ),
+                        )
+                        in_db = True
 
             # If the rank does not exist, insert it
             if not in_db:
-                execute_query(
-                    """INSERT INTO {database_name}.unit_rank_draft (category_draft_id, criterion_id, rank_id, percentage, comment)
+                cursor.execute(
+                    f"""INSERT INTO {database_name}.unit_rank_draft (category_draft_id, criterion_id, rank_id, percentage, comment)
                             VALUES (%s, %s, %s, %s, %s);
                     """,
                     (category_draft_id, criterion_id, rank_id, percentage, comment),
@@ -389,7 +448,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id):
         ), 201
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise
 
 
 @data_bp.route('/submit-draft-metrics', methods=['POST'])
@@ -399,21 +458,32 @@ def submit_draft_metrics():
     rescore_session_units_id = data.get('rescore_session_units_id')
     collection_unit_id = data.get('collection_unit_id')
     metric_json = data.get('metric_json')
-
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not collection_unit_id:
         return jsonify({'error': 'collection_unit_id is required'}), 400
     if not metric_json:
         return jsonify({'error': 'metric_json are required'}), 400
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    # Get user details
+    user_details = get_user_by_id(user_id)
+    person_id = user_details['person_id'] if user_details else None
+    cursor.execute('SET @current_person_id = %s', (person_id,))
+    # Handle the draft metrics
+    handle_draft_metrics(cursor, rescore_session_units_id, metric_json)
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-    handle_draft_metrics(rescore_session_units_id, metric_json)
     return jsonify(
         {'message': 'Draft metrics submitted successfully', 'success': True}
     ), 201
 
 
-def handle_draft_metrics(rescore_session_units_id, metric_json):
+def handle_draft_metrics(cursor, rescore_session_units_id, metric_json):
     try:
         # Loop through the metrics and update or insert them
         for metric in metric_json:
@@ -424,17 +494,17 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
             confidence_level = metric['confidence_level']
             if metric_value is not None or confidence_level is not None:
                 # Check if the metric already exists in the database and update it if it does
-                existing_metric = fetch_data(
-                    """
+                cursor.execute(
+                    f"""
                             SELECT * FROM {database_name}.unit_metric_draft
                             WHERE rescore_session_units_id = %s AND collection_unit_metric_definition_id = %s;
                         """,
                     (rescore_session_units_id, collection_unit_metric_definition_id),
                 )
-
+                existing_metric = cursor.fetchall()
                 if existing_metric:
-                    execute_query(
-                        """UPDATE {database_name}.unit_metric_draft
+                    cursor.execute(
+                        f"""UPDATE {database_name}.unit_metric_draft
                                 SET metric_value = %s, confidence_level = %s, updated_at = NOW()
                                 WHERE rescore_session_units_id = %s AND collection_unit_metric_definition_id = %s;
                         """,
@@ -446,8 +516,8 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
                         ),
                     )
                 else:
-                    execute_query(
-                        """INSERT INTO {database_name}.unit_metric_draft (rescore_session_units_id, collection_unit_metric_definition_id, metric_value, confidence_level)
+                    cursor.execute(
+                        f"""INSERT INTO {database_name}.unit_metric_draft (rescore_session_units_id, collection_unit_metric_definition_id, metric_value, confidence_level)
                                 VALUES (%s, %s, %s, %s);
                         """,
                         (
@@ -460,7 +530,7 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
         return jsonify({'message': 'Draft metrics submitted successfully'}), 201
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise
 
 
 @data_bp.route('/submit-draft-comment', methods=['POST'])
@@ -469,31 +539,44 @@ def submit_draft_comment():
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     unit_comment = data.get('unit_comment')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
 
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not unit_comment:
         return jsonify({'error': 'unit_comment is required'}), 400
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    # Get user details
+    user_details = get_user_by_id(user_id)
+    person_id = user_details['person_id'] if user_details else None
+    cursor.execute('SET @current_person_id = %s', (person_id,))
+    # Handle the draft comments
+    handle_draft_comment(cursor, rescore_session_units_id, unit_comment)
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-    handle_draft_comment(rescore_session_units_id, unit_comment)
     return jsonify(
         {'message': 'Draft comment submitted successfully', 'success': True}
     ), 201
 
 
-def handle_draft_comment(rescore_session_units_id, unit_comment):
+def handle_draft_comment(cursor, rescore_session_units_id, unit_comment):
     try:
-        existing_comment = fetch_data(
-            """
+        cursor.execute(
+            f"""
                     SELECT * FROM {database_name}.unit_comment_draft
                     WHERE rescore_session_units_id = %s;
                 """,
             (rescore_session_units_id,),
         )
+        existing_comment = cursor.fetchall()
         if existing_comment:
             # If a comment already exists, update it
-            execute_query(
-                """UPDATE {database_name}.unit_comment_draft
+            cursor.execute(
+                f"""UPDATE {database_name}.unit_comment_draft
                         SET unit_comment = %s, updated_at = NOW()
                         WHERE rescore_session_units_id = %s;
                 """,
@@ -501,14 +584,14 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
             )
         else:
             # If no comment exists, insert a new one
-            execute_query(
-                """INSERT INTO {database_name}.unit_comment_draft (rescore_session_units_id, unit_comment)
+            cursor.execute(
+                f"""INSERT INTO {database_name}.unit_comment_draft (rescore_session_units_id, unit_comment)
                             VALUES (%s, %s);
                     """,
                 (rescore_session_units_id, unit_comment),
             )
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        raise
 
 
 @data_bp.route('/bulk-upload-rescore', methods=['POST'])
@@ -517,8 +600,15 @@ def bulk_upload_rescore():
     data = request.get_json()
     units = data.get('units')
     rescore_data = data.get('rescore_data')
-
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
     success_count = 0
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    # Get user details
+    user_details = get_user_by_id(user_id)
+    person_id = user_details['person_id'] if user_details else None
+    cursor.execute('SET @current_person_id = %s', (person_id,))
 
     for unit in units:
         collection_unit_id = unit.get('collection_unit_id')
@@ -545,20 +635,32 @@ def bulk_upload_rescore():
                     for category in category_tracking
                     if category.get('category_id') == category_id
                 ]
+                execute_query("""
+                    SELECT * FROM {database_name}.unit_category_draft
+                              WHERE rescore_session_units_id = %s AND category_id = %s;""")
                 category_draft_id = current_category[0]['category_draft_id']
                 # Make the score change
-                handle_draft_rank(criterion_id, criterion_ranks, category_draft_id)
+                handle_draft_rank(
+                    cursor, criterion_id, criterion_ranks, category_draft_id
+                )
 
         # Handle metrics
         if 'metric_json' in rescore_data:
-            handle_draft_metrics(rescore_session_units_id, rescore_data['metric_json'])
+            handle_draft_metrics(
+                cursor, rescore_session_units_id, rescore_data['metric_json']
+            )
 
         # Handle comment
         if 'unit_comment' in rescore_data:
-            handle_draft_comment(rescore_session_units_id, rescore_data['unit_comment'])
+            handle_draft_comment(
+                cursor, rescore_session_units_id, rescore_data['unit_comment']
+            )
 
         # Increase success counter
         success_count += 1
+    connection.commit()
+    cursor.close()
+    connection.close()
     return jsonify(
         {
             'message': 'Bulk drafts submitted successfully',
@@ -749,19 +851,206 @@ def submit_unit():
         return jsonify({'error': str(e)}), 500
 
 
-def column_exists(field_name, new_value):
+@data_bp.route('/submit-draft-unit', methods=['POST'])
+@jwt_required()
+def submit_draft_unit():
+    data = request.get_json()
+    unit_data = data.get('unit_data')
+    unit_id = unit_data.get('collection_unit_id')
+    draft_unit = unit_data.get('draft_unit')
+    score_data = data.get('score_data')
+    metric_json = score_data.get('metric_json')
+    ranks_json = score_data.get('ranks_json')
+    category_tracking = score_data.get('category_tracking')
+    unit_comment = score_data.get('unit_comment')
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    if unit_id is None or unit_id == 0:
+        insert_mode = True
+    else:
+        insert_mode = False
+
+    # Check if the draft is being insered or updated
+    if insert_mode:
+        # Filter the data to remove None values and the collection_unit_id
+        filter_unit_data = {
+            key: value
+            for key, value in unit_data.items()
+            if value is not None and key != 'collection_unit_id'
+        }
+        # Extract fields and values
+        keys = list(filter_unit_data.keys())
+        values = list(filter_unit_data.values())
+
+        # Construct the SQL dynamically
+        placeholders = ', '.join(['%s'] * len(keys))  # %s placeholders
+        columns = ', '.join([f'`{key}`' for key in keys])  # column names with backticks
+        sql_query = f'INSERT INTO {database_name}.collection_unit ({columns}) VALUES ({placeholders})'
+    else:
+        # Filter the data to remove None values and the collection_unit_id
+        filtered = {
+            key: value
+            for key, value in unit_data.items()
+            if value is not None
+            and key != 'collection_unit_id'
+            and column_exists(table_name='collection_unit', column_name=key)
+        }
+        # Build SET field1=%s, field2=%s...
+        assignments = ', '.join([f'`{key}`=%s' for key in filtered.keys()])
+        values = list(filtered.values())
+        sql_query = f"""
+            UPDATE {database_name}.collection_unit
+            SET {assignments}
+            WHERE collection_unit_id = %s
+        """
+
+        values.append(unit_id)
+
     try:
-        field_is_valid = fetch_data(
-            """
-                    SELECT COUNT(*)
-                    FROM INFORMATION_SCHEMA.COLUMNS
-                    WHERE table_schema = {database_name} AND table_name = %s AND column_name = %s
-                    """,
-            [field_name, new_value],
-        )
-        return field_is_valid
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Get user details
+        user_details = get_user_by_id(user_id)
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
+        # Execute the query and return the new unit ID
+        cursor.execute(sql_query, values)
+        if insert_mode:
+            unit_id = cursor.lastrowid
+        if unit_id is None:
+            return jsonify({'error': 'Failed to create new unit'}), 500
+        # Create the rescore session if we are adding the draft
+        if insert_mode:
+            rescore_session_id, category_draft_ids = create_rescore_session(
+                cursor, [unit_id], user_id
+            )
+            rescore_session_units_id = category_draft_ids[0]['rescore_session_units_id']
+        else:
+            category_draft_ids = None
+            rescore_session_units_id = score_data.get('rescore_session_units_id')
+        # Handle ranks
+        if ranks_json:
+            # Loop through all of the score changes
+            for criterion_ranks in ranks_json:
+                # Get the criterion_id for this score change
+                criterion_id = criterion_ranks[0]['criterion_id']
+                category_id = criterion_ranks[0]['category_id']
+                # If rescore was just added
+                if category_draft_ids is not None:
+                    # Find category_draft_id
+                    current_category = [
+                        category
+                        for category in category_draft_ids
+                        if category.get('category_id') == category_id
+                    ]
+                    category_draft_id = current_category[0]['category_draft_id']
+                elif category_tracking is not None:
+                    # Find category_draft_id
+                    category_tracking = score_data['category_tracking']
+                    current_category = [
+                        category
+                        for category in category_tracking
+                        if category.get('category_id') == category_id
+                    ]
+                    category_draft_id = current_category[0]['category_draft_id']
+                # Make the score change
+                handle_draft_rank(
+                    cursor,
+                    criterion_id,
+                    criterion_ranks,
+                    category_draft_id,
+                    insert_only=insert_mode,
+                )
+
+        # Handle metrics
+        if metric_json is not None:
+            handle_draft_metrics(cursor, rescore_session_units_id, metric_json)
+        # Handle comment
+        if unit_comment is not None:
+            handle_draft_comment(cursor, rescore_session_units_id, unit_comment)
+
+        if draft_unit == 0:
+            complete_draft_unit(cursor, unit_id, user_id, person_id)
+        # Commit the transaction queries
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        return jsonify({'collection_unit_id': unit_id, 'success': True}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+def complete_draft_unit(cursor, unit_id, user_id, person_id):
+    try:
+        # Get the rescore_session_id
+        cursor.execute(
+            f"""
+            SELECT rs.*
+            FROM {database_name}.rescore_session rs
+            JOIN {database_name}.rescore_session_units rsu ON rs.rescore_session_id = rsu.rescore_session_id
+            JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = rsu.collection_unit_id
+             WHERE cu.collection_unit_id = %s; """,
+            (unit_id,),
+        )
+        rescore = cursor.fetchall()
+        rescore_session_id = rescore[0]['rescore_session_id']
+        # Update the unit
+        cursor.execute(
+            f"""
+            UPDATE {database_name}.collection_unit
+            SET draft_unit = 0
+            WHERE collection_unit_id = %s """,
+            (unit_id,),
+        )
+
+        # Submit draft comments
+        upgrade_draft_comments(cursor, rescore_session_id, user_id)
+
+        # Submit draft metrics
+        upgrade_draft_metrics(cursor, rescore_session_id, user_id)
+
+        # Submit draft ranks
+        upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id)
+
+        # Close the rescore and remove draft categories
+        close_rescore(cursor, rescore_session_id, user_id)
+
+    except Exception as e:
+        raise
+
+
+@data_bp.route('/draft-scores/<unit_id>', methods=['GET'])
+@jwt_required()
+def get_draft_scores(unit_id):
+    rescore_session = fetch_data(
+        """
+        SELECT rs.*, rsu.*
+        FROM {database_name}.rescore_session rs
+        JOIN {database_name}.rescore_session_units rsu ON rsu.rescore_session_id = rs.rescore_session_id
+        WHERE rs.status = 'in_progress' AND rsu.collection_unit_id = %s;""",
+        (unit_id,),
+    )
+    rescore_session_id = rescore_session[0]['rescore_session_id']
+    data = fetch_data(RESCORE_UNITS % int(rescore_session_id))
+    return jsonify(data)
+
+
+def column_exists(table_name, column_name):
+    try:
+        data = fetch_data(
+            f"""
+                    SELECT COUNT(*) as count
+                    FROM INFORMATION_SCHEMA.COLUMNS
+                    WHERE table_schema = '{database_name}' AND table_name = %s AND column_name = %s
+                    """,
+            [table_name, column_name],
+        )
+        field_is_valid = True if data[0]['count'] == 1 else False
+        return field_is_valid
+    except Exception as e:
+        raise
 
 
 @data_bp.route('/submit-field', methods=['POST'])
@@ -774,13 +1063,11 @@ def submit_field():
 
     if not field_name:
         return jsonify({'error': 'field_name is required'}), 400
-    # if new_value is None:
-    #     return jsonify({'error': 'new_value is required'}), 400
     if not collection_unit_id:
         return jsonify({'error': 'collection_unit_id is required'}), 400
 
     try:
-        if column_exists(field_name=field_name, new_value=new_value):
+        if column_exists(column_name=field_name, table_name='collection_unit'):
             data = execute_query(
                 f"""
                 UPDATE {database_name}.collection_unit

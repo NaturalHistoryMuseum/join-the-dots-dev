@@ -1,11 +1,19 @@
 <template>
   <div v-if="unit_scores.length > 0" class="">
-    <UnitScores v-if="!add_unit_mode" :unit="unit_scores[0]" :rescore="false" />
+    <!-- <UnitScores v-if="!add_unit_mode" :unit="unit_scores[0]" :rescore="false" />
     <UnitScores
-      v-if="add_unit_mode"
+      v-if="add_unit_mode || draft_unit"
       :unit="unit_scores[0]"
       :rescore="true"
       :bulk_edit="true"
+      @newUnit="handleUnitUpdate"
+    /> -->
+    <div v-if="loading">loading...</div>
+    <UnitScores
+      v-else
+      :unit="unit_scores[0]"
+      :rescore="add_unit_mode || draft_unit"
+      :bulk_edit="add_unit_mode || draft_unit"
       @newUnit="handleUnitUpdate"
     />
   </div>
@@ -24,17 +32,25 @@ export default {
     unit: Object,
     unit_id: Number,
     add_unit_mode: Boolean,
+    draft_unit: Boolean,
   },
   components: {
     UnitScores,
   },
   data() {
-    return { unit_scores: [], edited_unit: [], rank_json: [] };
+    return {
+      unit_scores: [],
+      edited_unit: [],
+      rank_json: [],
+      loading: false,
+      ranks_json_temp: [],
+    };
   },
   async mounted() {
+    const data = await import('../../utils/ranks_json_temp.json');
+    this.ranks_json_temp = data.default;
     if (this.add_unit_mode) {
-      const data = await import('../../utils/ranks_json_temp.json');
-      this.rank_json = data.default;
+      this.rank_json = this.ranks_json_temp;
       this.unit_scores = [
         {
           collection_unit_id: 0,
@@ -61,16 +77,49 @@ export default {
   },
   methods: {
     async fetchData() {
+      this.loading = true;
       if (!this.add_unit_mode) {
-        getGeneric(`unit-scores/${this.unit_id}`).then((response) => {
-          this.unit_scores = response.map((unit) => {
-            // Parse category tracking JSON
-            unit.ranks_json = JSON.parse(unit.ranks_json);
-            unit.metric_json = JSON.parse(unit.metric_json);
-            return unit;
-          });
+        let fetch_query = '';
+        if (this.unit.draft_unit) {
+          fetch_query = 'draft-scores';
+        } else {
+          fetch_query = 'unit-scores';
+        }
+
+        const response = await getGeneric(`${fetch_query}/${this.unit_id}`);
+        const db_scores = response.map((unit) => {
+          // Parse category tracking JSON
+          unit.ranks_json = JSON.parse(
+            unit.ranks_json ? unit.ranks_json : '[]',
+          );
+          unit.metric_json = JSON.parse(
+            unit.metric_json ? unit.metric_json : '[]',
+          );
+          unit.category_tracking = JSON.parse(
+            unit.category_tracking ? unit.category_tracking : '[]',
+          );
+          return unit;
         });
+
+        this.rank_json = db_scores[0].ranks_json;
+        this.unit_scores = db_scores;
+        if (this.draft_unit) {
+          // Check if the draft unit has any scores
+          if (db_scores[0].ranks_json.length == 0) {
+            db_scores[0].ranks_json = this.ranks_json_temp;
+          } else {
+            // Add any missing ranks from template
+            this.ranks_json_temp.forEach((rank) => {
+              let rank_id = rank.rank_id;
+              if (!db_scores[0].ranks_json.find((r) => r.rank_id == rank_id)) {
+                db_scores[0].ranks_json.push(rank);
+              }
+            });
+          }
+        }
       }
+      this.calcUnitCompletePercentage();
+      this.loading = false;
     },
     handleUnitUpdate(updatedUnit) {
       // Merge the updated ranks into the corresponding unit in your parent data
@@ -86,7 +135,7 @@ export default {
 
       const metrics = this.edited_unit.metric_json;
       // Remove C3 from ranks to mark completness
-      const filtered_rank_json = this.rank_json.filter(
+      const filtered_rank_json = this.ranks_json_temp.filter(
         (rank) => rank.criterion_id !== 3,
       );
       // Calculate the total completeness based on the number of ranks divided by 5

@@ -1,17 +1,28 @@
 <template>
   <OverlayMessage />
   <div v-if="unit_create_success" class="main-page">
-    <zoa-flash kind="success" header="Unit Successfully Created">
-      <p>
+    <zoa-flash
+      kind="success"
+      :header="`Unit Successfully ${unit.draft_unit ? 'Saved As Draft' : 'Created'}`"
+    >
+      <p v-if="unit.draft_unit">
+        The unit <strong>{{ unit.unit_name }}</strong> has been successfully
+        saved as a Draft with ID: <strong>{{ this.new_unit_id }}</strong>
+      </p>
+      <p v-else>
         The unit <strong>{{ unit.unit_name }}</strong> has been successfully
         created with ID: <strong>{{ this.new_unit_id }}</strong>
       </p>
       <zoa-button label="Go to Unit" @click="navNewUnit()" />
+      <zoa-button label="Go Home" @click="navHome()" />
     </zoa-flash>
   </div>
   <div v-else class="main-page">
     <div class="main-header">
-      <div class="row" v-if="(unit && unit_id) || !add_unit_mode">
+      <div
+        class="row"
+        v-if="((unit && unit_id) || !add_unit_mode) && !unit.draft_unit"
+      >
         <div class="col-md-4">
           <p class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</p>
           <p>Unit ID: {{ unit_id }}</p>
@@ -23,12 +34,15 @@
           </ActionsBtnGroup>
         </div>
       </div>
-      <div v-else class="row">
+      <div v-else-if="add_unit_mode || unit.draft_unit" class="row">
         <div class="col-md-6">
-          <p class="h1-style">Add New Unit</p>
+          <p class="h1-style">
+            {{ unit.draft_unit ? 'Edit Draft Unit' : 'Add New Unit' }}
+          </p>
           <p>
-            Please fill out all required units (<span style="color: red">*</span
-            >) and the scoring page to create this unit.
+            Please fill out all required units (
+            <span style="color: red">*</span>
+            ) and the scoring page to create this unit.
           </p>
         </div>
         <div class="col-md-3">
@@ -45,12 +59,17 @@
             </div>
           </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 save-unit-btns">
           <!-- Button to create unit - only visible when unit is ready -->
           <zoa-button
             v-if="scores_percentage == 100 && countRequiredFields() == 100"
             label="Create Unit"
             @click="submitUnit()"
+          />
+          <zoa-button
+            v-if="countRequiredFields() == 100"
+            label="Save As Draft Unit"
+            @click="submitUnit((save_draft = true))"
           />
         </div>
       </div>
@@ -59,7 +78,7 @@
         :active_tab="active_tab"
         :changeTabFunc="changeTab"
       >
-        <div v-if="(unit && unit_id) || add_unit_mode">
+        <div v-if="(unit.collection_unit_id && unit_id) || add_unit_mode">
           <div v-if="unit_sections.length > 0">
             <div
               v-for="section in unit_sections"
@@ -178,6 +197,7 @@
                   :unit="unit"
                   :unit_id="unit_id"
                   :add_unit_mode="add_unit_mode"
+                  :draft_unit="unit.draft_unit ? true : false"
                   @update:scores_percentage="scores_percentage = $event"
                   @new_unit="scored_unit = $event"
                 />
@@ -224,7 +244,6 @@ export default {
       section_options: [],
       current_section: {},
       unit_id: null,
-
       errors: [],
       required_fields: [
         'unit_name',
@@ -234,7 +253,8 @@ export default {
         'curatorial_unit_definition_id',
       ],
       allow_edit: false,
-      add_unit_mode: true,
+      add_unit_mode: false,
+      draft_unit: false,
       scores_percentage: 0,
       scored_unit: [],
       unit_create_success: false,
@@ -298,12 +318,15 @@ export default {
         this.unit = unitData[0];
         this.handleEditorChange(false);
         // Check if the unit is assigned to the current user
-        if (this.currentUser.role_id === 4) {
+        if (
+          this.currentUser.role_id === 4 ||
+          (this.currentUser.assigned_units &&
+            JSON.parse(this.currentUser.assigned_units).includes(
+              this.unit.collection_unit_id,
+            ))
+        ) {
           this.allow_edit = true;
-        } else if (this.currentUser.assigned_units) {
-          this.allow_edit = JSON.parse(
-            this.currentUser.assigned_units,
-          ).includes(this.unit.collection_unit_id);
+          // this.draft_unit = this.unit.draft_unit ? true : false;
         } else {
           this.allow_edit = false;
         }
@@ -396,7 +419,8 @@ export default {
     async handleFieldChange(field_name, new_value) {
       // If not allowed to edit or in add mode, do nothing
       this.countRequiredFields();
-      if (!this.allow_edit || this.add_unit_mode) return;
+      if (!this.allow_edit || this.add_unit_mode || this.unit.draft_unit)
+        return;
       if (this.checkRequired(field_name) && !new_value) {
         this.errors.push({
           field: field_name,
@@ -425,17 +449,27 @@ export default {
         }
       }
     },
-    async submitUnit() {
-      // If not allowed to edit or in add mode, do nothing
-      if (!this.allow_edit || !this.add_unit_mode) return;
+    async submitUnit(save_draft) {
+      // If not allowed to edit, do nothing
+      if (!this.allow_edit) return;
       // Check if all required fields are filled
-      if (this.countRequiredFields() < 100) {
+      if (this.countRequiredFields() < 100 && !save_draft) {
         this.store.addMessage('Please fill all required fields', 'error');
-
         return;
       }
+      let submit_path = '';
+      if (save_draft) {
+        this.unit.draft_unit = 1;
+        submit_path = 'submit-draft-unit';
+      } else if (this.unit.draft_unit) {
+        this.unit.draft_unit = 0;
+        submit_path = 'submit-draft-unit';
+      } else {
+        this.unit.draft_unit = 0;
+        submit_path = 'submit-unit';
+      }
       // Submit the unit data
-      const unit_repsonse = await submitDataGeneric('submit-unit', {
+      const unit_repsonse = await submitDataGeneric(submit_path, {
         unit_data: this.unit,
         score_data: this.scored_unit,
       });
@@ -466,6 +500,9 @@ export default {
         .then(() => {
           window.location.reload();
         });
+    },
+    navHome() {
+      this.$router.push('/');
     },
   },
   computed: {},
@@ -575,5 +612,13 @@ export default {
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
+}
+
+.save-unit-btns {
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
 }
 </style>
