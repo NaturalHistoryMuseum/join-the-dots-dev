@@ -417,6 +417,11 @@ export default {
     },
 
     async handleFieldChange(field_name, new_value) {
+      // If the field is the responsible_curator_id
+      if (field_name == 'responsible_curator_id') {
+        this.unit.responsible_curator_id = new_value;
+        this.handleEditorChange(false);
+      }
       // If not allowed to edit or in add mode, do nothing
       this.countRequiredFields();
       if (!this.allow_edit || this.add_unit_mode || this.unit.draft_unit)

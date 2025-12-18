@@ -1853,7 +1853,7 @@ def get_all_curators():
         SELECT CONCAT(p.first_name, ' ', p.last_name) AS label, u.user_id AS value, u.email, u.user_id, p.person_id
         FROM {database_name}.person p
         LEFT JOIN {database_name}.users u ON u.person_id = p.person_id
-        WHERE u.role_id = 2 OR u.role_id = 3;
+        WHERE u.role_id = 2 OR u.role_id = 3 OR u.role_id = 4;
         """)
     return jsonify(data)
 
