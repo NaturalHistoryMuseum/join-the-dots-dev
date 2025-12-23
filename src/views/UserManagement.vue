@@ -2,7 +2,7 @@
   <OverlayMessage />
   <div class="main-header">
     <div class="">
-      <p class="h1-style">Manage User Permissions</p>
+      <h1 class="h1-style">Manage User Permissions</h1>
       <p>Manage the role and permissions of users in your division</p>
     </div>
   </div>

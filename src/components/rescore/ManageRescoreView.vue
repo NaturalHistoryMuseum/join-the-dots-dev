@@ -3,7 +3,7 @@
     v-if="Object.keys(open_rescore).length && !is_loading"
     class="rescore-open"
   >
-    <p class="h5-style">Rescore Open:</p>
+    <h1 class="h5-style">Rescore Open:</h1>
     <p>Started : {{ open_rescore.created_at }}</p>
     <zoa-button
       label="Close Rescore and Discard Changes"
@@ -11,7 +11,7 @@
     />
   </div>
   <div v-else-if="!is_loading" class="rescore-closed">
-    <p class="h5-style">Rescore Status:</p>
+    <h1 class="h5-style">Rescore Status:</h1>
     <p>
       There is currently no rescore open - please select units and start rescore
       below

@@ -3,7 +3,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <p class="h2-style">What is Join the Dots?</p>
+      <h2 class="h2-style">What is Join the Dots?</h2>
       <p>
         Join the Dots (JTD) is a cross–disciplinary collections assessment
         framework. It is based on a methodology called ‘Move the Dots’, which
@@ -12,7 +12,7 @@
         across 4 assessment categories: Condition, Importance, Information, and
         Outreach. These categories are divided into 17 more detailed criteria.
       </p>
-      <p class="h2-style">Why has Join the Dots been implemented?</p>
+      <h2 class="h2-style">Why has Join the Dots been implemented?</h2>
       <p>
         The Natural History Museum has a responsibility to provide the best
         possible care and access to its collections. The development and
@@ -25,7 +25,7 @@
         planning, particularly at large museums, whilst setting standards and
         measuring improvements where possible.
       </p>
-      <p class="h2-style">Join the Dots - User Manual</p>
+      <h2 class="h2-style">Join the Dots - User Manual</h2>
       <p>
         <a
           href="https://naturalhistorymuseum.sharepoint.com/sites/Intranet/Projects/digital/join-the-dots/Shared%20Documents/Join%20the%20Dots%20User%20Manual.pdf"
@@ -33,7 +33,7 @@
           >User Manual</a
         >
       </p>
-      <p class="h2-style">Cabinet Scoring Document</p>
+      <h2 class="h2-style">Cabinet Scoring Document</h2>
       <p>
         <a
           href="https://naturalhistorymuseum.sharepoint.com/sites/Intranet/Projects/digital/join-the-dots/Shared%20Documents/Cabinetry%20Scoring%20Document.pdf"

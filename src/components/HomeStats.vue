@@ -1,6 +1,6 @@
 <template>
   <div class="boader-header">
-    <p class="h2-style boader-header-title">Statistics</p>
+    <h2 class="h2-style boader-header-title">Statistics</h2>
   </div>
   *Not live data
   <div v-if="currentUser.level == 1" class="row">
@@ -18,37 +18,37 @@
     </div>
     <div class="col-md-4 stats-summary">
       <div class="stats-card">
-        <p class="h4-style">Units Count:</p>
-        <p class="h4-style">{{ stats.total_units }}</p>
+        <h4 class="h4-style">Units Count:</h4>
+        <h4 class="h4-style">{{ stats.total_units }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Units Count:</p>
-        <p class="h4-style">{{ stats.total_units }}</p>
+        <h4 class="h4-style">Units Count:</h4>
+        <h4 class="h4-style">{{ stats.total_units }}</h4>
       </div>
     </div>
   </div>
   <div v-if="currentUser.level == 2" class="row">
     <div class="stats-numbers">
       <div class="stats-card">
-        <p class="h4-style">Last Rescored:</p>
-        <p class="h4-style">{{ stats.last_rescored_formatted }}</p>
+        <h4 class="h4-style">Last Rescored:</h4>
+        <h4 class="h4-style">{{ stats.last_rescored_formatted }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Assigned Units:</p>
-        <p class="h4-style">{{ stats.unit_count }}</p>
+        <h4 class="h4-style">Assigned Units:</h4>
+        <h4 class="h4-style">{{ stats.unit_count }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Last Rescored:</p>
-        <p class="h4-style">{{ stats.last_rescored_formatted }}</p>
+        <h4 class="h4-style">Last Rescored:</h4>
+        <h4 class="h4-style">{{ stats.last_rescored_formatted }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Your Unit Count:</p>
-        <p class="h4-style">{{ stats.unit_count }}</p>
+        <h4 class="h4-style">Your Unit Count:</h4>
+        <h4 class="h4-style">{{ stats.unit_count }}</h4>
       </div>
     </div>
     <div class="row">
       <div class="col-md-9 stats-chart">
-        <Bubble id="my-chart-id" :options="chart_options" :data="chart_data" />
+        <Bubble id="my-chart-id" :oh4tions="chart_options" :data="chart_data" />
       </div>
       <div class="col-md-3 stats-pie">
         <Pie :data="pie_one" :options="chartOptions" />
@@ -59,20 +59,20 @@
   <div v-if="currentUser.level == 3" class="row">
     <div class="stats-numbers">
       <div class="stats-card">
-        <p class="h4-style">Division Units:</p>
-        <p class="h4-style">{{ 200 }}</p>
+        <h4 class="h4-style">Division Units:</h4>
+        <h4 class="h4-style">{{ 200 }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Rescored this Year:</p>
-        <p class="h4-style">{{ 40 + ' (20%)' }}</p>
+        <h4 class="h4-style">Rescored this Year:</h4>
+        <h4 class="h4-style">{{ 40 + ' (20%)' }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Left to Rescore:</p>
-        <p class="h4-style">{{ 160 + ' (80%)' }}</p>
+        <h4 class="h4-style">Left to Rescore:</h4>
+        <h4 class="h4-style">{{ 160 + ' (80%)' }}</h4>
       </div>
       <div class="stats-card">
-        <p class="h4-style">Deadline:</p>
-        <p class="h4-style">{{ '2026-04-01' }}</p>
+        <h4 class="h4-style">Deadline:</h4>
+        <h4 class="h4-style">{{ '2026-04-01' }}</h4>
       </div>
     </div>
     <div class="row">

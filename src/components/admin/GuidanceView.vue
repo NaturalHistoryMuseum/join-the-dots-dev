@@ -35,7 +35,7 @@
           <!-- Pop out of the recordings -->
           <div v-if="guidance.recording_url">
             <div class="pointer" @click="show_recording = !show_recording">
-              <div class="h5-style">
+              <h3 class="h5-style">
                 <strong>
                   {{
                     show_recording
@@ -49,7 +49,7 @@
                     "
                   ></i>
                 </strong>
-              </div>
+              </h3>
             </div>
             <transition name="fade">
               <div v-if="show_recording" class="row comments-list">

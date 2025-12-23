@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <p class="h1-style">Admin</p>
+      <h1 class="h1-style">Admin</h1>
       <TopTabs
         :tabs="page_data.sort((a, b) => a.section_id - b.section_id)"
         :active_tab="active_tab"

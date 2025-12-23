@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <p class="h1-style">Reports</p>
+      <h1 class="h1-style">Reports</h1>
       <p>Coming soon...</p>
       <p>For now, use the following link</p>
       <a
@@ -9,7 +9,7 @@
         target="_blank"
         >Power Bi Reports</a
       >
-      <p class="h1-style">Exports</p>
+      <h1 class="h1-style">Exports</h1>
       <div class="row">
         <p>Coming soon...</p>
         <!-- <div class="col-md-4">
@@ -157,7 +157,7 @@ export default {
 <!--
 <template>
   <div>
-    <p class="h2-style">Power BI Embedded Report</p>
+    <h2 class="h2-style">Power BI Embedded Report</h2>
     <div ref="reportContainer" style="width: 800px; height: 600px"></div>
   </div>
 </template>
