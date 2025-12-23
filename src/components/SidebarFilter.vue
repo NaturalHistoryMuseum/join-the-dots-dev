@@ -55,7 +55,6 @@
     <div v-if="!is_collapsed">
       <div :class="column_direction ? 'filters-column' : 'filters-row'">
         <p class="h4-style" v-if="!minimal">Filters</p>
-
         <zoa-input
           v-if="show_filters.includes('show_own')"
           zoa-type="checkbox"
@@ -63,6 +62,14 @@
           label="Show Only My Assigned Units"
           label-position="right"
           v-model="filter_assigned"
+        />
+        <zoa-input
+          v-if="show_filters.includes('show_draft')"
+          zoa-type="checkbox"
+          :class="minimal ? '' : 'filter'"
+          label="Show Draft Units"
+          label-position="right"
+          v-model="filter_draft"
         />
         <zoa-input
           v-if="show_filters.includes('unit_id')"
@@ -168,6 +175,7 @@ export default {
         { id: 2, label: 'Life Sciences' },
         { id: 3, label: 'Library & Archives' },
       ],
+      filter_draft: false,
     };
   },
   watch: {
@@ -245,6 +253,8 @@ export default {
       // Filter the units based on the search queries and selected filters
       return this.units.filter(
         (unit) =>
+          // Filter by draft units
+          (this.filter_draft ? unit.draft_unit == 1 : unit.draft_unit == 0) &&
           // Filter by the users assigned units
           (this.filter_assigned
             ? this.currentUser.assigned_units &&

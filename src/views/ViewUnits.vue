@@ -73,6 +73,7 @@
             'section',
             'division',
             'curators',
+            'show_draft',
           ]"
           :column_direction="true"
           @update:filteredUnits="handleFilteredUnits"
@@ -85,8 +86,9 @@
             :fields="fields"
           >
             <!-- Custom rendering for the name column -->
-            <template #cell(name)="row">
-              {{ row.value.first }} {{ row.value.last }}
+            <template #cell(collection_unit_id)="row">
+              {{ row.item.draft_unit ? 'Draft - ' : '' }}
+              {{ row.item.collection_unit_id }}
             </template>
             <template #cell(actions)="row">
               <zoa-button @click="() => viewUnit(row.item)" class="view-btn">
@@ -237,6 +239,7 @@ export default {
 <style>
 .actions-bar {
   text-align: left;
+  margin-top: 1rem;
 }
 .content-container {
   display: flex;
