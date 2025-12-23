@@ -1,3 +1,14 @@
+## v1.5.0 (2025-12-18)
+
+### Feature
+
+- allows for comments to be added when adding units and can save imcomplete scores as drafts
+- **draft-units**: adds ability to add draft units
+
+### Fix
+
+- **curator-field**: editors field updated by curator field change
+
 ## v1.4.1 (2025-12-08)
 
 ### Fix
