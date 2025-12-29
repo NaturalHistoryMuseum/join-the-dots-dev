@@ -28,7 +28,8 @@
 <script>
 import AccordionGeneric from '@/components/AccordionGeneric.vue';
 import GuidanceView from '@/components/admin/GuidanceView.vue';
-import HelpIssuesView from '@/components/HelpIssuesView.vue';
+import ChangeLog from '@/components/help/ChangeLog.vue';
+import HelpIssuesView from '@/components/help/HelpIssueView.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import TopTabs from '@/components/TopTabs.vue';
 export default {
@@ -57,8 +58,15 @@ export default {
           section_id: 1,
           section_name: 'Issues / Enhancements',
           section_desc:
-            'Here you can find information what issues have been reported and what is currently being worked on.',
+            'Here you can find information on what issues have been reported and what is currently being worked on.',
           component: HelpIssuesView,
+        },
+        {
+          section_id: 1,
+          section_name: 'Change Log',
+          section_desc:
+            'Here you can find information on recent changes and updates to this application.',
+          component: ChangeLog,
         },
       ],
     };
