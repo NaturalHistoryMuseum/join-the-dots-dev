@@ -1,0 +1,6 @@
+commitizen:
+  tag_format: v$version
+  version: 1.5.0
+  version_files:
+    - k8s live/manifest-api.yaml:join-the-dots-infra/api
+    - k8s live/manifest-web.yaml:join-the-dots-infra/web

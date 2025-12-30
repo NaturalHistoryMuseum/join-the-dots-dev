@@ -2247,3 +2247,65 @@ def remove_guidance():
         ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/change-log', methods=['GET'])
+@jwt_required()
+def get_change_log():
+    try:
+        data = fetch_data("""SELECT *
+                   FROM {database_name}.change_log
+                    ORDER BY date_added DESC;
+                   """)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/add-change-log', methods=['POST'])
+@jwt_required()
+def add_change_log():
+    data = request.get_json()
+    title = data.get('title')
+    log = data.get('log')
+    try:
+        execute_query(
+            f"""
+            INSERT INTO {database_name}.change_log
+            (title, log, date_added)
+            VALUES (%s, %s, NOW());
+            """,
+            (title, log),
+        )
+        return jsonify(
+            {'message': 'Change log added successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/update-change-log', methods=['POST'])
+@jwt_required()
+def update_change_log():
+    data = request.get_json()
+    change_log_id = data.get('change_log_id')
+    title = data.get('title')
+    log = data.get('log')
+    try:
+        execute_query(
+            f"""
+             UPDATE {database_name}.change_log
+            SET title = %s, log = %s
+            WHERE change_log_id = %s;
+            """,
+            (
+                title,
+                log,
+                int(change_log_id),
+            ),
+        )
+        return jsonify(
+            {'message': 'Change log updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
