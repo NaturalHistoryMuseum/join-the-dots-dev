@@ -25,7 +25,14 @@
         />
         <div v-if="current_step === 1" class="modal-step-content">
           <p class="text-center">Select the units you want to edit.</p>
-          <TableCheckbox :fields="fields" :units="units" ref="tableCheckbox">
+          <TableCheckbox
+            :fields="fields"
+            :units="units"
+            ref="tableCheckbox"
+            @update:selectedUnits="
+              (selected_units) => updateSelectedUnits(selected_units)
+            "
+          >
             <div class="nav-container">
               <div></div>
               <zoa-button
@@ -164,7 +171,11 @@
                   <p>These are the units you are about to edit:</p>
                   <ul class="units-list">
                     <div
-                      v-for="unit in units.filter((unit) => unit.selected)"
+                      v-for="unit in units.filter((unit) =>
+                        this.selected_unit_ids.includes(
+                          unit.collection_unit_id,
+                        ),
+                      )"
                       :key="unit.collection_unit_id"
                     >
                       <li>
@@ -252,6 +263,7 @@ export default {
       success: false,
       success_message: '',
       loading: false,
+      selected_unit_ids: [],
     };
   },
   methods: {
@@ -277,13 +289,18 @@ export default {
     async handleBulkUpload() {
       this.loading = true;
       const response = await submitDataGeneric('bulk-upload-rescore', {
-        units: this.units.filter((unit) => unit.selected),
+        units: this.units.filter((unit) =>
+          this.selected_unit_ids.includes(unit.collection_unit_id),
+        ),
         rescore_data: this.edited_unit,
       });
       this.loading = false;
       this.success = response.success_count > 0;
       this.success_message = `Changes successfully made for ${response.success_count} / ${response.total_units}! ${response.success_count < response.total_units ? 'Please check changes and try again' : ''}`;
       this.refresh_page_data();
+    },
+    updateSelectedUnits(selected_unit_ids) {
+      this.selected_unit_ids = selected_unit_ids;
     },
   },
 };

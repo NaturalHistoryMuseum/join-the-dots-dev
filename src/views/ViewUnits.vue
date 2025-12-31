@@ -2,48 +2,48 @@
   <div class="main-page">
     <div class="units-content">
       <div class="actions-bar" v-show="currentUser.role_id > 1">
-        <ActionsBtnGroup :force_show="selectedUnitIds.length > 0">
+        <ActionsBtnGroup :force_show="selected_unit_ids.length > 0">
           <DeleteModal
             :selected_units="
               units.filter((unit) =>
-                selectedUnitIds.includes(unit.collection_unit_id),
+                selected_unit_ids.includes(unit.collection_unit_id),
               )
             "
             @update:refreshData="fetchData"
             :included_in_rescore="
               Object.keys(this.open_rescore).length > 0 &&
               rescore_units.some((rescore_unit) =>
-                selectedUnitIds.includes(rescore_unit),
+                selected_unit_ids.includes(rescore_unit),
               )
             "
           />
           <SplitModal
-            v-if="selectedUnitIds.length < 2"
+            v-if="selected_unit_ids.length < 2"
             :selected_unit="
               units.find(
-                (unit) => unit.collection_unit_id == selectedUnitIds[0],
+                (unit) => unit.collection_unit_id == selected_unit_ids[0],
               )
             "
             @update:refreshData="fetchData"
             :included_in_rescore="
               Object.keys(this.open_rescore).length > 0 &&
               rescore_units.some((rescore_unit) =>
-                selectedUnitIds.includes(rescore_unit),
+                selected_unit_ids.includes(rescore_unit),
               )
             "
           />
           <CombineModal
-            v-if="selectedUnitIds.length == 0 || selectedUnitIds.length > 1"
+            v-if="selected_unit_ids.length == 0 || selected_unit_ids.length > 1"
             :selected_units="
               units.filter((unit) =>
-                selectedUnitIds.includes(unit.collection_unit_id),
+                selected_unit_ids.includes(unit.collection_unit_id),
               )
             "
             @update:refreshData="fetchData"
             :included_in_rescore="
               Object.keys(this.open_rescore).length > 0 &&
               rescore_units.some((rescore_unit) =>
-                selectedUnitIds.includes(rescore_unit),
+                selected_unit_ids.includes(rescore_unit),
               )
             "
           />
@@ -84,6 +84,9 @@
             ref="viewTable"
             :units="filteredUnits"
             :fields="fields"
+            @update:selectedUnits="
+              (selected_units) => updateSelectedUnits(selected_units)
+            "
           >
             <!-- Custom rendering for the name column -->
             <template #cell(collection_unit_id)="row">
@@ -168,6 +171,7 @@ export default {
       filteredUnits: [],
       open_rescore: {},
       rescore_units: [],
+      selected_unit_ids: [],
     };
   },
   mounted() {
@@ -224,13 +228,8 @@ export default {
         }
       }
     },
-  },
-  computed: {
-    // Computed property to get the selected unit IDs
-    selectedUnitIds() {
-      return this.filteredUnits
-        .filter((unit) => unit.selected)
-        .map((unit) => unit.collection_unit_id);
+    updateSelectedUnits(selected_unit_ids) {
+      this.selected_unit_ids = selected_unit_ids;
     },
   },
 };

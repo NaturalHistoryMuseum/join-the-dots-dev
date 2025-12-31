@@ -635,9 +635,6 @@ def bulk_upload_rescore():
                     for category in category_tracking
                     if category.get('category_id') == category_id
                 ]
-                execute_query("""
-                    SELECT * FROM {database_name}.unit_category_draft
-                              WHERE rescore_session_units_id = %s AND category_id = %s;""")
                 category_draft_id = current_category[0]['category_draft_id']
                 # Make the score change
                 handle_draft_rank(
