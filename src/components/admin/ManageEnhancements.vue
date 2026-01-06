@@ -1,15 +1,14 @@
 <template>
-  <EditEnhancementModal
-    :getEnhancements="getEnhancements"
-    :set_enhancement="new_enhancement"
-    :add_mode="true"
-  />
-
   <div>
     <p>
       Please see below a list of functionality actively being worked on for the
       app.
     </p>
+    <EditEnhancementModal
+      :getEnhancements="getEnhancements"
+      :set_enhancement="new_enhancement"
+      :add_mode="true"
+    />
     <b-table
       id="unit-table"
       class="unit-table"
