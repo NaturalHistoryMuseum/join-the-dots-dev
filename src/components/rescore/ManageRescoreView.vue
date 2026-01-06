@@ -22,7 +22,7 @@
         @click="createRescore"
       />
       <NoRescoreModal
-        :selected_units="selectedUnitIds"
+        :selected_units="selected_unit_ids"
         :units="units"
         @update:refreshData="fetchData"
       />
@@ -44,6 +44,9 @@
         :units="filtered_units"
         :fields="fields"
         ref="rescoreTable"
+        @update:selectedUnits="
+          (selected_units) => updateSelectedUnits(selected_units)
+        "
       >
         <!-- Custom rendering for a date field -->
         <template #cell(last_rescored)="row">
@@ -98,6 +101,7 @@ export default {
       ],
       is_loading: false,
       filtered_units: [],
+      selected_unit_ids: [],
     };
   },
   mounted() {
@@ -123,7 +127,7 @@ export default {
     async createRescore() {
       // Create rescore session with selected units
       await submitDataGeneric('mark-rescore-open', {
-        units: this.selectedUnitIds,
+        units: this.selected_unit_ids,
       });
       this.fetchUnitsData();
       // this.navigateRescore();
@@ -156,13 +160,8 @@ export default {
         }
       }
     },
-  },
-  computed: {
-    selectedUnitIds() {
-      // Return the IDs of the selected units
-      return this.filtered_units
-        .filter((unit) => unit.selected)
-        .map((unit) => unit.collection_unit_id);
+    updateSelectedUnits(selected_unit_ids) {
+      this.selected_unit_ids = selected_unit_ids;
     },
   },
 };

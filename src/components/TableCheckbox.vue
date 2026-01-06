@@ -11,7 +11,9 @@
       ></b-pagination>
       <div class="selected-num" v-if="selected_unit_ids.length > 0">
         {{ selected_unit_ids.length }} units selected
+        <zoa-button label="Clear Selected" @click="resetSelection()" />
       </div>
+
       <!-- Rows per page dropdown -->
       <zoa-input
         class="per-page-dropdown"
@@ -67,7 +69,7 @@
           zoa-type="checkbox"
           label-position="none"
           @change="(newValue) => handleCheckboxChange(newValue, row.item)"
-          v-model="row.item.selected"
+          :model-value="isUnitSelected(row.item.collection_unit_id)"
         />
       </template>
 
@@ -123,24 +125,36 @@ export default {
   },
   methods: {
     toggleSelectAll(newValue) {
-      // Only update currently visible (filtered + paginated + assigned to user) rows
-      const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
-      this.paginatedUnits.forEach((unit) => {
-        if (assignedUnitIds.includes(unit.collection_unit_id)) {
-          unit.selected = newValue;
-        }
-      });
-      this.updateSelectedUnits();
+      const on_page = this.paginatedUnits
+        .filter((unit) => {
+          if (this.currentUser.role_id === 4) return true;
+
+          const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
+          return assignedUnitIds.includes(unit.collection_unit_id);
+        })
+        .map((unit) => unit.collection_unit_id);
+
+      if (newValue) {
+        // ADD ids (no duplicates)
+        this.selected_unit_ids = Array.from(
+          new Set([...this.selected_unit_ids, ...on_page]),
+        );
+      } else {
+        // REMOVE only ids on this page
+        this.selected_unit_ids = this.selected_unit_ids.filter(
+          (id) => !on_page.includes(id),
+        );
+      }
+
+      this.$emit('update:selectedUnits', this.selected_unit_ids);
     },
     updateSelectedUnits() {
       this.selected_unit_ids = this.units
         .filter((unit) => unit.selected)
         .map((unit) => unit.collection_unit_id);
+      this.$emit('update:selectedUnits', this.selected_unit_ids);
     },
     handleCheckboxChange(newValue, rowItem) {
-      // Update the selected property directly
-      rowItem.selected = newValue;
-
       if (newValue) {
         //Add the item to the selected_unit_ids array
         this.selected_unit_ids.push(rowItem.collection_unit_id);
@@ -151,12 +165,12 @@ export default {
         );
         this.selected_unit_ids.splice(indexOfVal, 1);
       }
+      this.$emit('update:selectedUnits', this.selected_unit_ids);
     },
     // Reset selection state for all units
     resetSelection() {
-      this.units.forEach((unit) => {
-        unit.selected = false;
-      });
+      this.selected_unit_ids = [];
+      this.$emit('update:selectedUnits', this.selected_unit_ids);
       this.updateSelectedUnits();
     },
     // Function to reset the current page back to the first page
@@ -173,35 +187,51 @@ export default {
         this.per_page = parseInt(value);
       }
     },
+    isUnitSelected(unitId) {
+      return this.selected_unit_ids.includes(unitId);
+    },
   },
   computed: {
     // Handle the select all checkbox
     selectAll: {
       get() {
-        const assignedPaginatedUnits = this.paginatedUnits.filter((unit) =>
-          JSON.parse(this.currentUser.assigned_units).includes(
-            unit.collection_unit_id,
-          ),
-        );
+        const ids_on_page = this.paginatedUnits
+          .filter(
+            (unit) =>
+              this.currentUser.role_id === 4 ||
+              JSON.parse(this.currentUser.assigned_units).includes(
+                unit.collection_unit_id,
+              ),
+          )
+          .map((unit) => unit.collection_unit_id);
+
         return (
-          assignedPaginatedUnits.length > 0 &&
-          assignedPaginatedUnits.every((unit) => unit.selected)
+          ids_on_page.length > 0 &&
+          ids_on_page.every((unit_id) =>
+            this.selected_unit_ids.includes(unit_id),
+          )
         );
       },
       set(newValue) {
         this.toggleSelectAll(newValue);
       },
     },
+
     paginatedUnits() {
       const start = (this.current_page - 1) * this.per_page;
       const end = start + this.per_page;
-      return this.units.slice(start, end); // Paginate only filtered data
+      // Paginate only filtered data
+      return this.units.slice(start, end);
     },
     rows() {
       return this.units.length;
     },
     hasAssignedUnitsOnPage() {
-      if (!this.currentUser.assigned_units) return false;
+      if (!this.currentUser.assigned_units && this.currentUser.role_id < 4) {
+        return false;
+      } else if (this.currentUser.role_id === 4) {
+        return true;
+      }
       const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
 
       return this.paginatedUnits.some((unit) =>

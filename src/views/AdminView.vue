@@ -28,6 +28,8 @@ import TopTabs from '@/components/TopTabs.vue';
 import AdminIssues from '@/components/admin/AdminIssues.vue';
 import AdminPermissions from '@/components/admin/AdminPermissions.vue';
 import GuidanceView from '@/components/admin/GuidanceView.vue';
+import ManageChangeLog from '@/components/admin/ManageChangeLog.vue';
+import ManageEnhancements from '@/components/admin/ManageEnhancements.vue';
 
 export default {
   name: 'AdminView',
@@ -49,6 +51,16 @@ export default {
           section_id: 2,
           section_name: 'Manage Issues',
           component: AdminIssues,
+        },
+        {
+          section_id: 3,
+          section_name: 'Manage Change Log',
+          component: ManageChangeLog,
+        },
+        {
+          section_id: 4,
+          section_name: 'Manage Enahancements',
+          component: ManageEnhancements,
         },
       ],
       active_tab: 0,

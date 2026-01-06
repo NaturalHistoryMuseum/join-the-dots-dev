@@ -635,9 +635,6 @@ def bulk_upload_rescore():
                     for category in category_tracking
                     if category.get('category_id') == category_id
                 ]
-                execute_query("""
-                    SELECT * FROM {database_name}.unit_category_draft
-                              WHERE rescore_session_units_id = %s AND category_id = %s;""")
                 category_draft_id = current_category[0]['category_draft_id']
                 # Make the score change
                 handle_draft_rank(
@@ -1322,7 +1319,8 @@ def copy_unit(cursor, unit_id_to_copy, user_id, unit_name_addition=''):
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
 def get_units_and_departments():
-    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id, unit.responsible_curator_id, COALESCE(CONCAT(person.first_name, ' ', person.last_name), users.display_name) AS curator_name
+    data = fetch_data("""SELECT unit.collection_unit_id, unit.unit_name, unit.named_collection, section.section_name, division.division_name, department.department_name, unit.unit_active, division.division_id,
+                      unit.responsible_curator_id, COALESCE(CONCAT(person.first_name, ' ', person.last_name), users.display_name) AS curator_name, unit.draft_unit
                    FROM {database_name}.collection_unit AS unit
                     LEFT JOIN {database_name}.section AS section ON unit.section_id = section.section_id
                     LEFT JOIN {database_name}.division AS division ON section.division_id = division.division_id
@@ -1411,7 +1409,7 @@ def get_units_assigned():
                     JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = au.collection_unit_id
                     JOIN {database_name}.section s ON s.section_id = cu.section_id
                     JOIN {database_name}.division d ON d.division_id = s.division_id
-                    WHERE au.user_id = %s AND cu.unit_active = 'yes'
+                    WHERE au.user_id = %s AND cu.unit_active = 'yes' AND cu.draft_unit = 0;
                             """,
                     (user_id,),
                 )
@@ -1431,7 +1429,7 @@ def get_units_assigned():
                     LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                     JOIN {database_name}.section s ON s.section_id = cu.section_id
                     JOIN {database_name}.division d ON d.division_id = s.division_id
-                    WHERE d.division_id = %s AND cu.unit_active = 'yes'
+                    WHERE d.division_id = %s AND cu.unit_active = 'yes' AND cu.draft_unit = 0;
                             """,
                     (user['division_id'],),
                 )
@@ -1451,7 +1449,7 @@ def get_units_assigned():
                     LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
                     JOIN {database_name}.section s ON s.section_id = cu.section_id
                     JOIN {database_name}.division d ON d.division_id = s.division_id
-                    WHERE cu.unit_active = 'yes'
+                    WHERE cu.unit_active = 'yes' AND cu.draft_unit = 0;
                             """,
                 )
         return jsonify(data)
@@ -1469,7 +1467,7 @@ def get_units_by_division(division_id):
             """SELECT cu.*
         FROM {database_name}.collection_unit cu
         JOIN {database_name}.section s ON s.section_id = cu.section_id
-        WHERE cu.unit_active = 'yes' AND s.division_id = %s
+        WHERE cu.unit_active = 'yes' AND s.division_id = %s AND cu.draft_unit = 0;
                 """,
             (division_id,),
         )
@@ -1503,13 +1501,13 @@ def get_division_users():
                         JOIN {database_name}.collection_unit cu
                             ON cu.collection_unit_id = au.collection_unit_id
                         WHERE au.user_id = u.user_id
-                        AND cu.unit_active = 'yes'
+                        AND cu.unit_active = 'yes' AND cu.draft_unit = 0
                     ) AS assigned_units,
                     (
                         SELECT JSON_ARRAYAGG(cu.collection_unit_id)
                         FROM {database_name}.collection_unit cu
                         WHERE cu.responsible_curator_id = u.user_id
-                        AND cu.unit_active = 'yes'
+                        AND cu.unit_active = 'yes' AND cu.draft_unit = 0
                     ) AS responsible_units
                 FROM {database_name}.users u
                 LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
@@ -1897,7 +1895,7 @@ def get_units_by_user():
             JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
             JOIN {database_name}.section s ON s.section_id = cu.section_id
             JOIN {database_name}.division d ON d.division_id = s.division_id
-            WHERE cu.unit_active = 'yes'
+            WHERE cu.unit_active = 'yes' AND cu.draft_unit = 0
             """
     params = []
 
@@ -2243,6 +2241,129 @@ def remove_guidance():
         )
         return jsonify(
             {'message': 'Guidance updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/change-log', methods=['GET'])
+@jwt_required()
+def get_change_log():
+    try:
+        data = fetch_data("""SELECT *
+                   FROM {database_name}.change_log
+                    ORDER BY date_added DESC;
+                   """)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/add-change-log', methods=['POST'])
+@jwt_required()
+def add_change_log():
+    data = request.get_json()
+    title = data.get('title')
+    log = data.get('log')
+    try:
+        execute_query(
+            f"""
+            INSERT INTO {database_name}.change_log
+            (title, log, date_added)
+            VALUES (%s, %s, NOW());
+            """,
+            (title, log),
+        )
+        return jsonify(
+            {'message': 'Change log added successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/update-change-log', methods=['POST'])
+@jwt_required()
+def update_change_log():
+    data = request.get_json()
+    change_log_id = data.get('change_log_id')
+    title = data.get('title')
+    log = data.get('log')
+    try:
+        execute_query(
+            f"""
+             UPDATE {database_name}.change_log
+            SET title = %s, log = %s
+            WHERE change_log_id = %s;
+            """,
+            (
+                title,
+                log,
+                int(change_log_id),
+            ),
+        )
+        return jsonify(
+            {'message': 'Change log updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/enhancements', methods=['GET'])
+@jwt_required()
+def get_enhancements():
+    try:
+        data = fetch_data("""SELECT *
+                   FROM {database_name}.enhancements;
+                   """)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/add-enhancements', methods=['POST'])
+@jwt_required()
+def add_enhancements():
+    data = request.get_json()
+    description = data.get('description')
+    expected_date = data.get('expected_date')
+    try:
+        execute_query(
+            f"""
+            INSERT INTO {database_name}.enhancements
+            (description, expected_date)
+            VALUES (%s, %s);
+            """,
+            (description, expected_date),
+        )
+        return jsonify(
+            {'message': 'Enhancement added successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/update-enhancements', methods=['POST'])
+@jwt_required()
+def update_enhancements():
+    data = request.get_json()
+    enhancement_id = data.get('enhancement_id')
+    description = data.get('description')
+    expected_date = data.get('expected_date')
+    try:
+        execute_query(
+            f"""
+             UPDATE {database_name}.enhancements
+            SET description = %s, expected_date = %s
+            WHERE enhancement_id = %s;
+            """,
+            (
+                description,
+                expected_date,
+                int(enhancement_id),
+            ),
+        )
+        return jsonify(
+            {'message': 'Enhancement updated successfully', 'success': True}
         ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
