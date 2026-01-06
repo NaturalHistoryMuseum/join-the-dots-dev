@@ -39,22 +39,7 @@
     :accordion_eror="false"
     :accordion_id="2"
   >
-    <div>
-      <p>
-        Please see below a list of functionality actively being worked on for
-        the app.
-      </p>
-      <b-table
-        id="unit-table"
-        class="unit-table"
-        striped
-        hover
-        responsive
-        :items="enhancements_data"
-        :fields="enhancements_fields"
-      >
-      </b-table>
-    </div>
+    <EnhancementsTable />
   </AccordionGeneric>
 </template>
 
@@ -62,10 +47,11 @@
 import AccordionGeneric from '@/components/AccordionGeneric.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { getGeneric } from '@/services/dataService';
+import EnhancementsTable from './EnhancementsTable.vue';
 
 export default {
   name: 'HelpIssuesView',
-  components: { AccordionGeneric, TableCheckbox },
+  components: { AccordionGeneric, TableCheckbox, EnhancementsTable },
   data() {
     return {
       expanded_accordion: null,
@@ -79,39 +65,6 @@ export default {
           key: 'date_resolved',
           label: 'Date Resolved',
           thStyle: { width: '10%' },
-        },
-      ],
-      enhancements_fields: [
-        { key: 'ticket_id', label: 'Ticket ID', thStyle: { width: '20%' } },
-        {
-          key: 'description',
-          label: 'Description',
-          thStyle: { width: '60%' },
-        },
-        { key: 'exp_date', label: 'Exp Date', thStyle: { width: '20%' } },
-      ],
-      enhancements_data: [
-        {
-          ticket_id: 30,
-          description: 'The ability to add Draft units.',
-          exp_date: 'Dec 2025',
-        },
-        { ticket_id: 25, description: 'Data exports', exp_date: 'Dec 2025' },
-        {
-          ticket_id: 64,
-          description: 'Add justification to unit deletions',
-          exp_date: 'Dec 2025',
-        },
-        {
-          ticket_id: 24,
-          description: 'Personalised home page statistics / reminders',
-          exp_date: 'Jan 2026',
-        },
-        {
-          ticket_id: 74,
-          description:
-            'See only fields that are relevent to respective division',
-          exp_date: 'Jan 2026',
         },
       ],
     };

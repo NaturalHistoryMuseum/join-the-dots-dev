@@ -2306,3 +2306,64 @@ def update_change_log():
         ), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/enhancements', methods=['GET'])
+@jwt_required()
+def get_enhancements():
+    try:
+        data = fetch_data("""SELECT *
+                   FROM {database_name}.enhancements;
+                   """)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/add-enhancements', methods=['POST'])
+@jwt_required()
+def add_enhancements():
+    data = request.get_json()
+    description = data.get('description')
+    expected_date = data.get('expected_date')
+    try:
+        execute_query(
+            f"""
+            INSERT INTO {database_name}.enhancements
+            (description, expected_date)
+            VALUES (%s, %s);
+            """,
+            (description, expected_date),
+        )
+        return jsonify(
+            {'message': 'Enhancement added successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@data_bp.route('/update-enhancements', methods=['POST'])
+@jwt_required()
+def update_enhancements():
+    data = request.get_json()
+    enhancement_id = data.get('enhancement_id')
+    description = data.get('description')
+    expected_date = data.get('expected_date')
+    try:
+        execute_query(
+            f"""
+             UPDATE {database_name}.enhancements
+            SET description = %s, expected_date = %s
+            WHERE enhancement_id = %s;
+            """,
+            (
+                description,
+                expected_date,
+                int(enhancement_id),
+            ),
+        )
+        return jsonify(
+            {'message': 'Enhancement updated successfully', 'success': True}
+        ), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
