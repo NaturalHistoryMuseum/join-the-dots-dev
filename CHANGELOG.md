@@ -1,3 +1,20 @@
+## v1.6.0 (2026-01-06)
+
+### Feature
+
+- adds change log and admin management for change log
+- adds filtering for draft units
+
+### Fix
+
+- **enhancements-table**: enhancement are now stored dynamically and can be edited by admin
+- fixes issue with tablecheckbox selecting units and filtering
+
+### CI System(s)
+
+- move add enhancement button
+- commitizen file added for cicd pipeline
+
 ## v1.5.0 (2025-12-18)
 
 ### Feature
