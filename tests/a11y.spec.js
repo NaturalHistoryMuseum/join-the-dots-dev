@@ -24,7 +24,7 @@ for (const path of PAGES) {
     await page.goto(`http://localhost:4173${path}`);
 
     const results = await new AxeBuilder({ page })
-      .withTags(['wcag2aa', 'wcag2a'])
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
       .analyze();
 
     if (results.violations.length > 0) {

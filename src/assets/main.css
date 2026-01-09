@@ -18,8 +18,7 @@
 
 :root {
   --primary-col: #333d47;
-  /* --secondary-col: #333d47; */
-  --secondary-col: #87999e;
+  --secondary-col: #333d47;
   --accent-col: #f2bab0;
   --bg-col: #f3f3f3;
   --txt-col: #191919;
