@@ -24,7 +24,8 @@ jobs:
           python-version: '3.11'
 
       - name: Install backend deps
-        run: pip install -r server/requirements.txt
+        # Install python dependencies from project.toml
+        run: cd server && pip install --no-cache-dir ./
 
       - name: Install frontend deps
         run: npm ci
