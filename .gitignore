@@ -49,3 +49,7 @@ db-changes
 
 
 public/config.json
+auth.json
+# Playwright output
+test-results/
+playwright-report/

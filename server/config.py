@@ -46,3 +46,19 @@ class Config:
 
     # Power BI Expected API Key
     EXPECTED_API_KEY = os.environ.get('EXPECTED_API_KEY')
+
+    # Testing Authentication Mode
+    TEST_AUTH_ENABLED = False
+
+
+class TestingConfig(Config):
+    TEST_AUTH_ENABLED = True
+
+
+def get_config():
+    """
+    Decide config based on environment.
+    """
+    if os.getenv('CI') == 'true':
+        return TestingConfig
+    return Config

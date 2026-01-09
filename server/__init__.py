@@ -1,12 +1,11 @@
 import os
+import sys
 
 from flask import Flask
 from flask_jwt_extended import JWTManager
 
-from server.config import Config
+from server.config import get_config
 from server.extensions import cors
-from server.register_routes import register_routes
-from server.routes.auth import auth_bp
 
 
 def create_app():
@@ -14,6 +13,10 @@ def create_app():
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
     app = Flask(__name__)
+
+    config_class = get_config()
+    app.config.from_object(get_config())
+
     # Allows cross-origin requests from your Vue frontend
     cors.init_app(
         app,
@@ -21,9 +24,10 @@ def create_app():
         expose_headers=['X-CSRF-TOKEN'],
         allow_headers=['Content-Type', 'X-CSRF-TOKEN'],
     )
-    app.config.from_object(Config)
 
     # Register blueprints (modular routes)
+    from server.register_routes import register_routes
+
     register_routes(app)
 
     jwt = JWTManager(app)
