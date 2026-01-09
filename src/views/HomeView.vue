@@ -1,19 +1,19 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <p class="h1-style">Join the Dots Portal</p>
+      <h1 class="h1-style">Join the Dots Portal</h1>
       <div v-if="currentUser">
         <p v-if="currentUser.name">Welcome, {{ currentUser.name }}</p>
       </div>
       <!-- <HomeStats /> -->
     </div>
     <div class="boader-header">
-      <p class="h2-style boader-header-title">Actions</p>
+      <h2 class="h2-style boader-header-title">Actions</h2>
     </div>
     <b-row class="home-cards">
       <div v-if="currentUser.level > 1" class="home-card col-md-4">
         <i class="bi bi-clipboard-check card-icon"></i>
-        <p class="h2-style">Rescore</p>
+        <h2 class="h2-style">Rescore</h2>
         <p>Perform a rescore on your assigned units.</p>
         <zoa-button
           label="Rescore"
@@ -23,7 +23,7 @@
       </div>
       <div v-if="currentUser.level == 1" class="home-card col-md-4">
         <i class="bi bi-file-earmark card-icon"></i>
-        <p class="h2-style">About</p>
+        <h2 class="h2-style">About</h2>
         <p>Understand the JtD process further</p>
         <zoa-button
           label="About"
@@ -33,7 +33,7 @@
       </div>
       <div class="home-card col-md-4">
         <i class="bi bi-table card-icon"></i>
-        <p class="h2-style">View Units</p>
+        <h2 class="h2-style">View Units</h2>
         <p>
           Explore all units or just your assigned units and make changes to
           them.
@@ -46,7 +46,7 @@
       </div>
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
-        <p class="h2-style">Reports</p>
+        <h2 class="h2-style">Reports</h2>
         <p>
           Generate reports on your assigned units or whole division's
           performance.

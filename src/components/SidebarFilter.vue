@@ -54,7 +54,7 @@
     </div>
     <div v-if="!is_collapsed">
       <div :class="column_direction ? 'filters-column' : 'filters-row'">
-        <p class="h4-style" v-if="!minimal">Filters</p>
+        <h2 class="h4-style" v-if="!minimal">Filters</h2>
         <zoa-input
           v-if="show_filters.includes('show_own')"
           zoa-type="checkbox"

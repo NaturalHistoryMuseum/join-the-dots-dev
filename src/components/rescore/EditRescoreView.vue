@@ -3,10 +3,10 @@
     <div class="row rescore-helper-container">
       <!-- Rescore Details -->
       <div class="col-md-4 unit-rescore-progress" v-if="units.length > 0">
-        <p class="h4-style progress-msg">
+        <h1 class="h4-style progress-msg">
           Units completed: {{ countUnitsCompleted(units) }} /
           {{ units.length }}
-        </p>
+        </h1>
         <RoundProgressBar
           :progress="(countUnitsCompleted(units) / units.length) * 100"
         />

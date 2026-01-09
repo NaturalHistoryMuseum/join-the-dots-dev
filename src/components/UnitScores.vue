@@ -2,12 +2,12 @@
   <div v-if="rescore && !bulk_edit" class="unit-header">
     <!-- Unit Tile and link to unit -->
     <div class="unit-link-container">
-      <p
+      <h2
         class="h4-style unit-link"
         @click="navigateUnit(unit.collection_unit_id)"
       >
         {{ unit.unit_name }}
-      </p>
+      </h2>
     </div>
     <!-- Button for managing whole units complete status -->
     <zoa-button
