@@ -46,6 +46,8 @@ jobs:
         run: |
           npm run preview &
           sleep 5
+        env:
+          FRONTEND_PORT: 4173
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
