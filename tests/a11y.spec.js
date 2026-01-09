@@ -2,7 +2,6 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 const PAGES = [
-  // '/login',
   '/',
   '/about',
   '/reports',
@@ -23,19 +22,7 @@ for (const path of PAGES) {
     // Navigate to the page
     await page.goto(`http://localhost:4173${path}`);
 
-    const results = await new AxeBuilder({ page })
-      .withTags([
-        'wcag2a',
-        'wcag2aa',
-        'wcag21a',
-        'wcag21aa',
-        'wcag22aa',
-        'best-practice',
-        'section508',
-        'RGAAv4',
-        'EN-301-549',
-      ])
-      .analyze();
+    const results = await new AxeBuilder({ page }).analyze();
 
     if (results.violations.length > 0) {
       console.log(results.violations);
