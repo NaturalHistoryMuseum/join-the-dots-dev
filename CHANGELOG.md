@@ -1,3 +1,13 @@
+## v1.6.1 (2026-01-15)
+
+### Fix
+
+- reduced textbox autosave frequency
+
+### Refactor
+
+- **headers**: improve headers accessibility by not skipping levels
+
 ## v1.6.0 (2026-01-06)
 
 ### Feature
