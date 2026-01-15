@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <p class="h1-style">Login</p>
+      <h1 class="h1-style">Login</h1>
     </div>
     <div v-if="currentUser" class="content">
       <p>You are already logged in</p>
@@ -18,20 +18,20 @@
     </div>
   </div>
 
-  <p v-if="APP_ENV == 'qa'" class="h5-style temp-warning env-warning">
+  <h2 v-if="APP_ENV == 'qa'" class="h5-style temp-warning env-warning">
     <SmallMessages
       message_type="warning"
       message_text="User Acceptance Testing is now concluded and this environment may not
     function as expected
     ."
     />
-  </p>
-  <p v-if="APP_ENV == 'dev'" class="h5-style temp-warning env-warning">
+  </h2>
+  <h2 v-if="APP_ENV == 'dev'" class="h5-style temp-warning env-warning">
     <SmallMessages
       message_type="warning"
       message_text="This environment is dev."
     />
-  </p>
+  </h2>
 </template>
 
 <script>

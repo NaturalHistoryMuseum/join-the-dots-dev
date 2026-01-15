@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="main-header" v-if="page_data.length > 0">
-      <p class="h2-style">Help / Info</p>
+      <h2 class="h2-style">Help / Info</h2>
       <TopTabs
         :tabs="page_data"
         :active_tab="active_tab"

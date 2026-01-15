@@ -24,7 +24,7 @@
         v-if="((unit && unit_id) || !add_unit_mode) && !unit.draft_unit"
       >
         <div class="col-md-4">
-          <p class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</p>
+          <h1 class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
           <p>Unit ID: {{ unit_id }}</p>
         </div>
         <div class="col-md-8" v-if="allow_edit && currentUser.role_id > 1">
@@ -36,12 +36,12 @@
       </div>
       <div v-else-if="add_unit_mode || unit.draft_unit" class="row">
         <div class="col-md-6">
-          <p class="h1-style">
+          <h1 class="h1-style">
             {{ unit.draft_unit ? 'Edit Draft Unit' : 'Add New Unit' }}
-          </p>
+          </h1>
           <p>
             Please fill out all required units (
-            <span style="color: red">*</span>
+            <span class="required-tag">*</span>
             ) and the scoring page to create this unit.
           </p>
         </div>
@@ -93,7 +93,9 @@
                   v-for="sub in section.sub_sections"
                   :key="sub.sub_section_id"
                 >
-                  <p class="h4-style subheading">{{ sub.sub_section_name }}</p>
+                  <h2 class="h4-style subheading">
+                    {{ sub.sub_section_name }}
+                  </h2>
                   <div
                     v-if="sub.fields && sub.fields.length > 0"
                     class="fields-box"
@@ -144,6 +146,7 @@
                         <zoa-button
                           class="remove-btn"
                           @click="removeAllEditors()"
+                          aria-label="Remove All Editors"
                         >
                           Remove All Editors
                           <i class="bi bi-x-lg"></i>
@@ -183,6 +186,7 @@
                           <zoa-button
                             class="remove-btn"
                             @click="removeEditor(user_id)"
+                            aria-label="Remove Editor"
                           >
                             <i class="bi bi-x-lg"></i>
                           </zoa-button>
@@ -444,7 +448,6 @@ export default {
           const resp = await submitDataGeneric('submit-field', data);
           // If the data is saved correctly
           this.store.handleChangeResponse(resp);
-          this.fetchUnitData();
         } catch (error) {
           console.error('Submission error:', error);
           this.store.addMessage(
@@ -581,7 +584,7 @@ export default {
 }
 .remove-btn {
   background-color: #ff5957 !important;
-  color: white !important ;
+  color: black !important ;
 }
 
 .editor-title {

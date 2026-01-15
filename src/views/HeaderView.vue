@@ -10,7 +10,7 @@ import NavLinks from '../components/NavLinks.vue';
         <img alt="NHM logo" class="logo" src="@/assets/nhm_white_logo.png" />
       </button>
       <button @click="navigateHome" class="icon-btn">
-        <p class="h1-style title">Join the Dots</p>
+        <h1 class="h1-style title">Join the Dots</h1>
       </button>
       <!-- Login / Account Buttons -->
       <div class="account-header">

@@ -19,14 +19,24 @@ from server.utils import database_name, get_user_by_id
 
 auth_bp = Blueprint('auth', __name__)
 
-AUTHORITY = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
-
 SCOPES = []
 
-# Initialize MSAL
-msal_app = msal.ConfidentialClientApplication(
-    Config.CLIENT_ID, authority=AUTHORITY, client_credential={Config.CLIENT_SECRET}
-)
+
+def get_msal_app():
+    """
+    Lazily create the MSAL app only when Azure auth is actually used.
+    """
+    if app.config.get('TEST_AUTH_ENABLED'):
+        # Don't use Azure in CI mode
+        raise RuntimeError('MSAL should not be used in CI mode')
+
+    authority = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
+
+    return msal.ConfidentialClientApplication(
+        Config.CLIENT_ID,
+        authority=authority,
+        client_credential=Config.CLIENT_SECRET,
+    )
 
 
 @auth_bp.route('/login')
@@ -34,6 +44,7 @@ def login():
     """
     Redirects user to Microsoft Login page.
     """
+    msal_app = get_msal_app()
     auth_url = msal_app.get_authorization_request_url(
         SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
     )
@@ -45,6 +56,7 @@ def auth_redirect():
     """
     Handles Azure AD login redirect.
     """
+    msal_app = get_msal_app()
     code = request.args.get('code')
     if not code:
         return jsonify({'error': 'No auth code provided'}), 400
@@ -261,9 +273,7 @@ def get_user_by_email():
     """
     Look up a user in Azure AD by email address.
     """
-    # email = request.args.get('email')
-    # if not email:
-    #     return jsonify({'error': 'Email parameter is required'}), 400
+    msal_app = get_msal_app()
     data = request.get_json()
     email = data.get('email')
     if not email:
