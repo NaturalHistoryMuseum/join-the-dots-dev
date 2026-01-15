@@ -1,4 +1,5 @@
 commitizen:
+  name: cz_nhm
   tag_format: v$version
   version: 1.6.0
   version_files:
