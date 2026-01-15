@@ -1,7 +1,8 @@
+---
 commitizen:
   name: cz_nhm
   tag_format: v$version
-  version: 1.6.0
+  version: 1.6.1
   version_files:
-    - k8s live/manifest-api.yaml:join-the-dots-infra/api
-    - k8s live/manifest-web.yaml:join-the-dots-infra/web
+  - k8s live/manifest-api.yaml:join-the-dots-infra/api
+  - k8s live/manifest-web.yaml:join-the-dots-infra/web
