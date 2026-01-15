@@ -1,3 +1,9 @@
+## v1.6.2 (2026-01-15)
+
+### Build System(s)
+
+- add name to commitizen file
+
 ## v1.6.1 (2026-01-15)
 
 ### Fix
