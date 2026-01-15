@@ -448,7 +448,6 @@ export default {
           const resp = await submitDataGeneric('submit-field', data);
           // If the data is saved correctly
           this.store.handleChangeResponse(resp);
-          this.fetchUnitData();
         } catch (error) {
           console.error('Submission error:', error);
           this.store.addMessage(

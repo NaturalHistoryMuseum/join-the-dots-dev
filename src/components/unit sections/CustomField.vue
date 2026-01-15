@@ -42,6 +42,7 @@
         :label-position="field.field_type === 'checkbox' ? 'right' : 'above'"
         :config="field_config || {}"
         v-model="local_value"
+        @change="emitChange"
       />
     </div>
     <div v-if="field.dependant_fields" class="row dep-fields-container">
@@ -99,7 +100,7 @@ export default {
     field_config() {
       switch (this.field.field_type) {
         case 'textbox':
-          return { placeholder: 'Enter text here' };
+          return { placeholder: 'Enter text here', delay: 1000 };
         case 'number':
           return { placeholder: 'Enter a number' };
         case 'checkbox':
@@ -152,7 +153,6 @@ export default {
           new_val = val ? 'yes' : 'no';
         }
         // Inform parent
-        this.$emit('dataChange', this.field.field_name, new_val);
         this.$emit('updateValue', new_val);
         // Update dependent field binding
         this.setCurrentOption(new_val);
@@ -161,7 +161,14 @@ export default {
   },
   methods: {
     emitChange() {
-      this.$emit('change', this.field.field_name, this.value);
+      // Reconfigure value for checkbox
+      let new_val = this.local_value;
+      if (this.field.field_type === 'checkbox') {
+        new_val = this.local_value ? 'yes' : 'no';
+      }
+      // Emit change to parent to be saved
+      this.$emit('dataChange', this.field.field_name, new_val);
+      this.$emit('updateValue', new_val);
     },
     fetchDropdownOptions() {
       getGeneric(this.field.options_source).then((response) => {
