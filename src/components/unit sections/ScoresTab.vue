@@ -1,19 +1,11 @@
 <template>
   <div v-if="unit_scores.length > 0" class="">
-    <!-- <UnitScores v-if="!add_unit_mode" :unit="unit_scores[0]" :rescore="false" />
-    <UnitScores
-      v-if="add_unit_mode || draft_unit"
-      :unit="unit_scores[0]"
-      :rescore="true"
-      :bulk_edit="true"
-      @newUnit="handleUnitUpdate"
-    /> -->
     <div v-if="loading">loading...</div>
     <UnitScores
       v-else
       :unit="unit_scores[0]"
       :rescore="add_unit_mode || draft_unit"
-      :bulk_edit="add_unit_mode || draft_unit"
+      :non_rescore_mode="add_unit_mode || draft_unit"
       @newUnit="handleUnitUpdate"
       :hide_comments="false"
     />

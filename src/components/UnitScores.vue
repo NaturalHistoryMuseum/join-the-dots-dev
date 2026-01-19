@@ -1,5 +1,5 @@
 <template>
-  <div v-if="rescore && !bulk_edit" class="unit-header">
+  <div v-if="rescore && !non_rescore_mode" class="unit-header">
     <!-- Unit Tile and link to unit -->
     <div class="unit-link-container">
       <h2
@@ -18,335 +18,347 @@
     </zoa-button>
   </div>
   <!-- Date the whole unit was last edited -->
-  <div v-if="!bulk_edit" class="date-title">
+  <div v-if="!non_rescore_mode" class="date-title">
     Last Edited: {{ overallDate() }}
   </div>
   <!-- Accordion for the Metrics and Comments -->
-  <RescoreAccordionComp
-    :accordion_id="0"
-    :toggleAccordion="toggleAccordion"
-    :expanded_accordion="expanded_accordion"
-    header="Unit Measures / Unit Comment"
-    :category_cols="category_cols"
-    :rescore="rescore && !bulk_edit"
-    :complete="
-      rescore && !bulk_edit ? checkCatComplete({ category_id: 0 }) : false
-    "
-    :changeCatComplete="() => changeCatComplete([0])"
-  >
-    <div v-if="!bulk_edit" class="date-title">
-      Last Edited: {{ metricDate() ? metricDate() : 'No Data' }}
-    </div>
-    <!-- Metrics Section -->
-    <div class="row">
-      <!-- Loop through each metric -->
-      <div class="col-md-6" v-if="metric_definitions.length > 0">
-        <div
-          v-for="metric in metric_definitions"
-          :key="metric.collection_unit_metric_definition_id"
-        >
-          <!-- Add each metrics value field and confidence field -->
-          <div class="row">
-            <div class="col-md-6">
-              <div class="required-tag">*</div>
-              <zoa-input
-                v-if="rescore"
-                zoa-type="number"
-                :label="
-                  fieldNameCalc(metric.metric_name) +
-                  (metric.metric_units == '%'
-                    ? ' (' + metric.metric_units + ')'
-                    : '')
-                "
-                v-model="metric.metric_value"
-                @change="
-                  submitMetricsChanges(
-                    metric.collection_unit_metric_definition_id,
-                  )
-                "
-                :config="{ min: 0, step: 'any' }"
-              />
-              <div v-else>
-                <!-- Display the metric name and value -->
+  <div v-if="metric_definitions.length > 0 && local_unit">
+    <RescoreAccordionComp
+      :accordion_id="0"
+      :toggleAccordion="toggleAccordion"
+      :expanded_accordion="expanded_accordion"
+      header="Unit Measures / Unit Comment"
+      :category_cols="category_cols"
+      :rescore="rescore && !non_rescore_mode"
+      :complete="
+        rescore && !non_rescore_mode
+          ? checkCatComplete({ category_id: 0 })
+          : false
+      "
+      :changeCatComplete="() => changeCatComplete([0])"
+      :error="rescore && !hide_comments ? checkMetricsMissing() : false"
+    >
+      <div v-if="!non_rescore_mode" class="date-title">
+        Last Edited: {{ metricDate() ? metricDate() : 'No Data' }}
+      </div>
+      <!-- Metrics Section -->
+      <div class="row">
+        <!-- Loop through each metric -->
+        <div class="col-md-6" v-if="metric_definitions.length > 0">
+          <div
+            v-for="metric in metric_definitions"
+            :key="metric.collection_unit_metric_definition_id"
+          >
+            <!-- Add each metrics value field and confidence field -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="required-tag">*</div>
                 <zoa-input
-                  zoa-type="empty"
-                  :label="fieldNameCalc(metric.metric_name)"
-                  class="comments-title"
+                  v-if="rescore"
+                  zoa-type="number"
+                  :label="
+                    fieldNameCalc(metric.metric_name) +
+                    (metric.metric_units == '%'
+                      ? ' (' + metric.metric_units + ')'
+                      : '')
+                  "
+                  v-model="metric.metric_value"
+                  @change="
+                    submitMetricsChanges(
+                      metric.collection_unit_metric_definition_id,
+                    )
+                  "
+                  :config="{ min: 0, step: 'any' }"
                 />
-                <p class="view-field">{{ metric.metric_value }}</p>
+                <div v-else>
+                  <!-- Display the metric name and value -->
+                  <zoa-input
+                    zoa-type="empty"
+                    :label="fieldNameCalc(metric.metric_name)"
+                    class="comments-title"
+                  />
+                  <p class="view-field">{{ metric.metric_value }}</p>
+                </div>
               </div>
-            </div>
-            <div class="col-md-6 mb-2">
-              <div class="required-tag">*</div>
-              <zoa-input
-                v-if="rescore"
-                zoa-type="dropdown"
-                label="Confidence"
-                label-position="above"
-                @change="
-                  submitMetricsChanges(
-                    metric.collection_unit_metric_definition_id,
-                  )
-                "
-                :config="{
-                  options: confidence_options,
-                  itemName: 'value',
-                  itemNamePlural: 'data',
-                  enableSearch: true,
-                }"
-                v-model="metric.confidence_level"
-              />
-              <div v-else>
-                <!-- Display the confidence value -->
+              <div class="col-md-6 mb-2">
+                <div class="required-tag">*</div>
                 <zoa-input
-                  zoa-type="empty"
+                  v-if="rescore"
+                  zoa-type="dropdown"
                   label="Confidence"
-                  class="comments-title"
+                  label-position="above"
+                  @change="
+                    submitMetricsChanges(
+                      metric.collection_unit_metric_definition_id,
+                    )
+                  "
+                  :config="{
+                    options: confidence_options,
+                    itemName: 'value',
+                    itemNamePlural: 'data',
+                    enableSearch: true,
+                  }"
+                  v-model="metric.confidence_level"
                 />
-                <p class="view-field">{{ metric.confidence_level }}</p>
+                <div v-else>
+                  <!-- Display the confidence value -->
+                  <zoa-input
+                    zoa-type="empty"
+                    label="Confidence"
+                    class="comments-title"
+                  />
+                  <p class="view-field">{{ metric.confidence_level }}</p>
+                </div>
               </div>
             </div>
-          </div>
-          <!-- Show message if errors -->
-          <SmallMessages
-            v-if="
-              metric.metric_units == '%' &&
-              metric.metric_value != null &&
-              metric.metric_value < 0
-            "
-            message_text="Total percentage is less than 100%"
-            message_type="error"
-          />
-          <SmallMessages
-            v-if="
-              metric.metric_units == '%' &&
-              metric.metric_value != null &&
-              metric.metric_value > 100
-            "
-            message_text="Total percentage exceeds 100%"
-            message_type="error"
-          />
-          <!-- Show saved message if metric came from drafts -->
-          <SmallMessages
-            v-if="
-              metric.is_draft &&
-              !bulk_edit &&
-              !(
+            <!-- Show message if errors -->
+            <SmallMessages
+              v-if="
+                metric.metric_units == '%' &&
+                metric.metric_value != null &&
+                metric.metric_value < 0
+              "
+              message_text="Total percentage is less than 100%"
+              message_type="error"
+            />
+            <SmallMessages
+              v-if="
                 metric.metric_units == '%' &&
                 metric.metric_value != null &&
                 metric.metric_value > 100
-              )
-            "
+              "
+              message_text="Total percentage exceeds 100%"
+              message_type="error"
+            />
+            <!-- Show saved message if metric came from drafts -->
+            <SmallMessages
+              v-if="
+                metric.is_draft &&
+                !non_rescore_mode &&
+                !(
+                  metric.metric_units == '%' &&
+                  metric.metric_value != null &&
+                  metric.metric_value > 100
+                )
+              "
+              message_text="Change Saved"
+              message_type="success"
+            />
+          </div>
+        </div>
+        <!-- Unit Comments -->
+        <div class="col-md-6">
+          <zoa-input
+            zoa-type="empty"
+            label="Unit Comment"
+            class="comments-title"
+          />
+          <textarea
+            v-if="rescore"
+            class="text-area"
+            id="Unit Comment"
+            aria-label="Unit Comment"
+            rows="7"
+            v-model="local_unit.unit_comment"
+            @change="handleCommentChange"
+          ></textarea>
+          <div v-else>
+            <p class="view-field">{{ local_unit.unit_comment }}</p>
+          </div>
+          <!-- Saved message if comment is in drafts -->
+          <SmallMessages
             message_text="Change Saved"
             message_type="success"
+            v-if="local_unit.unit_comment_is_draft && !non_rescore_mode"
           />
         </div>
       </div>
-      <!-- Unit Comments -->
-      <div class="col-md-6">
-        <zoa-input
-          zoa-type="empty"
-          label="Unit Comment"
-          class="comments-title"
-        />
-        <textarea
-          v-if="rescore"
-          class="text-area"
-          id="Unit Comment"
-          aria-label="Unit Comment"
-          rows="7"
-          v-model="local_unit.unit_comment"
-          @change="handleCommentChange"
-        ></textarea>
-        <div v-else>
-          <p class="view-field">{{ local_unit.unit_comment }}</p>
-        </div>
-        <!-- Saved message if comment is in drafts -->
-        <SmallMessages
-          message_text="Change Saved"
-          message_type="success"
-          v-if="local_unit.unit_comment_is_draft && !bulk_edit"
-        />
-      </div>
-    </div>
-  </RescoreAccordionComp>
+    </RescoreAccordionComp>
+  </div>
   <!-- Loop through each category and display an accordion for each one -->
-  <div v-for="cat in categories" :key="cat.category_id">
-    <RescoreAccordionComp
-      :accordion_id="cat.category_id"
-      :toggleAccordion="toggleAccordion"
-      :expanded_accordion="expanded_accordion"
-      :header="cat.description"
-      :category_cols="category_cols"
-      :rescore="rescore && !bulk_edit"
-      :complete="rescore && !bulk_edit ? checkCatComplete(cat) : false"
-      :changeCatComplete="() => changeCatComplete([cat.category_id])"
-      :error="
-        rescore && !bulk_edit ? checkCategoryErrors(cat.category_id) : false
-      "
-    >
-      <div class="">
-        <!-- Last edited date for this whole category -->
-        <div v-if="!bulk_edit" class="date-title">
-          Last Edited: {{ groupCategoryDate(cat) }}
-        </div>
-        <!-- Loop through each criterion in the category -->
-        <div
-          v-for="crit in criterion.filter(
-            (criteria) => criteria.category_id == cat.category_id,
-          )"
-          :key="crit.criterion_id"
-        >
-          <div class="criterion-row">
-            <div class="criterion-title">
-              <!-- Modal pop up for the criteria with its info -->
-              <CriterionDefModal :crit="crit" :unit="unit" />
-              <!-- Criterion Title -->
-              <p class="criterion-name">
-                {{ crit.criterion_code }} -
-                {{ crit.criterion_name.split('/').join(' / ') }}
-              </p>
-            </div>
-            <!-- Loop through each rank in the criterion -->
-            <div
-              v-for="rank in editedRanks[crit.criterion_id]"
-              :key="rank.rank_id"
-              class="criterion-rank"
-            >
-              <!-- Allow for percentage input for this rank -->
-              <PercentageInput
-                v-if="rescore"
-                v-model="rank.percentage"
-                :label="`Rank ${rank.rank_value} (%)`"
-                :error="bulk_edit ? [] : checkErrors(crit.criterion_id)"
-                :submit="submitRankChanges"
-                :rank="rank"
-                :ranks="editedRanks[crit.criterion_id]"
-                :criterion_id="crit.criterion_id"
-              />
-              <div v-else>
-                <!-- Display the rank value and percentage -->
-                <zoa-input
-                  zoa-type="empty"
-                  :label="`Rank ${rank.rank_value} (%)`"
-                  class="comments-title"
-                />
-                <p class="view-field">
-                  <!-- Only show where there are scores -->
-                  <strong>{{
-                    rank.percentage
-                      ? parseFloat((rank.percentage * 100).toFixed(2))
-                      : ''
-                  }}</strong>
+  <div v-if="editedRanks && Object.keys(editedRanks).length > 0">
+    <div v-for="cat in categories" :key="cat.category_id">
+      <RescoreAccordionComp
+        :accordion_id="cat.category_id"
+        :toggleAccordion="toggleAccordion"
+        :expanded_accordion="expanded_accordion"
+        :header="cat.description"
+        :category_cols="category_cols"
+        :rescore="rescore && !non_rescore_mode"
+        :complete="rescore && !non_rescore_mode ? checkCatComplete(cat) : false"
+        :changeCatComplete="() => changeCatComplete([cat.category_id])"
+        :error="
+          rescore && !hide_comments
+            ? checkCategoryErrors(cat.category_id) ||
+              checkCategoryMissingScore(cat.category_id)
+            : false
+        "
+      >
+        <div class="">
+          <!-- Last edited date for this whole category -->
+          <div v-if="!non_rescore_mode" class="date-title">
+            Last Edited: {{ groupCategoryDate(cat) }}
+          </div>
+          <!-- Loop through each criterion in the category -->
+          <div
+            v-for="crit in criterion.filter(
+              (criteria) => criteria.category_id == cat.category_id,
+            )"
+            :key="crit.criterion_id"
+          >
+            <div class="criterion-row">
+              <div class="criterion-title">
+                <!-- Modal pop up for the criteria with its info -->
+                <CriterionDefModal :crit="crit" :unit="unit" />
+                <!-- Criterion Title -->
+                <p class="criterion-name">
+                  {{ crit.criterion_code }} -
+                  {{ crit.criterion_name.split('/').join(' / ') }}
                 </p>
               </div>
-            </div>
-          </div>
-          <!-- Container for other criterion interations -->
-          <div
-            class="row"
-            v-if="rescore || countCriterionComments(crit.criterion_id) > 0"
-          >
-            <!-- Show comments asigned to ranks in this criterion -->
-            <div>
+              <!-- Loop through each rank in the criterion -->
               <div
-                v-if="expanded_criterion_comment == crit.criterion_id"
-                class="show-comments"
+                v-for="rank in editedRanks[crit.criterion_id]"
+                :key="rank.rank_id"
+                class="criterion-rank"
               >
-                <div
-                  class="pointer"
-                  @click="showCriterionComments(crit.criterion_id)"
-                  v-show="!hide_comments"
-                >
-                  <i class="bi bi-chevron-up"></i>
-                  {{ commentsTitle(crit.criterion_id) }}
-                </div>
-                <!-- Show warnings / Messages -->
-                <RanksWarnings
-                  v-if="
-                    (bulk_edit &&
-                      editedRanks[crit.criterion_id] &&
-                      editedRanks[crit.criterion_id].reduce(
-                        (sum, r) => sum + (r.percentage || 0),
-                        0,
-                      ) > 0) ||
-                    !bulk_edit
+                <!-- Allow for percentage input for this rank -->
+                <PercentageInput
+                  v-if="rescore"
+                  v-model="rank.percentage"
+                  :label="`Rank ${rank.rank_value} (%)`"
+                  :error="
+                    non_rescore_mode ? [] : checkErrors(crit.criterion_id)
                   "
+                  :submit="submitRankChanges"
+                  :rank="rank"
+                  :ranks="editedRanks[crit.criterion_id]"
                   :criterion_id="crit.criterion_id"
-                  :editedRanks="editedRanks"
-                  :ranks="ranks"
-                  :checkEdited="checkEdited"
-                  :checkErrors="checkErrors"
-                  :show_success="!bulk_edit"
                 />
-              </div>
-              <div v-else class="show-comments">
-                <!-- Show comments asigned to ranks in this criterion -->
-                <div
-                  class="pointer"
-                  @click="showCriterionComments(crit.criterion_id)"
-                  v-show="!hide_comments"
-                >
-                  <i class="bi bi-chevron-down"></i>
-                  {{ commentsTitle(crit.criterion_id) }}
+                <div v-else>
+                  <!-- Display the rank value and percentage -->
+                  <zoa-input
+                    zoa-type="empty"
+                    :label="`Rank ${rank.rank_value} (%)`"
+                    class="comments-title"
+                  />
+                  <p class="view-field">
+                    <!-- Only show where there are scores -->
+                    <strong>{{
+                      rank.percentage
+                        ? parseFloat((rank.percentage * 100).toFixed(2))
+                        : ''
+                    }}</strong>
+                  </p>
                 </div>
-                <!-- Show warnings / Messages -->
-                <RanksWarnings
-                  v-if="
-                    (bulk_edit &&
-                      editedRanks[crit.criterion_id] &&
-                      editedRanks[crit.criterion_id].reduce(
-                        (sum, r) => sum + (r.percentage || 0),
-                        0,
-                      ) > 0) ||
-                    !bulk_edit
-                  "
-                  :criterion_id="crit.criterion_id"
-                  :editedRanks="editedRanks"
-                  :ranks="ranks"
-                  :checkEdited="checkEdited"
-                  :checkErrors="checkErrors"
-                  :show_success="!bulk_edit"
-                />
               </div>
             </div>
-            <!-- Pop out of the comments -->
-            <transition name="fade">
-              <div
-                v-if="expanded_criterion_comment == crit.criterion_id"
-                class="row comments-list"
-              >
-                <div class="col-md-10">
-                  <!-- Only show the ranks with comments assigned to them -->
+            <!-- Container for other criterion interations -->
+            <div
+              class="row"
+              v-if="rescore || countCriterionComments(crit.criterion_id) > 0"
+            >
+              <!-- Show comments asigned to ranks in this criterion -->
+              <div>
+                <div
+                  v-if="expanded_criterion_comment == crit.criterion_id"
+                  class="show-comments"
+                >
                   <div
-                    v-for="rank in editedRanks[crit.criterion_id].filter(
-                      (rank) => rank.comment !== null,
-                    )"
-                    :key="rank.rank_id"
+                    class="pointer"
+                    @click="showCriterionComments(crit.criterion_id)"
+                    v-show="!hide_comments"
                   >
-                    <!-- Display comment -->
-                    <div class="">
-                      <p class="view-comment">
-                        Rank {{ rank.rank_value }} - {{ rank.comment }}
-                      </p>
-                    </div>
+                    <i class="bi bi-chevron-up"></i>
+                    {{ commentsTitle(crit.criterion_id) }}
                   </div>
-                </div>
-                <div class="col-md-2 edit-comments">
-                  <!-- Modal pop out to edit the comments for each rank in this criterion -->
-                  <EditCommentsModal
+                  <!-- Show warnings / Messages -->
+                  <RanksWarnings
+                    v-if="
+                      (non_rescore_mode &&
+                        editedRanks[crit.criterion_id] &&
+                        editedRanks[crit.criterion_id].reduce(
+                          (sum, r) => sum + (r.percentage || 0),
+                          0,
+                        ) > 0) ||
+                      !non_rescore_mode
+                    "
                     :criterion_id="crit.criterion_id"
-                    :criterion_name="`${crit.criterion_code}: ${crit.criterion_name.split('/').join(' / ')}`"
-                    :ranks="editedRanks[crit.criterion_id]"
-                    :submit="submitRankChanges"
+                    :editedRanks="editedRanks"
+                    :ranks="ranks"
+                    :checkEdited="checkEdited"
+                    :checkErrors="checkErrors"
+                    :show_success="!non_rescore_mode"
+                  />
+                </div>
+                <div v-else class="show-comments">
+                  <!-- Show comments asigned to ranks in this criterion -->
+                  <div
+                    class="pointer"
+                    @click="showCriterionComments(crit.criterion_id)"
+                    v-show="!hide_comments"
+                  >
+                    <i class="bi bi-chevron-down"></i>
+                    {{ commentsTitle(crit.criterion_id) }}
+                  </div>
+                  <!-- Show warnings / Messages -->
+                  <RanksWarnings
+                    v-if="
+                      (non_rescore_mode &&
+                        editedRanks[crit.criterion_id] &&
+                        editedRanks[crit.criterion_id].reduce(
+                          (sum, r) => sum + (r.percentage || 0),
+                          0,
+                        ) > 0) ||
+                      !non_rescore_mode
+                    "
+                    :criterion_id="crit.criterion_id"
+                    :editedRanks="editedRanks"
+                    :ranks="ranks"
+                    :checkEdited="checkEdited"
+                    :checkErrors="checkErrors"
+                    :show_success="!non_rescore_mode"
                   />
                 </div>
               </div>
-            </transition>
+              <!-- Pop out of the comments -->
+              <transition name="fade">
+                <div
+                  v-if="expanded_criterion_comment == crit.criterion_id"
+                  class="row comments-list"
+                >
+                  <div class="col-md-10">
+                    <!-- Only show the ranks with comments assigned to them -->
+                    <div
+                      v-for="rank in editedRanks[crit.criterion_id].filter(
+                        (rank) => rank.comment !== null,
+                      )"
+                      :key="rank.rank_id"
+                    >
+                      <!-- Display comment -->
+                      <div class="">
+                        <p class="view-comment">
+                          Rank {{ rank.rank_value }} - {{ rank.comment }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-2 edit-comments">
+                    <!-- Modal pop out to edit the comments for each rank in this criterion -->
+                    <EditCommentsModal
+                      :criterion_id="crit.criterion_id"
+                      :criterion_name="`${crit.criterion_code}: ${crit.criterion_name.split('/').join(' / ')}`"
+                      :ranks="editedRanks[crit.criterion_id]"
+                      :submit="submitRankChanges"
+                    />
+                  </div>
+                </div>
+              </transition>
+            </div>
           </div>
         </div>
-      </div>
-    </RescoreAccordionComp>
+      </RescoreAccordionComp>
+    </div>
   </div>
 </template>
 
@@ -370,7 +382,7 @@ export default {
   props: {
     unit: Object,
     rescore: Boolean,
-    bulk_edit: Boolean,
+    non_rescore_mode: Boolean,
     fetchUnitsData: Function,
     hide_comments: Boolean,
   },
@@ -623,7 +635,7 @@ export default {
           metric.collection_unit_metric_definition_id ==
           collection_unit_metric_definition_id,
       );
-      if (this.bulk_edit) {
+      if (this.non_rescore_mode) {
         const return_draft = !(
           edited_metric.metric_value == null ||
           edited_metric.metric_value < 0 ||
@@ -675,7 +687,7 @@ export default {
     },
 
     async submitRankChanges(ranks, criterion_id) {
-      if (this.bulk_edit) {
+      if (this.non_rescore_mode) {
         this.returnBulkEdit();
       } else {
         try {
@@ -729,7 +741,7 @@ export default {
         const has_comments = criterion.some((r) => r.comment != null);
         if (
           percentage_total == 1 ||
-          (this.bulk_edit &&
+          (this.non_rescore_mode &&
             !this.hide_comments &&
             (has_comments || percentage_total > 0))
         ) {
@@ -774,6 +786,9 @@ export default {
       });
       return is_error;
     },
+    percentageTotal(ranks_filtered) {
+      return ranks_filtered.reduce((sum, r) => sum + (r.percentage || 0), 0);
+    },
     // Function to check for errors in ranks
     checkErrors(criterion_id) {
       const errors = [];
@@ -786,10 +801,7 @@ export default {
           type: 'error',
         });
       }
-      const percentage_total = ranks_filtered.reduce(
-        (sum, r) => sum + (r.percentage || 0),
-        0,
-      );
+      const percentage_total = this.percentageTotal(ranks_filtered);
       // Check if the total percentage exceeds 100%
       if (percentage_total > 1) {
         errors.push({
@@ -813,7 +825,7 @@ export default {
         this.unit &&
         errors.length == 0 &&
         this.saving_criterion_id !== criterion_id &&
-        !this.bulk_edit
+        !this.non_rescore_mode
       ) {
         // Check that there was a change
         const was_changed = this.checkChanged(criterion_id);
@@ -919,7 +931,7 @@ export default {
       this.returnBulkEdit();
     },
     handleCommentChange() {
-      if (this.bulk_edit) {
+      if (this.non_rescore_mode) {
         this.returnBulkEdit();
       } else {
         submitDataGeneric('submit-draft-comment', {
@@ -930,6 +942,25 @@ export default {
           this.fetchUnitsData();
         });
       }
+    },
+    checkCategoryMissingScore(category_id) {
+      // Get the current criterions in the category
+      const criterions = this.criterion.filter(
+        (criteria) => criteria.category_id == category_id,
+      );
+      // Check if any of the criterions have a total percentage of less than 100%
+      return criterions.some((criterion) => {
+        const ranks_filtered = this.editedRanks[criterion.criterion_id] || [];
+        if (this.percentageTotal(ranks_filtered) < 1) {
+          return true;
+        }
+      });
+    },
+    checkMetricsMissing() {
+      return this.metric_definitions.some(
+        (metric) =>
+          metric.metric_value == null || metric.confidence_level == null,
+      );
     },
   },
   computed: {},
