@@ -1,6 +1,6 @@
 {
   "name": "@nhm-data/join-the-dots",
-  "version": "1.6.0",
+  "version": "1.6.2",
   "private": true,
   "type": "module",
   "scripts": {
