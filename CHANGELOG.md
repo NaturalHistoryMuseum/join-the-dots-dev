@@ -1,3 +1,14 @@
+## v1.6.3 (2026-01-19)
+
+### Fix
+
+- incomplete scores will have red modal error for better clarity
+
+### CI System(s)
+
+- manual version update
+- manual commitizen version change
+
 ## v1.6.2 (2026-01-15)
 
 ### Build System(s)
