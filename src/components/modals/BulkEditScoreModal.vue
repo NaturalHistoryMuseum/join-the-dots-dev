@@ -60,7 +60,7 @@
             v-if="rank_json.length > 0"
             :unit="unit"
             :rescore="true"
-            :bulk_edit="true"
+            :non_rescore_mode="true"
             @newUnit="handleBulkUnitUpdate"
             :hide_comments="true"
           />
@@ -90,13 +90,7 @@
                 />
               </div>
 
-              <div
-                v-if="
-                  // edited_unit.metric_json && edited_unit.metric_json.length > 0
-                  true
-                "
-                class="row text-left"
-              >
+              <div class="row text-left">
                 <div class="col-md-8">
                   <p>These are your changes:</p>
                   <div
@@ -150,7 +144,6 @@
                           <p>
                             {{ rank.percentage ? rank.percentage * 100 : '0' }}
                           </p>
-                          <!-- Rank {{ rank.rank_value }}: {{ rank.percentage * 100 }}% -->
                         </div>
                       </div>
                     </div>
@@ -249,8 +242,6 @@ export default {
         { label: '', key: 'select', class: 'text-center' }, // Checkbox column
         { label: 'Collection Unit ID', key: 'collection_unit_id' },
         { label: 'Unit Name', key: 'unit_name' },
-        // { label: 'Last Rescored', key: 'last_rescored' },
-        // { label: 'Actions', key: 'actions' },
       ],
       rank_json: [],
       unit: {
