@@ -15,7 +15,7 @@ function handleBackPage() {
   <HeaderView class="header" />
 
   <div class="content">
-    <div class="nav-buttons">
+    <div class="nav-buttons" v-if="currentUser">
       <zoa-button @click="handleBackPage">
         <i class="bi bi-arrow-left"></i>
         Back
@@ -31,6 +31,16 @@ function handleBackPage() {
   </div>
   <FooterView class="footer" />
 </template>
+
+<script>
+import { currentUser } from '../src/services/authService';
+export default {
+  name: 'App',
+  setup() {
+    return { currentUser };
+  },
+};
+</script>
 
 <style scoped lang="scss">
 .content {
