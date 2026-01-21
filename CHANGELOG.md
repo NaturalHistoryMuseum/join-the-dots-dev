@@ -1,3 +1,9 @@
+## v1.6.4 (2026-01-21)
+
+### Minor UI Changes
+
+- remove header buttons from login page
+
 ## v1.6.3 (2026-01-19)
 
 ### Fix
