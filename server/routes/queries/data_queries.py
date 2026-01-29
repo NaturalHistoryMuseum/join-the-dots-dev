@@ -1,5 +1,5 @@
 LTC_EXPORT = """
-                        WITH item_count_data AS (
+WITH item_count_data AS (
 	SELECT cu.collection_unit_id as collection_unit_id, (
 			SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
 				and (cum.current = 'yes')
@@ -234,13 +234,11 @@ SELECT
                	LEFT JOIN {database_name}.taxon_life_science tls ON tls.taxon_life_science_id = cu.taxon_life_science_id
                	JOIN item_count_data on item_count_data.collection_unit_id = cu.collection_unit_id
                	JOIN unit_count_data on unit_count_data.collection_unit_id = cu.collection_unit_id
-                --	WHERE cu.collection_unit_id = 1
             )
     	)
     )
 AS ltc_export;
-
-                        """
+"""
 
 UNIT_SCORES = """
 					SELECT

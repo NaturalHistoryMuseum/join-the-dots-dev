@@ -1,18 +1,26 @@
 <template>
   <div class="main-page">
     <div class="main-header">
-      <h1 class="h1-style">Reports</h1>
-      <p>Coming soon...</p>
-      <p>For now, use the following link</p>
-      <a
-        href="https://app.powerbi.com/links/kVh2Sta1yX?ctid=73a29c01-4e78-437f-a0d4-c8553e1960c1&pbi_source=linkShare"
-        target="_blank"
-        >Power Bi Reports</a
-      >
-      <h1 class="h1-style">Exports</h1>
+      <h1 class="h1-style">Power BI Report</h1>
+      <iframe
+        title="Join The Dots Data"
+        class="powerbi-frame"
+        src="https://app.powerbi.com/reportEmbed?reportId=d640bea6-f574-4bab-a2e7-0cd37d3fba39&autoAuth=true&ctid=73a29c01-4e78-437f-a0d4-c8553e1960c1&actionBarEnabled=true"
+        frameborder="0"
+        allowFullScreen="true"
+      ></iframe>
+      <!-- <p>For now, use the following link</p> -->
+      <p>
+        <a
+          href="https://app.powerbi.com/links/kVh2Sta1yX?ctid=73a29c01-4e78-437f-a0d4-c8553e1960c1&pbi_source=linkShare"
+          target="_blank"
+          >Power Bi Report</a
+        >
+      </p>
+      <!-- <h1 class="h1-style">Exports</h1>
       <div class="row">
-        <p>Coming soon...</p>
-        <!-- <div class="col-md-4">
+        <p>Coming soon...</p> -->
+      <!-- <div class="col-md-4">
           <SelectComp
             :options="[
               { value: 'vw_unit_rescore_form', label: 'Rescore View' },
@@ -26,7 +34,7 @@
             :multi="false"
           />
         </div> -->
-        <!-- <div class="col-md-4">
+      <!-- <div class="col-md-4">
           <SelectComp
             :options="[
               { value: 'vw_unit_rescore_form', label: 'Rescore View' },
@@ -37,14 +45,14 @@
             :multi="false"
           />
         </div> -->
-        <!-- <div class="col-md-4">
+      <!-- <div class="col-md-4">
           <zoa-button
             label="Download export to csv (only press once)"
             @click="downloadScoreView"
             :disabled="!viewVal"
           />
         </div> -->
-      </div>
+      <!-- </div> -->
 
       <!-- <p class="h1-style">LtC Export</p>
       <div class="row">
@@ -52,18 +60,21 @@
           <zoa-button label="JSON LtC Export" @click="downloadLtcExport" />
         </div>
       </div> -->
+      <ExportFilters />
     </div>
   </div>
 </template>
 
 <script>
 // import SelectComp from '@/components/SelectComp.vue';
+import ExportFilters from '@/components/ExportFilters.vue';
 import { downloadCSV, downloadLtCjson } from '@/services/dataService';
 import { useLoadingStore } from '@/stores/loadingStore';
 
 export default {
   components: {
     // SelectComp,
+    ExportFilters,
   },
   data() {
     return {
@@ -104,7 +115,12 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.powerbi-frame {
+  width: 100%;
+  height: 70vh;
+}
+</style>
 
 <!-- <template>
   <div>
