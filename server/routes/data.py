@@ -1,8 +1,7 @@
-import json
 from collections import defaultdict
 from datetime import datetime
 
-from flask import Blueprint, Response, jsonify, request, stream_with_context
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
@@ -1357,7 +1356,11 @@ def get_full_unit(unit_id):
                     FROM {database_name}.collection_unit cu
                     LEFT JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
                     LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
-                    LEFT JOIN {database_name}.unit_comment uc ON uc.collection_unit_id = cu.collection_unit_id
+                    LEFT JOIN {database_name}.unit_comment uc ON uc.unit_comment_id = (
+				        SELECT MAX(uc2.unit_comment_id)
+				        FROM jtd_live.unit_comment uc2
+				        WHERE uc2.collection_unit_id = cu.collection_unit_id
+				    )
                     WHERE cu.collection_unit_id = %u;
                    """
         % int(unit_id)
@@ -1770,7 +1773,7 @@ def get_all_geological_time_period():
 @data_bp.route('/all-divisions', methods=['GET'])
 @jwt_required()
 def get_all_divisions():
-    data = fetch_data("""SELECT divis.*
+    data = fetch_data("""SELECT divis.*, divis.division_id AS value, divis.division_name AS label
                    FROM {database_name}.division divis;
                    """)
     return jsonify(data)
@@ -1909,85 +1912,6 @@ def get_units_by_user():
 
     data = fetch_data(base_query, tuple(params))
     return jsonify(data)
-
-
-# Export routes
-
-
-@data_bp.route('/export-view/<view>', methods=['GET'])
-@jwt_required()
-def get_view(view):
-    try:
-        # Connect to db
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-        query = """SELECT *
-                        FROM {database_name}.%s;
-                        """ % str(
-            view,
-        )
-        # Format the query with the database name
-        formatted_query = query.format(database_name=database_name)
-        # Execute query
-        cursor.execute(formatted_query)
-        # Fetch rows
-        data = cursor.fetchall()
-
-        # Get the column names
-        col_names = [desc[0] for desc in cursor.description]
-
-        # Create CSV response
-        def generate():
-            # Make headers
-            header = ','.join(col_names)
-            # Convert JSON objects to a comma-separated string
-            rows = '\n'.join(
-                ','.join(str(row[col]) for col in col_names) for row in data
-            )
-            # Return both
-            return f'{header}\n{rows}'
-
-        # Create Response with CSV MIME type
-        response = Response(generate(), mimetype='text/csv')
-        response.headers['Content-Disposition'] = (
-            'attachment; filename=' + view + '.csv'
-        )
-
-        return response
-
-    except Exception as e:
-        return str(e)
-
-    finally:
-        cursor.close()
-        connection.close()
-
-
-def generate_json():
-    data = fetch_data(LTC_EXPORT)
-    if data:
-        try:
-            # Extract JSON
-            json_data = json.loads(data[0]['ltc_export'])
-        except json.JSONDecodeError as e:
-            yield '{"error": "Invalid JSON format"}'
-            return
-        # Stream the JSON array directly
-        yield '[\n'
-        for i, item in enumerate(json_data):
-            comma = ',' if i < len(json_data) - 1 else ''
-            yield f'  {json.dumps(item)}{comma}\n'
-        yield ']\n'
-
-
-@data_bp.route('/export-ltc-json', methods=['GET'])
-@jwt_required()
-def get_ltc_json():
-    return Response(
-        stream_with_context(generate_json()),
-        content_type='application/json',
-        headers={'Content-Disposition': 'attachment; filename=data.json'},
-    )
 
 
 # Unit actions routes
