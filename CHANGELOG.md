@@ -1,3 +1,9 @@
+## v1.7.0 (2026-01-29)
+
+### Feature
+
+- **exports**: can export data in the app
+
 ## v1.6.4 (2026-01-21)
 
 ### Minor UI Changes
