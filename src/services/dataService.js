@@ -11,8 +11,11 @@ export async function getGeneric(route) {
 
 export async function downloadCSV(view) {
   try {
-    const response = await api.get(`/export-view/${view}`);
-    const blob = await response.blob();
+    const response = await api.get(`export/export-view/${view}`, {
+      responseType: 'blob',
+    });
+    // const blob = await response.data;
+    const blob = new Blob([response.data], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -30,6 +33,7 @@ export async function downloadLtCjson() {
     const response = await api.get(`data/export-ltc-json`, {
       responseType: 'blob',
       withCredentials: true,
+      timeout: 100000,
     });
     const blob = new Blob([response.data], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
