@@ -1,5 +1,5 @@
 <template>
-  <h1 class="h1-style">Export</h1>
+  <!-- <h1 class="h1-style">Export</h1> -->
   <p>
     Please use the filters below to select the data you want to export and the
     type of file you want to download.
