@@ -1,3 +1,10 @@
+## v1.7.1 (2026-02-02)
+
+### Fix
+
+- **data-export**: improved loading overlay and page layout
+- **powerbi**: added new table to powerbi api
+
 ## v1.7.0 (2026-01-29)
 
 ### Feature
