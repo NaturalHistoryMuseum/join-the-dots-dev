@@ -1,6 +1,5 @@
 <script setup>
 import { RouterView, useRouter } from 'vue-router';
-import LoadingOverlay from './components/LoadingOverlay.vue';
 import FooterView from './views/FooterView.vue';
 import HeaderView from './views/HeaderView.vue';
 const router = useRouter();
@@ -13,7 +12,6 @@ function handleBackPage() {
 <template>
   <LoadingOverlay />
   <HeaderView class="header" />
-
   <div class="content">
     <div class="nav-buttons" v-if="currentUser">
       <zoa-button @click="handleBackPage">
@@ -34,6 +32,8 @@ function handleBackPage() {
 
 <script>
 import { currentUser } from '../src/services/authService';
+import LoadingOverlay from './components/LoadingOverlay.vue';
+
 export default {
   name: 'App',
   setup() {
