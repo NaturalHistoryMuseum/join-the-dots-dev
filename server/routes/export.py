@@ -287,11 +287,13 @@ def make_export():
             if export_config.get('selected_data_type') == 'json':
                 response = jsonify(data)
             elif export_config.get('selected_data_type') == 'csv':
+                return_data = generate_csv(col_names, data)
                 # Create Response with CSV MIME type
-                response = Response(generate_csv(col_names, data), mimetype='text/csv')
+                response = Response(return_data, mimetype='text/csv; charset=utf-8')
                 response.headers['Content-Disposition'] = (
                     'attachment; filename=test-export.csv'
                 )
+                response.set_data('\ufeff' + return_data)
 
             cursor.close()
             connection.close()

@@ -48,7 +48,7 @@ export default {
         access_groups: ['admin', 'viewer', 'editor', 'manager'],
       },
       {
-        name: 'Reports',
+        name: 'Reporting',
         path: '/reports',
         access_groups: ['admin', 'viewer', 'editor', 'manager'],
       },
