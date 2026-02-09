@@ -1826,7 +1826,7 @@ def get_all_curatorial_definition():
     return jsonify(data)
 
 
-@data_bp.route('/room-data', methods=['GET'])
+@data_bp.route('/all-room-data', methods=['GET'])
 @jwt_required()
 def get_all_rooms():
     data = fetch_data("""SELECT sr.*, f.*, b.*, s.*, sr.storage_room_id AS value, sr.room_code AS label
@@ -1834,6 +1834,19 @@ def get_all_rooms():
                         JOIN {database_name}.floor f ON f.floor_id = sr.floor_id
                         JOIN {database_name}.building b ON b.building_id = f.building_id
                         JOIN {database_name}.site s ON s.site_id = b.site_id ;
+                   """)
+    return jsonify(data)
+
+
+@data_bp.route('/public-room-data', methods=['GET'])
+@jwt_required()
+def get_all_public_rooms():
+    data = fetch_data("""SELECT sr.*, f.*, b.*, s.*, sr.storage_room_id AS value, sr.room_code AS label
+                        FROM {database_name}.storage_room sr
+                        JOIN {database_name}.floor f ON f.floor_id = sr.floor_id
+                        JOIN {database_name}.building b ON b.building_id = f.building_id
+                        JOIN {database_name}.site s ON s.site_id = b.site_id
+                        WHERE sr.room_code NOT LIKE '%UNDEFINED%' ;
                    """)
     return jsonify(data)
 

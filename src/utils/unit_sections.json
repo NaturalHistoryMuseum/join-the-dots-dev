@@ -340,7 +340,7 @@
             "label": "Room Code",
             "required": true,
             "editable": true,
-            "options_source": "room-data",
+            "options_source": "all-room-data",
             "help_text": "The room in which items in the collection unit are physically located.",
             "dependant_fields": [
               {
