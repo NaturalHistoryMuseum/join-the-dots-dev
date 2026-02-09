@@ -247,7 +247,7 @@ export default {
       }));
     },
     async fetchRooms() {
-      const response = await getGeneric('room-data');
+      const response = await getGeneric('public-room-data');
       this.rooms = response.map((row) => ({
         ...row,
         value: row.value.toString(),

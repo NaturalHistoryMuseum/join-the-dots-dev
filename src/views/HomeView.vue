@@ -46,11 +46,8 @@
       </div>
       <div class="home-card col-md-4">
         <i class="bi bi-graph-up card-icon"></i>
-        <h2 class="h2-style">Reports</h2>
-        <p>
-          Generate reports on your assigned units or whole division's
-          performance.
-        </p>
+        <h2 class="h2-style">Reporting</h2>
+        <p>View the JtD Power BI report and export data.</p>
         <zoa-button
           label="Reports"
           @click="navigate('/reports')"

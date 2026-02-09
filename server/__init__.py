@@ -9,13 +9,17 @@ from server.extensions import cors
 
 
 def create_app():
-    # Allow insecure transport for testing purposes (for SSO) - DO NOT USE IN PRODUCTION!!
-    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
     app = Flask(__name__)
 
     config_class = get_config()
     app.config.from_object(get_config())
+
+    if config_class.VITE_APP_ENV == 'dev':
+        # Allow insecure transport for testing purposes (for SSO) - DO NOT USE IN PRODUCTION!!
+        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+    # Ensure JSON responses are UTF-8 encoded
+    app.json.ensure_ascii = False
 
     # Allows cross-origin requests from your Vue frontend
     cors.init_app(

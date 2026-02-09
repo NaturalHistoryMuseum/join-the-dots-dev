@@ -50,6 +50,9 @@ class Config:
     # Testing Authentication Mode
     TEST_AUTH_ENABLED = False
 
+    # Environment Variable for Frontend
+    VITE_APP_ENV = os.environ.get('VITE_APP_ENV')
+
 
 class TestingConfig(Config):
     TEST_AUTH_ENABLED = True
