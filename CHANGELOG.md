@@ -1,3 +1,9 @@
+## v1.7.3 (2026-02-11)
+
+### Fix
+
+- minor fix to ui and add table to power bi api
+
 ## v1.7.2 (2026-02-09)
 
 ### Fix
