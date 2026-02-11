@@ -1,3 +1,13 @@
+## v1.7.2 (2026-02-09)
+
+### Fix
+
+- **exports**: fixed export data format and adds mild ui changes
+
+### Tests
+
+- **accessibility-test**: stop accessibility testing on pr
+
 ## v1.7.1 (2026-02-02)
 
 ### Fix
