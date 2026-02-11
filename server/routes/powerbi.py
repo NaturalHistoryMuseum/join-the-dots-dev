@@ -28,6 +28,8 @@ def return_data(table):
     allowed_tables = [
         'unit_assessment_criterion',
         'unit_assessment_rank',
+        'collection_unit_metric',
+        'collection_unit_metric_definition',
         'collection_unit',
         'curatorial_unit_definition',
         'preservation_method',

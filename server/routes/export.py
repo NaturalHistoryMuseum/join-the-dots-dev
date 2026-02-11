@@ -41,7 +41,7 @@ def make_export():
             cursor = connection.cursor(dictionary=True)
             # Initilise query parts
             selects_query = """
-                    SELECT  cu.collection_unit_id,	cu.unit_name,	cu.public_unit_name,	cu.section_id,	cu.type_collection_flag,	cu.publish_flag,	cu.informal_taxon,	cu.named_collection,	cu.es_recent_specimen_flag,	cu.archives_fond_ref,
+                    SELECT  cu.collection_unit_id,	cu.unit_name,	cu.public_unit_name,	cu.section_id, s.section_name, d.division_id, d.division_name, d2.department_id AS discipline_id, d2.department_name AS discipline_name ,	cu.type_collection_flag,	cu.publish_flag,	cu.informal_taxon,	cu.named_collection,	cu.es_recent_specimen_flag,	cu.archives_fond_ref,
                     cu.count_curatorial_units_flag,	cu.sort_order,	cud.curatorial_unit_definition_id,	cud.description,	bl.bibliographic_level,	it.item_type,	pm.preservation_method,	sr.storage_room_id,	sr.room_code,	sr.room_name,	f.floor_name,
                     b.building_name,	st.site_name,	sc.storage_container_id,	sc.container_name,	sc.temperature,	sc.relative_humidity,	go.geographic_origin_id,	go.geographic_origin_name,	go.region_type,	laaf.library_and_archives_function_id,	laaf.function_name,
                     gtpf.geological_time_period_id as geological_time_period_from_id,	gtpf.period_name as period_name_from,	gtpf.rank as rank_from,	gtpt.geological_time_period_id as geological_time_period_to_id,	gtpt.period_name as period_name_to,	gtpt.rank as rank_to,	t.taxon_id,	t.taxon_name,	t.taxon_rank,	t.external_ref_name,	t.external_ref_id,

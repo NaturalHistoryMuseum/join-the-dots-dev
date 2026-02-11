@@ -59,7 +59,7 @@ export default {
         },
         {
           section_id: 4,
-          section_name: 'Manage Enahancements',
+          section_name: 'Manage Enhancements',
           component: ManageEnhancements,
         },
       ],
