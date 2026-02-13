@@ -1,3 +1,9 @@
+## v1.7.4 (2026-02-13)
+
+### Refactor
+
+- **power-bi-api**: add new tables to power bi api
+
 ## v1.7.3 (2026-02-11)
 
 ### Fix
