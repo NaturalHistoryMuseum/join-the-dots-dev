@@ -34,6 +34,8 @@ def return_data(table):
         'curatorial_unit_definition',
         'preservation_method',
         'item_type',
+        'bibliographic_level',
+        'taxon',
         'category',
         'criterion',
         'rank',
@@ -55,8 +57,15 @@ def return_data(table):
     # Check if the table is allowed
     if table not in allowed_tables:
         return jsonify({'error': 'Table is not allowed'}), 400
-    # Fetch the data
-    query_template = f'SELECT * FROM {database_name}.{{table}}'
+    if table == 'collection_unit':
+        # Special case for collection_unit to exclude sensitive fields
+        query_template = f"""SELECT cu.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS responsible_curator
+        FROM {database_name}.collection_unit cu
+        LEFT JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
+        LEFT JOIN {database_name}.person p ON p.person_id = u.person_id"""
+    else:
+        # Fetch the data
+        query_template = f'SELECT * FROM {database_name}.{{table}}'
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
