@@ -54,7 +54,7 @@
               <div class="col-md-6">
                 <div class="required-tag">*</div>
                 <zoa-input
-                  v-if="rescore"
+                  v-if="rescore && metric.metric_units !== '%'"
                   zoa-type="number"
                   :label="
                     fieldNameCalc(metric.metric_name) +
@@ -70,14 +70,42 @@
                   "
                   :config="{ min: 0, step: 'any' }"
                 />
+                <div v-else-if="rescore && metric.metric_units == '%'">
+                  <MetricsPercentageInput
+                    v-model="metric.metric_value"
+                    :label="
+                      fieldNameCalc(metric.metric_name) +
+                      (metric.metric_units == '%'
+                        ? ' (' + metric.metric_units + ')'
+                        : '')
+                    "
+                    :submit="submitMetricsChanges"
+                    :collection_unit_metric_definition_id="
+                      metric.collection_unit_metric_definition_id
+                    "
+                  />
+                </div>
                 <div v-else>
                   <!-- Display the metric name and value -->
                   <zoa-input
                     zoa-type="empty"
-                    :label="fieldNameCalc(metric.metric_name)"
+                    :label="
+                      fieldNameCalc(metric.metric_name) +
+                      (metric.metric_units == '%'
+                        ? ' (' + metric.metric_units + ')'
+                        : '')
+                    "
                     class="comments-title"
                   />
-                  <p class="view-field">{{ metric.metric_value }}</p>
+                  <p class="view-field">
+                    {{
+                      metric.metric_units == '%'
+                        ? metric.metric_value !== undefined
+                          ? parseFloat((metric.metric_value * 100).toFixed(2))
+                          : 0
+                        : metric.metric_value
+                    }}
+                  </p>
                 </div>
               </div>
               <div class="col-md-6 mb-2">
@@ -370,6 +398,7 @@ import {
   submitDraftRrank,
 } from '@/services/dataService';
 import fieldNameCalc from '@/utils/utils';
+import MetricsPercentageInput from './MetricsPercentageInput.vue';
 import CriterionDefModal from './modals/CriterionDefModal.vue';
 import EditCommentsModal from './modals/EditCommentsModal.vue';
 import PercentageInput from './PercentageInput.vue';
@@ -393,6 +422,7 @@ export default {
     PercentageInput,
     RanksWarnings,
     SmallMessages,
+    MetricsPercentageInput,
   },
   setup() {},
   data() {
@@ -635,6 +665,7 @@ export default {
           metric.collection_unit_metric_definition_id ==
           collection_unit_metric_definition_id,
       );
+      if (!edited_metric) return;
       if (this.non_rescore_mode) {
         const return_draft = !(
           edited_metric.metric_value == null ||
@@ -659,10 +690,7 @@ export default {
         if (
           edited_metric.metric_value >= 0 &&
           edited_metric.confidence_level !== null &&
-          !(
-            edited_metric.metric_units == '%' &&
-            edited_metric.metric_value > 100
-          )
+          !(edited_metric.metric_units == '%' && edited_metric.metric_value > 1)
         ) {
           // Submit the metric change
           submitDataGeneric('submit-draft-metrics', {
