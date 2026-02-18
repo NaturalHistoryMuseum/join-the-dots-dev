@@ -106,8 +106,25 @@
                     >
                       <div class="changed-container metric">
                         <div class="changed-item">
-                          <p>{{ fieldNameCalc(metric.metric_name) }}:</p>
-                          <p>{{ metric.metric_value }}</p>
+                          <p>
+                            {{
+                              fieldNameCalc(metric.metric_name) +
+                              (metric.metric_units == '%'
+                                ? ' (' + metric.metric_units + ')'
+                                : '')
+                            }}:
+                          </p>
+                          <p>
+                            {{
+                              metric.metric_units == '%'
+                                ? metric.metric_value !== undefined
+                                  ? parseFloat(
+                                      (metric.metric_value * 100).toFixed(2),
+                                    )
+                                  : 0
+                                : metric.metric_value
+                            }}
+                          </p>
                         </div>
                         <div class="changed-item">
                           <p>Confidence:</p>
