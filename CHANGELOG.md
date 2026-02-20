@@ -1,3 +1,10 @@
+## v1.7.6 (2026-02-20)
+
+### Fix
+
+- **unit-filtering**: store unit filters until logout for better ux
+- **unit-scores**: fixes scores decimal miscalculation
+
 ## v1.7.5 (2026-02-18)
 
 ### Fix
