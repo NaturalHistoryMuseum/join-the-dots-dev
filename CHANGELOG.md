@@ -1,3 +1,9 @@
+## v1.7.5 (2026-02-18)
+
+### Fix
+
+- **barcode-%**: fix barcode metric showing as decimal
+
 ## v1.7.4 (2026-02-13)
 
 ### Refactor
