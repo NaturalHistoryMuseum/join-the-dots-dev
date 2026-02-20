@@ -274,7 +274,7 @@
                     <!-- Only show where there are scores -->
                     <strong>{{
                       rank.percentage
-                        ? parseFloat((rank.percentage * 100).toFixed(2))
+                        ? this.convertToPercentage(rank.percentage)
                         : ''
                     }}</strong>
                   </p>
@@ -305,10 +305,7 @@
                     v-if="
                       (non_rescore_mode &&
                         editedRanks[crit.criterion_id] &&
-                        editedRanks[crit.criterion_id].reduce(
-                          (sum, r) => sum + (r.percentage || 0),
-                          0,
-                        ) > 0) ||
+                        percentageTotal(editedRanks[crit.criterion_id]) > 0) ||
                       !non_rescore_mode
                     "
                     :criterion_id="crit.criterion_id"
@@ -334,10 +331,7 @@
                     v-if="
                       (non_rescore_mode &&
                         editedRanks[crit.criterion_id] &&
-                        editedRanks[crit.criterion_id].reduce(
-                          (sum, r) => sum + (r.percentage || 0),
-                          0,
-                        ) > 0) ||
+                        percentageTotal(editedRanks[crit.criterion_id]) > 0) ||
                       !non_rescore_mode
                     "
                     :criterion_id="crit.criterion_id"
@@ -762,13 +756,10 @@ export default {
       let new_ranks = [];
       for (const value of Object.entries(this.editedRanks)) {
         const criterion = value[1];
-        const percentage_total = criterion.reduce(
-          (sum, r) => sum + (r.percentage || 0),
-          0,
-        );
+        const percentage_total = this.percentageTotal(criterion);
         const has_comments = criterion.some((r) => r.comment != null);
         if (
-          percentage_total == 1 ||
+          percentage_total == 100 ||
           (this.non_rescore_mode &&
             !this.hide_comments &&
             (has_comments || percentage_total > 0))
@@ -815,7 +806,13 @@ export default {
       return is_error;
     },
     percentageTotal(ranks_filtered) {
-      return ranks_filtered.reduce((sum, r) => sum + (r.percentage || 0), 0);
+      return ranks_filtered.reduce(
+        (sum, r) => sum + (this.convertToPercentage(r.percentage) || 0),
+        0,
+      );
+    },
+    convertToPercentage(decimal) {
+      return parseFloat((decimal * 100).toFixed(2));
     },
     // Function to check for errors in ranks
     checkErrors(criterion_id) {
@@ -823,7 +820,9 @@ export default {
       // const ranks_filtered = this.getRanksByCriterion(criterion_id)
       const ranks_filtered = this.editedRanks[criterion_id] || [];
       // Check if there are any ranks with errors
-      if (ranks_filtered.some((r) => r.percentage < 0)) {
+      if (
+        ranks_filtered.some((r) => this.convertToPercentage(r.percentage) < 0)
+      ) {
         errors.push({
           message: 'Percentage must be between 0 and 100',
           type: 'error',
@@ -831,12 +830,12 @@ export default {
       }
       const percentage_total = this.percentageTotal(ranks_filtered);
       // Check if the total percentage exceeds 100%
-      if (percentage_total > 1) {
+      if (percentage_total > 100) {
         errors.push({
           message: 'Total percentage exceeds 100%',
           type: 'error',
         });
-      } else if (percentage_total < 1) {
+      } else if (percentage_total < 100) {
         errors.push({
           message: 'Total percentage is less than 100%',
           type: 'warning',
@@ -979,7 +978,7 @@ export default {
       // Check if any of the criterions have a total percentage of less than 100%
       return criterions.some((criterion) => {
         const ranks_filtered = this.editedRanks[criterion.criterion_id] || [];
-        if (this.percentageTotal(ranks_filtered) < 1) {
+        if (this.percentageTotal(ranks_filtered) < 100) {
           return true;
         }
       });
