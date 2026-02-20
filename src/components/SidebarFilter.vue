@@ -149,6 +149,10 @@ export default {
     show_filters: Array,
     column_direction: Boolean,
     minimal: Boolean,
+    use_local_storage: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup() {
     return { currentUser };
@@ -178,6 +182,31 @@ export default {
       filter_draft: false,
     };
   },
+  mounted() {
+    if (this.use_local_storage) {
+      // Load saved filters from localStorage
+      this.search_name_query = localStorage.getItem('search_name_query') || '';
+      this.search_id_query = localStorage.getItem('search_id_query') || '';
+      this.search_section =
+        JSON.parse(localStorage.getItem('search_section')) || [];
+      this.search_division =
+        JSON.parse(localStorage.getItem('search_division')) || [];
+      this.search_curators =
+        JSON.parse(localStorage.getItem('search_curators')) || [];
+      this.filter_inactive =
+        JSON.parse(localStorage.getItem('filter_inactive')) || false;
+      this.filter_assigned =
+        localStorage.getItem('filter_assigned') &&
+        localStorage.getItem('filter_assigned').length > 0
+          ? localStorage.getItem('filter_assigned') == 'true'
+            ? true
+            : false
+          : this.currentUser.assigned_units &&
+            this.show_filters.includes('show_own');
+      this.filter_draft =
+        JSON.parse(localStorage.getItem('filter_draft')) || false;
+    }
+  },
   watch: {
     filteredUnits: {
       handler(newVal) {
@@ -185,6 +214,38 @@ export default {
       },
       immediate: true,
       deep: true,
+    },
+    search_name_query(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('search_name_query', newVal);
+    },
+
+    search_id_query(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('search_id_query', newVal);
+    },
+    search_section(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('search_section', JSON.stringify(newVal));
+    },
+    search_division(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('search_division', JSON.stringify(newVal));
+    },
+    search_curators(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('search_curators', JSON.stringify(newVal));
+    },
+    filter_inactive(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('filter_inactive', newVal);
+    },
+    filter_assigned(newVal) {
+      if (this.use_local_storage)
+        localStorage.setItem('filter_assigned', newVal);
+    },
+    filter_draft(newVal) {
+      if (this.use_local_storage) localStorage.setItem('filter_draft', newVal);
     },
   },
   computed: {

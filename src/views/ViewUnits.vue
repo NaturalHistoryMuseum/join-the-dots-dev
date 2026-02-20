@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="units-content">
-      <div class="actions-bar" v-show="currentUser.role_id > 1">
+      <div class="actions-bar" v-show="currentUser && currentUser.role_id > 1">
         <ActionsBtnGroup :force_show="selected_unit_ids.length > 0">
           <DeleteModal
             :selected_units="
@@ -76,6 +76,7 @@
             'show_draft',
           ]"
           :column_direction="true"
+          :use_local_storage="true"
           @update:filteredUnits="handleFilteredUnits"
         />
         <div class="table-area">

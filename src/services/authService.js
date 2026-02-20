@@ -50,6 +50,8 @@ export async function logout() {
     router.push('/login');
     currentUser.value = null;
     await api.get(`auth/logout`, { withCredentials: true });
+    // Clear user data and cookies
+    localStorage.clear();
   } catch (error) {
     console.error('Logout failed:', error);
   }
