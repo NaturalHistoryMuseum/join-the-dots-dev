@@ -14,7 +14,9 @@ def require_api_key(f):
     def decorated_function(*args, **kwargs):
         # Check for API key in headers
         provided_key = request.headers.get('x-api-key')
-        if provided_key and provided_key == Config.EXPECTED_API_KEY:
+        if provided_key and (
+            provided_key == Config.POWERBI_API_KEY or provided_key == Config.IMT_API_KEY
+        ):
             return f(*args, **kwargs)
         # Abort if unauthorised
         abort(401)
