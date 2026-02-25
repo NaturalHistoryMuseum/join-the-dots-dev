@@ -45,7 +45,8 @@ class Config:
     JWKS_URL = f'https://login.microsoftonline.com/{TENANT_ID}/discovery/v2.0/keys'
 
     # Power BI Expected API Key
-    EXPECTED_API_KEY = os.environ.get('EXPECTED_API_KEY')
+    POWERBI_API_KEY = os.environ.get('POWERBI_API_KEY')
+    IMT_API_KEY = os.environ.get('IMT_API_KEY')
 
     # Testing Authentication Mode
     TEST_AUTH_ENABLED = False
