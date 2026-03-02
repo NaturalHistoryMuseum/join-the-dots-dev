@@ -1,3 +1,9 @@
+## v1.7.7 (2026-02-25)
+
+### Fix
+
+- **power-bi-api**: add second key for imt use
+
 ## v1.7.6 (2026-02-20)
 
 ### Fix
