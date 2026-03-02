@@ -1,3 +1,9 @@
+## v1.7.8 (2026-03-02)
+
+### Fix
+
+- **user-accounts**: makes users without person ids selectable
+
 ## v1.7.7 (2026-02-25)
 
 ### Fix
