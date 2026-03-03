@@ -32,7 +32,12 @@
             zoa-type="multiselect"
             label="Assigned Editors"
             v-model="row.item.assigned_editors"
-            :config="{ options: curators_options }"
+            :config="{
+              options: curators_options,
+              itemName: 'curator',
+              itemNamePlural: 'curators',
+              enableSearch: true,
+            }"
             @change="(value) => handleEditorsChange(row.item, value, true)"
           />
         </template>
@@ -82,7 +87,11 @@ export default {
   },
   methods: {
     async fetchAllCurators() {
-      this.curators_options = await getGeneric(`all-curators`);
+      const resp = await getGeneric(`all-curators`);
+      this.curators_options = resp.map((curator) => ({
+        ...curator,
+        value: curator.user_id.toString(),
+      }));
     },
     async fetchAllUnits() {
       const response = await getGeneric(`units-assigned`);

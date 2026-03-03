@@ -125,9 +125,13 @@ export default {
       );
     },
     async fetchAllUnits() {
-      const response = await getGeneric(
-        `units-by-division/${this.currentUser.division_id}`,
-      );
+      let url = `units-by-division/${this.currentUser.division_id}`;
+      if (this.currentUser.role_id == 4) {
+        url = 'unit-department';
+      } else {
+        url = `units-by-division/${this.currentUser.division_id}`;
+      }
+      const response = await getGeneric(url);
       this.units = response.map((unit) => ({
         ...unit,
         value: unit.collection_unit_id.toString(),
