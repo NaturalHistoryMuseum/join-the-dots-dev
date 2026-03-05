@@ -1,3 +1,14 @@
+## v1.7.9 (2026-03-05)
+
+### Fix
+
+- **auth**: adds display name when creating user
+- **management-pages**: adds search to curators on a unit
+
+### Minor UI Changes
+
+- add unit name to top of view unit page
+
 ## v1.7.8 (2026-03-02)
 
 ### Fix
