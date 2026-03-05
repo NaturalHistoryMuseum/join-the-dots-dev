@@ -25,7 +25,7 @@
       >
         <div class="col-md-4">
           <h1 class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
-          <p>Unit ID: {{ unit_id }}</p>
+          <p>{{ unit_id }} - {{ unit.unit_name }}</p>
         </div>
         <div class="col-md-8" v-if="allow_edit && currentUser.role_id > 1">
           <ActionsBtnGroup>
