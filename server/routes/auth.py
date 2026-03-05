@@ -85,10 +85,11 @@ def auth_redirect():
         if not user:
             # Add user if not present
             cursor.execute(
-                f'INSERT INTO {database_name}.users (azure_id, email, role_id) VALUES (%s, %s, %s);',
+                f'INSERT INTO {database_name}.users (azure_id, email, display_name, role_id) VALUES (%s, %s, %s);',
                 (
                     user_info['oid'],
                     user_info['preferred_username'],
+                    user_info['name'],
                     1,
                 ),
             )
