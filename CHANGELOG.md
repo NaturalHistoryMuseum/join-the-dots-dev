@@ -1,3 +1,9 @@
+## v1.7.10 (2026-03-06)
+
+### Fix
+
+- **draft-scores**: resolves decimal issue in draft scores not reaching 100 percent
+
 ## v1.7.9 (2026-03-05)
 
 ### Fix
