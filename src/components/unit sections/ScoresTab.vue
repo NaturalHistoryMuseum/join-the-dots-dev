@@ -125,7 +125,6 @@ export default {
         return 0;
       }
       const ranks = this.edited_unit.ranks_json;
-
       const metrics = this.edited_unit.metric_json;
       // Remove C3 from ranks to mark completness
       const filtered_rank_json = this.ranks_json_temp.filter(
@@ -137,11 +136,12 @@ export default {
       // Go through each rank and see if it has a total score
       ranks.forEach((rank_group) => {
         const percentage_total = rank_group.reduce(
-          (sum, r) => sum + (r.percentage || 0),
+          // (sum, r) => sum + (r.percentage || 0),
+          (sum, r) => sum + (parseFloat((r.percentage * 100).toFixed(2)) || 0),
           0,
         );
         // Check if the total percentage is complete
-        if (percentage_total === 1) {
+        if (percentage_total === 100) {
           actual_completness++;
         }
       });
