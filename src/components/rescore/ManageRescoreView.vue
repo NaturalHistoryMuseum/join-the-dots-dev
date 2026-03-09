@@ -125,11 +125,13 @@ export default {
     },
 
     async createRescore() {
+      this.is_loading = true;
       // Create rescore session with selected units
       await submitDataGeneric('mark-rescore-open', {
         units: this.selected_unit_ids,
       });
       this.fetchUnitsData();
+      this.is_loading = true;
       // this.navigateRescore();
     },
     async closeRescore() {
