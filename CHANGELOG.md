@@ -1,3 +1,12 @@
+## v1.7.11 (2026-03-10)
+
+### Fix
+
+- remove console log
+- stop button double click by having loading store
+- stop users from spamming create rescore
+- **date-assessed**: date assessed now check metrics and comments too
+
 ## v1.7.10 (2026-03-06)
 
 ### Fix
