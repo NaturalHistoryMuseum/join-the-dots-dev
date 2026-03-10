@@ -227,6 +227,7 @@ import SplitModal from '@/components/modals/SplitModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import RoundProgressBar from '@/components/RoundProgressBar.vue';
 import CustomField from '@/components/unit sections/CustomField.vue';
+import { useLoadingStore } from '@/stores/loadingStore';
 import { useMessagesStore } from '@/stores/messages';
 
 export default {
@@ -460,6 +461,8 @@ export default {
     async submitUnit(save_draft) {
       // If not allowed to edit, do nothing
       if (!this.allow_edit) return;
+      const loadingStore = useLoadingStore();
+      loadingStore.startLoading();
       // Check if all required fields are filled
       if (this.countRequiredFields() < 100 && !save_draft) {
         this.store.addMessage('Please fill all required fields', 'error');
@@ -495,6 +498,7 @@ export default {
       } else {
         this.store.addMessage('Error saving unit', 'error');
       }
+      loadingStore.stopLoading();
     },
     navNewUnit() {
       // Navigate to the new unit and reload the page

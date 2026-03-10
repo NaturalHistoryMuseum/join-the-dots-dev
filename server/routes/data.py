@@ -1522,11 +1522,11 @@ def get_division_users():
             params = []
 
             # Only return one divisions for managers
-            if role_id == 3:
+            if role_id < 4:
                 base_query += ' AND u.division_id = %s'
                 params.append(user['division_id'])
 
-            base_query += ';'
+            base_query += ' ORDER BY name;'
 
             data = fetch_data(base_query, tuple(params))
             return jsonify(data)

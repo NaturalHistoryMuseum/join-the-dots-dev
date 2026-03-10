@@ -125,6 +125,8 @@ export default {
     },
 
     async createRescore() {
+      // Don't allow if no units selected
+      if (this.selected_unit_ids.length === 0) return;
       this.is_loading = true;
       // Create rescore session with selected units
       await submitDataGeneric('mark-rescore-open', {
