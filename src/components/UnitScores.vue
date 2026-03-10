@@ -600,7 +600,6 @@ export default {
       return 0;
     },
     checkCatComplete(cat) {
-      console.log(cat);
       // Get the tracking data in JSON format
       const category_tracking = Array.isArray(this.local_unit.category_tracking)
         ? this.local_unit.category_tracking
