@@ -21,7 +21,7 @@
     </div>
     <ReviewUnitChanges :units="units" />
   </div>
-  <div v-if="success">
+  <div v-if="success" class="main-page">
     <zoa-flash
       kind="success"
       header="Rescore Completed"
@@ -34,6 +34,7 @@
 import { submitDataGeneric } from '@/services/dataService';
 
 import ReviewUnitChanges from '@/components/ReviewUnitChanges.vue';
+import { useLoadingStore } from '@/stores/loadingStore';
 
 export default {
   name: 'ReviewRescoreView',
@@ -49,6 +50,8 @@ export default {
   },
   methods: {
     async handleSaveChanges() {
+      const loadingStore = useLoadingStore();
+      loadingStore.startLoading();
       const response = await submitDataGeneric('rescore-complete', {
         rescore_session_id: this.rescore_session_id,
       });
@@ -56,6 +59,7 @@ export default {
         this.success = true;
         this.$emit('update:rescore_saved', true);
       }
+      loadingStore.stopLoading();
     },
   },
 };

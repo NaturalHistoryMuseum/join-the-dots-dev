@@ -1,5 +1,4 @@
 <template>
-  <!-- <h1 class="h1-style">Export</h1> -->
   <p>
     Please use the filters below to select the data you want to export and the
     type of file you want to download.
@@ -135,14 +134,12 @@
       v-model="include_ltc_measures"
     />
   </div>
-
   <zoa-button
     v-if="selected_data_type"
     class="export-btn"
     label="Export"
     @click="runExport()"
   />
-  <hr />
 </template>
 
 <script>

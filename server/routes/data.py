@@ -1522,11 +1522,11 @@ def get_division_users():
             params = []
 
             # Only return one divisions for managers
-            if role_id == 3:
+            if role_id < 4:
                 base_query += ' AND u.division_id = %s'
                 params.append(user['division_id'])
 
-            base_query += ';'
+            base_query += ' ORDER BY name;'
 
             data = fetch_data(base_query, tuple(params))
             return jsonify(data)
@@ -1903,9 +1903,30 @@ def get_units_by_user():
                 ) AS all_dates
             ) AS last_rescored,
             (
-                SELECT MAX(DATE(uac.date_assessed))
-                FROM {database_name}.unit_assessment_criterion uac
-                WHERE uac.collection_unit_id = cu.collection_unit_id
+                SELECT MAX(latest_date)
+                FROM (
+                    SELECT MAX(DATE(uac.date_from)) AS latest_date
+                    FROM {database_name}.unit_assessment_criterion uac
+                    WHERE uac.collection_unit_id = cu.collection_unit_id AND uac.current = 'yes'
+
+                    UNION ALL
+
+                    SELECT MAX(DATE(cum.date_from)) AS latest_date
+                    FROM {database_name}.collection_unit_metric cum
+                    WHERE cum.collection_unit_id = cu.collection_unit_id AND cum.current = 'yes'
+
+                    UNION ALL
+
+                    SELECT MAX(DATE(uc.date_added)) AS latest_date
+                    FROM {database_name}.unit_comment uc
+                    WHERE uc.collection_unit_id = cu.collection_unit_id
+
+                    UNION ALL
+
+                    SELECT MAX(DATE(uac.date_assessed))
+                    FROM {database_name}.unit_assessment_criterion uac
+                    WHERE uac.collection_unit_id = cu.collection_unit_id AND uac.current = 'yes'
+                ) AS all_dates
             ) AS last_assessed
             FROM {database_name}.collection_unit cu
             JOIN {database_name}.assigned_units au ON au.collection_unit_id = cu.collection_unit_id
