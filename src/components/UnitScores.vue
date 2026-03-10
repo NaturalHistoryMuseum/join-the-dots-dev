@@ -624,6 +624,16 @@ export default {
       const category_tracking = Array.isArray(this.local_unit.category_tracking)
         ? this.local_unit.category_tracking
         : JSON.parse(this.local_unit.category_tracking);
+      // Check if all the categories are complete
+      let count_complete = 0;
+      category_tracking.forEach((category) => {
+        if (this.checkCatComplete(category)) {
+          count_complete++;
+        }
+      });
+      // If all categories are compelte, dont send again
+      if (count_complete == category_tracking.length && new_val) return;
+
       // Go through each category and check if it is included in the array of ids listed
       category_tracking.forEach((category) => {
         if (category_ids_arr.includes(category.category_id)) {
