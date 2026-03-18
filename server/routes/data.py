@@ -127,16 +127,16 @@ def submit_rescore_complete():
         cursor.execute('SET @current_person_id = %s', (person_id,))
         connection.start_transaction()
         # Submit draft comments
-        upgrade_draft_comments(cursor, rescore_session_id, user_id)
+        upgrade_draft_comments(cursor, rescore_session_id)
 
         # Submit draft metrics
-        upgrade_draft_metrics(cursor, rescore_session_id, user_id)
+        upgrade_draft_metrics(cursor, rescore_session_id)
 
         # Submit draft ranks
-        upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id)
+        upgrade_draft_ranks(cursor, rescore_session_id, person_id)
 
         # Close the rescore and remove draft categories
-        close_rescore(cursor, rescore_session_id, user_id)
+        close_rescore(cursor, rescore_session_id)
 
         connection.commit()
 
@@ -151,28 +151,28 @@ def submit_rescore_complete():
         connection.close()
 
 
-def close_rescore(cursor, rescore_session_id, user_id):
+def close_rescore(cursor, rescore_session_id):
     # Remove draft categories
     cursor.execute(
         f""" DELETE ucd
                 FROM {database_name}.unit_category_draft ucd
                 JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+                WHERE rsu.rescore_session_id = %s AND rs.status = 'in_progress';
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
     # Close the rescore session
     cursor.execute(
         f"""UPDATE {database_name}.rescore_session
                     SET status = 'complete', completed_at = NOW()
-                    WHERE rescore_session_id = %s AND user_id = %s;
+                    WHERE rescore_session_id = %s;
                 """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
 
-def upgrade_draft_comments(cursor, rescore_session_id, user_id):
+def upgrade_draft_comments(cursor, rescore_session_id):
     # Insert comments
     cursor.execute(
         f""" insert into {database_name}.unit_comment (collection_unit_id, unit_comment, date_added)
@@ -180,9 +180,9 @@ def upgrade_draft_comments(cursor, rescore_session_id, user_id):
                 from {database_name}.unit_comment_draft ucd
                 join {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                where rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+                where rsu.rescore_session_id = %s AND rs.status = 'in_progress';
             """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
     # Remove draft comments
     cursor.execute(
@@ -190,13 +190,13 @@ def upgrade_draft_comments(cursor, rescore_session_id, user_id):
                 FROM {database_name}.unit_comment_draft ucd
                 JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+                WHERE rsu.rescore_session_id = %s AND rs.status = 'in_progress';
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
 
-def upgrade_draft_metrics(cursor, rescore_session_id, user_id):
+def upgrade_draft_metrics(cursor, rescore_session_id):
     # Set old metrics that are about to be inserted as not current
     cursor.execute(
         f"""
@@ -209,7 +209,6 @@ def upgrade_draft_metrics(cursor, rescore_session_id, user_id):
                 JOIN {database_name}.rescore_session rs
                     ON rsu.rescore_session_id = rs.rescore_session_id
                 WHERE rsu.rescore_session_id = %s
-                    AND rs.user_id = %s
                     AND rs.status = 'in_progress'
             ) AS targets
             ON cum.collection_unit_id = targets.collection_unit_id
@@ -217,7 +216,7 @@ def upgrade_draft_metrics(cursor, rescore_session_id, user_id):
             SET cum.current = 'no', date_to = NOW()
             WHERE cum.current = 'yes'
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
     # Insert metrics from drafts
@@ -227,9 +226,9 @@ def upgrade_draft_metrics(cursor, rescore_session_id, user_id):
             from {database_name}.unit_metric_draft umd
             join {database_name}.rescore_session_units rsu ON umd.rescore_session_units_id = rsu.rescore_session_units_id
             JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-            where rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+            where rsu.rescore_session_id = %s AND rs.status = 'in_progress';
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
     # Remove draft metrics
@@ -238,13 +237,13 @@ def upgrade_draft_metrics(cursor, rescore_session_id, user_id):
                 FROM {database_name}.unit_metric_draft umd
                 JOIN {database_name}.rescore_session_units rsu ON umd.rescore_session_units_id = rsu.rescore_session_units_id
                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+                WHERE rsu.rescore_session_id = %s AND rs.status = 'in_progress';
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
 
-def upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id):
+def upgrade_draft_ranks(cursor, rescore_session_id, person_id):
     # Set old ranks that are about to be inserted as not current
     cursor.execute(
         f"""
@@ -259,7 +258,6 @@ def upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id):
             JOIN {database_name}.rescore_session rs
                 ON rsu.rescore_session_id = rs.rescore_session_id
             WHERE rsu.rescore_session_id = %s
-                AND rs.user_id = %s
                 AND rs.status = 'in_progress'
         ) AS targets
         ON uac.collection_unit_id = targets.collection_unit_id
@@ -267,7 +265,7 @@ def upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id):
         SET uac.current = 'no', date_to = NOW()
         WHERE uac.current = 'yes'
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
     # Get draft ranks
@@ -278,9 +276,9 @@ def upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id):
                 JOIN {database_name}.unit_category_draft ucd ON urd.category_draft_id = ucd.category_draft_id
                 JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+                WHERE rsu.rescore_session_id = %s AND rs.status = 'in_progress';
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
     draft_rows = cursor.fetchall()
     # Group rows by collection_unit_id and criterion_id
@@ -331,9 +329,9 @@ def upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id):
                 JOIN {database_name}.unit_category_draft ucd ON ucd.category_draft_id = urd.category_draft_id
                 JOIN {database_name}.rescore_session_units rsu ON ucd.rescore_session_units_id = rsu.rescore_session_units_id
                 JOIN {database_name}.rescore_session rs ON rsu.rescore_session_id = rs.rescore_session_id
-                WHERE rsu.rescore_session_id = %s AND rs.user_id = %s AND rs.status = 'in_progress';
+                WHERE rsu.rescore_session_id = %s AND rs.status = 'in_progress';
         """,
-        (rescore_session_id, user_id),
+        (rescore_session_id,),
     )
 
 
@@ -350,6 +348,26 @@ def get_open_rescore():
              WHERE rs.status = 'in_progress' AND rs.user_id = %s  AND cu.draft_unit <> 1;
         """,
         (user_id,),
+    )
+    return jsonify(data)
+
+
+@data_bp.route('/all-open-rescores', methods=['GET'])
+@jwt_required()
+def get_all_open_rescores():
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+    data = fetch_data(
+        """SELECT rs.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS curator_name, COUNT(rsu.rescore_session_units_id) AS unit_count
+            FROM {database_name}.rescore_session rs
+            JOIN {database_name}.rescore_session_units rsu ON rs.rescore_session_id = rsu.rescore_session_id
+            JOIN {database_name}.users u ON u.user_id = rs.user_id
+            JOIN {database_name}.person p ON p.person_id = u.person_id
+            JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = rsu.collection_unit_id
+            WHERE rs.status = 'in_progress' AND cu.draft_unit <> 1
+            GROUP BY rs.rescore_session_id
+            ORDER BY rs.rescore_session_id DESC;
+        """
     )
     return jsonify(data)
 
@@ -1002,16 +1020,16 @@ def complete_draft_unit(cursor, unit_id, user_id, person_id):
         )
 
         # Submit draft comments
-        upgrade_draft_comments(cursor, rescore_session_id, user_id)
+        upgrade_draft_comments(cursor, rescore_session_id)
 
         # Submit draft metrics
-        upgrade_draft_metrics(cursor, rescore_session_id, user_id)
+        upgrade_draft_metrics(cursor, rescore_session_id)
 
         # Submit draft ranks
-        upgrade_draft_ranks(cursor, rescore_session_id, user_id, person_id)
+        upgrade_draft_ranks(cursor, rescore_session_id, person_id)
 
         # Close the rescore and remove draft categories
-        close_rescore(cursor, rescore_session_id, user_id)
+        close_rescore(cursor, rescore_session_id)
 
     except Exception as e:
         raise

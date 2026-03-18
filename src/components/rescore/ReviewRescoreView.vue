@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!success">
+  <div v-if="!success" class="rescore-review">
     <h2 class="h2-style text-center">Review Rescore Changes</h2>
     <p>
       Please review all of the changes below and confirm before submitting them.
@@ -65,4 +65,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.rescore-review {
+  margin: 1rem;
+}
+</style>

@@ -9,7 +9,10 @@
       />
       <div class="col-md-3"></div>
     </div>
-    <div class="stepper-navigation" v-if="rescore_session_id && !rescore_saved">
+    <div
+      class="stepper-navigation"
+      v-if="rescore_session_id && !rescore_saved && units.length > 0"
+    >
       <zoa-button
         v-if="current_step > 1"
         label="Previous"
@@ -28,14 +31,14 @@
       <ManageRescoreView
         @update:current_step="current_step++"
         :open_rescore="open_rescore"
-        :fetchUnitsData="fetchUnitsData"
+        :fetchUnitsData="getData"
       />
     </div>
     <div v-if="current_step === 2">
       <EditRescoreView
         :rescore_session_id="rescore_session_id"
         :units="units"
-        :fetchUnitsData="fetchUnitsData"
+        :fetchUnitsData="getData"
       />
     </div>
     <div v-if="current_step === 3">
@@ -51,6 +54,7 @@
 
 <script>
 import StepperComp from '@/components/StepperComp.vue';
+import { currentUser } from '@/services/authService';
 import { getGeneric } from '@/services/dataService';
 import EditRescoreView from '../components/rescore/EditRescoreView.vue';
 import ManageRescoreView from '../components/rescore/ManageRescoreView.vue';
@@ -91,33 +95,56 @@ export default {
       rescore_saved: false,
     };
   },
+  setup() {
+    return { currentUser };
+  },
+  created() {
+    this.rescore_session_id = this.$route.query.rescore_session_id || null;
+  },
   mounted() {
-    this.fetchUnitsData();
+    this.getData();
   },
   methods: {
+    async getData() {
+      // If user is admin and has requested a specific rescore - fetch that
+      if (this.currentUser.role_id === 4 && this.rescore_session_id) {
+        await this.fetchRescoreUnits();
+      } else {
+        // Else see if there is an open rescore
+        await this.fetchUnitsData();
+      }
+      this.loading = false;
+    },
     async fetchUnitsData() {
       const rescoreResp = await getGeneric('open-rescore');
       // Check if there is an open rescore session
       this.open_rescore = rescoreResp.length > 0 ? rescoreResp[0] : {};
-      if (Object.keys(this.open_rescore).length > 0) {
+      if (
+        Object.keys(this.open_rescore).length > 0 &&
+        !this.rescore_session_id
+      ) {
         // Set the rescore session id
         this.rescore_session_id = this.open_rescore.rescore_session_id;
         // Fetch units in this rescore session
-        await getGeneric(`rescore-units/${this.rescore_session_id}`).then(
-          (response) => {
-            this.units = response.map((unit) => {
-              // Parse category tracking JSON
-              unit.category_tracking = JSON.parse(unit.category_tracking);
-              unit.ranks_json = JSON.parse(unit.ranks_json);
-              unit.metric_json = JSON.parse(unit.metric_json);
-              return unit;
-            });
-          },
-        );
+        this.fetchRescoreUnits();
+      }
+    },
+    async fetchRescoreUnits() {
+      await getGeneric(`rescore-units/${this.rescore_session_id}`).then(
+        (response) => {
+          this.units = response.map((unit) => {
+            // Parse category tracking JSON
+            unit.category_tracking = JSON.parse(unit.category_tracking) || null;
+            unit.ranks_json = JSON.parse(unit.ranks_json) || null;
+            unit.metric_json = JSON.parse(unit.metric_json) || null;
+            return unit;
+          });
+        },
+      );
+      if (this.units.length > 0) {
         // Move to the editing page after loading
         this.current_step = 2;
       }
-      this.loading = false;
     },
   },
 };
