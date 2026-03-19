@@ -1614,39 +1614,109 @@ def set_unit_assigned():
     user_id = get_jwt_identity()
 
     try:
-        # Get the current assigned users
-        current_assigned = fetch_data(
-            """SELECT user_id
-            FROM {database_name}.assigned_units
-            WHERE collection_unit_id = %s
-                    """,
-            (unit_id,),
-        )
-        current_assigned = set(
-            row['user_id'] for row in current_assigned
-        )  # if fetch_data returns dicts
-        assigned_users = set(int(user) for user in assigned_users)
-        # Compare lists
-        users_to_add = assigned_users - current_assigned
-        users_to_remove = current_assigned - assigned_users
-        # Insert new assigned users
-        if users_to_add:
-            for user_id in users_to_add:
-                execute_query(
-                    """INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
-                    VALUES (%s, %s)""",
-                    (user_id, unit_id),
-                )
-        # Remove unassigned users
-        if users_to_remove:
-            for user_id in users_to_remove:
-                execute_query(
-                    """DELETE FROM {database_name}.assigned_units
-                    WHERE user_id = %s AND collection_unit_id = %s""",
-                    (user_id, unit_id),
-                )
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Get user details
+        user_details = get_user_by_id(user_id)
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
+
+        update_unit_assigned(cursor, unit_id, assigned_users)
+
+        connection.commit()
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
         return jsonify(
             {'message': 'Unit assigned users updated successfully', 'success': True}
+        ), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+def update_unit_assigned(cursor, unit_id, assigned_users):
+    # Get the current assigned users
+    cursor.execute(
+        f"""SELECT user_id
+        FROM {database_name}.assigned_units
+        WHERE collection_unit_id = %s
+                """,
+        (unit_id,),
+    )
+    current_assigned = cursor.fetchall()
+    current_assigned = set(
+        row['user_id'] for row in current_assigned
+    )  # if fetch_data returns dicts
+    assigned_users = set(int(user) for user in assigned_users)
+    # Compare lists
+    users_to_add = assigned_users - current_assigned
+    users_to_remove = current_assigned - assigned_users
+    # Insert new assigned users
+    if users_to_add:
+        for user_id in users_to_add:
+            cursor.execute(
+                f"""INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
+                VALUES (%s, %s)""",
+                (user_id, unit_id),
+            )
+    # Remove unassigned users
+    if users_to_remove:
+        for user_id in users_to_remove:
+            cursor.execute(
+                f"""DELETE FROM {database_name}.assigned_units
+                WHERE user_id = %s AND collection_unit_id = %s""",
+                (user_id, unit_id),
+            )
+
+
+@data_bp.route('/bulk-submit-unit-permissions', methods=['POST'])
+@jwt_required()
+def set_bulk_unit_permissions():
+    data = request.get_json()
+    unit_ids = data.get('unit_ids')
+    assigned_users = data.get('assigned_users')
+    responsible_curator_id = data.get('responsible_curator_id')
+
+    if not unit_ids:
+        return jsonify({'error': 'unit_id is required'}), 400
+    if not assigned_users and not responsible_curator_id:
+        return jsonify(
+            {'error': 'assigned_users or responsible_curator_id is required'}
+        ), 400
+
+    # Get user_id from the jwt token
+    user_id = get_jwt_identity()
+
+    try:
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        # Get user details
+        user_details = get_user_by_id(user_id)
+        person_id = user_details['person_id'] if user_details else None
+        cursor.execute('SET @current_person_id = %s', (person_id,))
+
+        # add assinged users per unit
+        if assigned_users:
+            for unit_id in unit_ids:
+                update_unit_assigned(cursor, unit_id, assigned_users)
+        # add respsonsible curator
+        if responsible_curator_id:
+            # Dynamically build placeholders
+            placeholders = ', '.join(['%s'] * len(unit_ids))
+            cursor.execute(
+                f"""
+                UPDATE {database_name}.collection_unit
+                SET responsible_curator_id = %s
+                WHERE collection_unit_id  IN ({placeholders});
+                """,
+                (responsible_curator_id, *unit_ids),
+            )
+        connection.commit()
+        # Close the cursor and connection
+        cursor.close()
+        connection.close()
+        return jsonify(
+            {'message': 'Units permissions updated successfully', 'success': True}
         ), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
