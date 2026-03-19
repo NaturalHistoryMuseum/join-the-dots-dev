@@ -8,7 +8,7 @@
           <!-- Show the comment for each rank -->
           <zoa-input
             zoa-type="empty"
-            :label="`Rank ${rank.rank_value} Comment - (Score: ${rank.percentage * 100}%)`"
+            :label="`Rank ${rank.rank_value} Comment - (Score: ${parseFloat((rank.percentage * 100).toFixed(2))}%)`"
             class="comments-title"
           />
           <textarea

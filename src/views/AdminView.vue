@@ -30,6 +30,7 @@ import AdminPermissions from '@/components/admin/AdminPermissions.vue';
 import GuidanceView from '@/components/admin/GuidanceView.vue';
 import ManageChangeLog from '@/components/admin/ManageChangeLog.vue';
 import ManageEnhancements from '@/components/admin/ManageEnhancements.vue';
+import ManageRescores from '@/components/admin/ManageRescores.vue';
 
 export default {
   name: 'AdminView',
@@ -39,26 +40,31 @@ export default {
       page_data: [
         {
           section_id: 0,
-          section_name: 'User Permissions',
-          component: AdminPermissions,
-        },
-        {
-          section_id: 1,
-          section_name: 'Edit Guidance',
-          component: GuidanceView,
-        },
-        {
-          section_id: 2,
           section_name: 'Manage Issues',
           component: AdminIssues,
         },
         {
-          section_id: 3,
+          section_id: 1,
           section_name: 'Manage Change Log',
           component: ManageChangeLog,
         },
         {
+          section_id: 2,
+          section_name: 'Manage Rescores',
+          component: ManageRescores,
+        },
+        {
+          section_id: 3,
+          section_name: 'User Permissions',
+          component: AdminPermissions,
+        },
+        {
           section_id: 4,
+          section_name: 'Edit Guidance',
+          component: GuidanceView,
+        },
+        {
+          section_id: 5,
           section_name: 'Manage Enhancements',
           component: ManageEnhancements,
         },

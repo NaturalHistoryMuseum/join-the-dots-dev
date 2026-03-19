@@ -15,7 +15,26 @@
         :minimal="true"
         @update:filteredUnits="handleFilteredUnits"
       />
-      <TableCheckbox :units="filtered_units" :fields="fields" ref="unitsTable">
+      <div class="bulk-options">
+        <BulkEditResponsibility
+          :selected_units="
+            units.filter((unit) =>
+              selected_unit_ids.includes(unit.collection_unit_id),
+            )
+          "
+          :selected_unit_ids="selected_unit_ids"
+          :curators_options="curators_options"
+          @update:refreshData="fetchAllUnits"
+        />
+      </div>
+      <TableCheckbox
+        :units="filtered_units"
+        :fields="fields"
+        @update:selectedUnits="
+          (selected_units) => updateSelectedUnits(selected_units)
+        "
+        ref="unitsTable"
+      >
         <template #cell(responsible_curator_id)="row">
           <zoa-input
             class="unit-col"
@@ -47,6 +66,7 @@
 </template>
 
 <script>
+import BulkEditResponsibility from '@/components/modals/BulkEditResponsibility.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import SidebarFilter from '@/components/SidebarFilter.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
@@ -60,6 +80,7 @@ export default {
     TableCheckbox,
     OverlayMessage,
     SidebarFilter,
+    BulkEditResponsibility,
   },
   data() {
     return {
@@ -68,6 +89,7 @@ export default {
       units: [],
       curators_options: [],
       fields: [
+        { label: '', key: 'select', class: 'text-center' },
         { label: 'Collection Unit ID', key: 'collection_unit_id' },
         { label: 'Unit Name', key: 'unit_name' },
         { label: 'Section', key: 'section_name' },
@@ -75,6 +97,7 @@ export default {
         { label: 'Assigned Editors', key: 'assigned_editors' },
       ],
       filtered_units: [],
+      selected_unit_ids: [],
     };
   },
   setup() {
@@ -132,6 +155,9 @@ export default {
         }
       }
     },
+    updateSelectedUnits(selected_unit_ids) {
+      this.selected_unit_ids = selected_unit_ids;
+    },
   },
 };
 </script>
@@ -147,5 +173,9 @@ export default {
   width: 18rem;
   text-align: left;
   justify-self: center;
+}
+.bulk-options {
+  margin: 1rem 0 0 1rem;
+  display: flex;
 }
 </style>
