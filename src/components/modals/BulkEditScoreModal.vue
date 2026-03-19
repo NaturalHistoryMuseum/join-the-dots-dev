@@ -159,7 +159,11 @@
                         >
                           <p>{{ `Rank ${rank.rank_value} (%)` }}</p>
                           <p>
-                            {{ rank.percentage ? rank.percentage * 100 : '0' }}
+                            {{
+                              rank.percentage
+                                ? parseFloat((rank.percentage * 100).toFixed(2))
+                                : '0'
+                            }}
                           </p>
                         </div>
                       </div>

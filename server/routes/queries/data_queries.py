@@ -630,7 +630,7 @@ RESCORE_UNITS = """
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
 --                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
-                            (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = %i
+                            (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = %i AND rs.status = 'in_progress'
                         order by
                             `se`.`section_name`,
                             `cu`.`sort_order`,
