@@ -1,3 +1,10 @@
+## v1.8.0 (2026-03-19)
+
+### Feature
+
+- **unit-permissions**: adds ability for managers to bulk edit permissions of units
+- **admin-management**: admins can access users rescores and edit them
+
 ## v1.7.11 (2026-03-10)
 
 ### Fix
