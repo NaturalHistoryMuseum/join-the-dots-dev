@@ -172,10 +172,10 @@
                   <div
                     v-if="
                       !(
-                        edited_unit.ranks_json &&
-                        edited_unit.ranks_json.length > 0 &&
-                        edited_unit.metric_json &&
-                        edited_unit.metric_json.length > 0 &&
+                        (edited_unit.ranks_json &&
+                          edited_unit.ranks_json.length > 0) ||
+                        (edited_unit.metric_json &&
+                          edited_unit.metric_json.length > 0) ||
                         edited_unit.unit_comment
                       )
                     "

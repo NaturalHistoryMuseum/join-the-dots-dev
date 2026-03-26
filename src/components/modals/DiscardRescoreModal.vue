@@ -7,11 +7,6 @@
         resetModal();
       }
     "
-    @closed="
-      () => {
-        checkRedirect();
-      }
-    "
   >
     <template v-slot:button> Discard Rescore </template>
     <template v-slot:header> Discard Rescore </template>
