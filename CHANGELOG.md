@@ -1,3 +1,10 @@
+## v1.8.1 (2026-03-26)
+
+### Fix
+
+- fix bulk edit bug saying no scores when there are
+- fixes units table duplication
+
 ## v1.8.0 (2026-03-19)
 
 ### Feature
