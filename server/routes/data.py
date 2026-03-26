@@ -1969,7 +1969,6 @@ def get_units_by_user():
     user = get_user_by_id(user_id)
     role_id = user['role_id']
     base_query = """SELECT cu.*, s.section_name, d.division_name,
-
            (
                 SELECT MAX(latest_date)
                 FROM (
@@ -2021,6 +2020,7 @@ def get_units_by_user():
             JOIN {database_name}.section s ON s.section_id = cu.section_id
             JOIN {database_name}.division d ON d.division_id = s.division_id
             WHERE cu.unit_active = 'yes' AND cu.draft_unit = 0
+            GROUP BY cu.collection_unit_id;
             """
     params = []
 
