@@ -13,11 +13,15 @@
       </div>
       <!-- Actions button group -->
       <div class="col-md-8 actions">
-        <ActionsBtnGroup v-if="!rescore_review && units.length > 1">
+        <ActionsBtnGroup>
           <BulkEditScoreModal
             :units="units"
             v-if="units.length > 1"
             :refresh_page_data="fetchUnitsData"
+          />
+          <DiscardRescoreModal
+            :rescore_session_id="this.rescore_session_id"
+            :fetchUnitsData="fetchUnitsData"
           />
         </ActionsBtnGroup>
       </div>
@@ -36,6 +40,7 @@
 import ActionsBtnGroup from '../ActionsBtnGroup.vue';
 import CollapsibleTabs from '../CollapsibleTabs.vue';
 import BulkEditScoreModal from '../modals/BulkEditScoreModal.vue';
+import DiscardRescoreModal from '../modals/DiscardRescoreModal.vue';
 import RoundProgressBar from '../RoundProgressBar.vue';
 
 export default {
@@ -45,6 +50,7 @@ export default {
     ActionsBtnGroup,
     BulkEditScoreModal,
     RoundProgressBar,
+    DiscardRescoreModal,
   },
   props: {
     rescore_session_id: String,
