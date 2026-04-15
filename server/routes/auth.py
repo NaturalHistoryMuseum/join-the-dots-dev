@@ -1,7 +1,6 @@
 import secrets
 
 import msal
-import requests
 from flask import Blueprint, jsonify, make_response, request, session
 from flask import current_app as app
 from flask_jwt_extended import (
@@ -263,50 +262,3 @@ def insert_person_to_existing_user(user_id, first_name, last_name, job_title=Non
     cursor.close()
     connection.close()
     return new_person_id
-
-
-GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
-
-
-@auth_bp.route('/azure/user', methods=['POST'])
-@jwt_required()  # Require login
-def get_user_by_email():
-    """
-    Look up a user in Azure AD by email address.
-    """
-    msal_app = get_msal_app()
-    data = request.get_json()
-    email = data.get('email')
-    if not email:
-        return jsonify({'error': 'Email query parameter is required'}), 400
-
-    # Get an access token for Microsoft Graph
-    token_response = msal_app.acquire_token_for_client(
-        scopes=['https://graph.microsoft.com/.default']
-    )
-
-    if 'access_token' not in token_response:
-        return jsonify(
-            {'error': 'Could not acquire token', 'details': token_response}
-        ), 401
-
-    access_token = token_response['access_token']
-
-    # Call Microsoft Graph
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json',
-    }
-    url = f'https://graph.microsoft.com/v1.0/users/{email}'
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        return jsonify(response.json()), 200
-    else:
-        return jsonify(
-            {
-                'error': 'Failed to fetch user',
-                'status_code': response.status_code,
-                'details': response.json(),
-            }
-        ), response.status_code
