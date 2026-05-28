@@ -49,6 +49,7 @@ def return_data(table):
         'department',
         'division',
         'section',
+        'geographic_origin',
         'vw_weighted_average_history',
         'vw_weighted_average_review',
         'vw_metrics_current',
