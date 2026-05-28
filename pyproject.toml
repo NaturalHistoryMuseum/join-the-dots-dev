@@ -9,7 +9,7 @@ zip-safe = false
 
 [tool.commitizen]
 name = "cz_nhm"
-version = "1.8.1"
+version = "1.8.2"
 tag_format = "v$version"
 update_changelog_on_bump = true
 changelog_incremental = true

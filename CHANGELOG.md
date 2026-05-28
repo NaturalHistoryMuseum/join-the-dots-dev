@@ -1,3 +1,13 @@
+## v1.8.2 (2026-05-28)
+
+### Fix
+
+- **powerbi-api**: add new table to the api
+
+### Style
+
+- ensure nhm font across whole app
+
 ## v1.8.1 (2026-03-26)
 
 ### Fix
