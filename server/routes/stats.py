@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, session
 from flask_jwt_extended import jwt_required
 
 from server.routes.queries.data_queries import *
-from server.utils import fetch_data, refreshJWTToken
+from server.utils import refreshJWTToken
 
 stats_bp = Blueprint('stats', __name__)
 

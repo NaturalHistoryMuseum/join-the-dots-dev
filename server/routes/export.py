@@ -6,12 +6,12 @@ from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_jwt_extended import (
     jwt_required,
 )
+from sqlalchemy import text
 
-from server.database import get_db_connection
+from server.database import db
 from server.routes.queries.data_queries import *
 from server.utils import (
     database_name,
-    fetch_data,
     refreshJWTToken,
 )
 
@@ -36,9 +36,6 @@ def make_export():
                 headers={'Content-Disposition': 'attachment; filename=data.json'},
             )
         else:
-            # Connect to db
-            connection = get_db_connection()
-            cursor = connection.cursor(dictionary=True)
             # Initilise query parts
             selects_query = """
                     SELECT  cu.collection_unit_id,	cu.unit_name,	cu.public_unit_name,	cu.section_id, s.section_name, d.division_id, d.division_name, d2.department_id AS discipline_id, d2.department_name AS discipline_name ,	cu.type_collection_flag,	cu.publish_flag,	cu.informal_taxon,	cu.named_collection,	cu.es_recent_specimen_flag,	cu.archives_fond_ref,
@@ -169,10 +166,10 @@ def make_export():
             # Format the query with the database name
             formatted_query = query.format(database_name=database_name)
             # Execute query
-            cursor.execute(formatted_query)
-            # Fetch rows
-            data = cursor.fetchall()
-            col_names = [desc[0] for desc in cursor.description]
+            result = db.session.execute(text(formatted_query))
+            col_names = list(result.keys())
+            rows = result.all()
+            data = [dict(zip(col_names, row)) for row in rows]
 
             if export_config.get('include_metrics'):
                 if export_config.get('selected_data_type') == 'json':
@@ -295,8 +292,6 @@ def make_export():
                 )
                 response.set_data('\ufeff' + return_data)
 
-            cursor.close()
-            connection.close()
             return response
     except Exception as e:
         return str(e)
@@ -319,7 +314,8 @@ def generate_csv(col_names, data):
 
 
 def generate_ltc_json(export_config):
-    data = fetch_data(generate_ltc_query(export_config))
+    res = db.session.execute(text(generate_ltc_query(export_config))).fetchall()
+    data = [dict(row._mapping) for row in res]
     if data:
         try:
             # Extract JSON
@@ -336,7 +332,7 @@ def generate_ltc_json(export_config):
 
 
 def generate_ltc_query(export_config):
-    ltc_query_start = """
+    ltc_query_start = f"""
     WITH item_count_data AS (
         SELECT cu.collection_unit_id as collection_unit_id, (
                 SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
@@ -484,7 +480,7 @@ def generate_ltc_query(export_config):
                                     )
                             )
     """
-    ltc_measures_query = """,
+    ltc_measures_query = f""",
                             IF (item_count IS NOT NULL AND curatorial_unit_count IS NOT NULL,
                                 JSON_OBJECT(
                                     'ltc:hasMeasurementOrFact',
@@ -543,7 +539,7 @@ def generate_ltc_query(export_config):
                                     )
                             , JSON_OBJECT())
     """
-    ltc_query_origin = """
+    ltc_query_origin = f"""
                         )
                     )
                     FROM {database_name}.collection_unit cu

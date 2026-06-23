@@ -12,10 +12,12 @@ from flask_jwt_extended import (
     set_access_cookies,
     set_refresh_cookies,
 )
+from sqlalchemy import insert, select, update
 
 from server.config import Config
-from server.database import get_db_connection
-from server.utils import database_name, get_user_by_id
+from server.database import db
+from server.models import Person, Users
+from server.utils import get_user_by_id
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -68,83 +70,71 @@ def auth_redirect():
     if 'access_token' in token_response:
         user_info = token_response.get('id_token_claims')
         # Get user from db
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute(
-            f"""SELECT u.*, r.role, r.`level`
-                      FROM {database_name}.users u
-                      LEFT JOIN {database_name}.roles r ON u.role_id = r.role_id
-                      WHERE azure_id = %s
-                   """,
-            (str(user_info['oid']),),
-        )
-        user = cursor.fetchone()
-        person_id = user['person_id'] if user else None
-        cursor.execute('SET @current_person_id = %s', (person_id,))
+        user = db.session.execute(
+            select(Users).where(Users.azure_id == str(user_info['oid']))
+        ).scalar()
 
         if not user:
             # Add user if not present
-            cursor.execute(
-                f'INSERT INTO {database_name}.users (azure_id, email, display_name, role_id) VALUES (%s, %s, %s);',
-                (
-                    user_info['oid'],
-                    user_info['preferred_username'],
-                    user_info['name'],
-                    1,
-                ),
+            db.session.execute(
+                insert(Users).values(
+                    azure_id=user_info['oid'],
+                    email=user_info['preferred_username'],
+                    display_name=user_info['name'],
+                    role_id=1,
+                )
             )
-            connection.commit()
+            db.session.commit()
+            db.session.expire_all()
             # fetch user again
-            cursor.execute(
-                f"""SELECT u.*, r.role, r.`level`
-                      FROM {database_name}.users u
-                      LEFT JOIN {database_name}.roles r ON u.role_id = r.role_id
-                      WHERE azure_id = %s
-                   """,
-                (str(user_info['oid']),),
-            )
-            user = cursor.fetchone()
+            user = db.session.execute(
+                select(Users).where(Users.azure_id == str(user_info['oid']))
+            ).scalar()
         else:
             # Check if the user has a person_id
-            if user['role_id'] > 1 and not user['person_id']:
+            if user.roles.role_id > 1 and not user.person_id:
                 # Add a new person record
                 insert_person_to_existing_user(
-                    user['user_id'],
+                    user.user_id,
                     user_info['name'].split(' ')[0],
                     user_info['name'].split(' ', 1)[1],
                 )
             # Check if name and email are up to date
-            if user['display_name'] != user_info['name']:
-                cursor.execute(
-                    f'UPDATE {database_name}.users SET display_name = %s WHERE user_id = %s',
-                    (user_info['name'], user['user_id']),
+            if user.display_name != user_info['name']:
+                db.session.execute(
+                    update(Users)
+                    .where(Users.user_id == user.user_id)
+                    .values(display_name=user_info['name'])
                 )
-                connection.commit()
-            if user['email'] != user_info['preferred_username']:
-                cursor.execute(
-                    f'UPDATE {database_name}.users SET email = %s WHERE user_id = %s',
-                    (user_info['preferred_username'], user['user_id']),
+                db.session.commit()
+            if user.email != user_info['preferred_username']:
+                db.session.execute(
+                    update(Users)
+                    .where(Users.user_id == user.user_id)
+                    .values(email=user_info['preferred_username'])
                 )
-                connection.commit()
+                db.session.commit()
         # Store user info in session
-        session['user'] = user
+        user_data = {
+            'user_id': user.user_id,
+            'display_name': user.display_name,
+            'email': user.email,
+            'role_id': user.role_id,
+            'role': user.roles.role,
+            'division_id': user.division_id,
+            'level': user.roles.level,
+        }
+        session['user'] = user_data
         session.modified = True
         # Generate JWT token
 
         # Create access token with user identity and extra claims
         jwt_token = create_access_token(
-            identity=str(user['user_id']),
-            additional_claims={
-                'display_name': user['display_name'],
-                'email': user['email'],
-                'role_id': user['role_id'],
-                'role': user['role'],
-                'division_id': user['division_id'],
-                'level': user['level'],
-            },
+            identity=str(user.user_id),
+            additional_claims=user_data,
         )
         # Create refresh token
-        refresh_token = create_refresh_token(identity=str(user['user_id']))
+        refresh_token = create_refresh_token(identity=str(user.user_id))
         # Store in session for later retrieval
         session['jwt_token'] = jwt_token
 
@@ -203,65 +193,21 @@ def refresh_token():
     return response
 
 
-def insert_user(
-    azure_id,
-    email,
-    role_id=1,
-    division_id=None,
-    first_name=None,
-    last_name=None,
-    job_title=None,
-):
-    """
-    Insert a new user into the database.
-    """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute('SET @current_person_id = %s', (None,))
-    if role_id > 1:
-        cursor.execute(
-            f'INSERT INTO {database_name}.person (first_name, last_name, job_title) VALUES (%s, %s, %s)',
-            (first_name, last_name, job_title),
-        )
-        connection.commit()
-        new_person_id = cursor.lastrowid
-    cursor.execute('SET @current_person_id = %s', (new_person_id,))
-    cursor.execute(
-        f'INSERT INTO {database_name}.users (azure_id, email, role_id, division_id, person_id) VALUES (%s, %s, %s, %s, %s);',
-        (
-            azure_id,
-            email,
-            role_id,
-            division_id,
-            new_person_id if new_person_id is not None else None,
-        ),
-        True,
-    )
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
 def insert_person_to_existing_user(user_id, first_name, last_name, job_title=None):
     """
     Insert a new person into the database.
     """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute('SET @current_person_id = %s', (None,))
-    cursor.execute(
-        f'INSERT INTO {database_name}.person (first_name, last_name, job_title) VALUES (%s, %s, %s)',
-        (first_name, last_name, job_title),
+    result = db.session.execute(
+        insert(Person)
+        .values(first_name=first_name, last_name=last_name, job_title=job_title)
+        .returning(Person.person_id)
     )
-    connection.commit()
-    new_person_id = cursor.lastrowid
-    cursor.execute(
-        f'UPDATE {database_name}.users SET person_id = %s WHERE user_id = %s',
-        (new_person_id, user_id),
+    new_person_id = result.scalar()
+
+    db.session.execute(
+        insert(Users).where(Users.user_id == user_id).values(person_id=new_person_id)
     )
-    connection.commit()
-    cursor.close()
-    connection.close()
+    db.session.commit()
     return new_person_id
 
 

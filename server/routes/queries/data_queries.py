@@ -1,4 +1,8 @@
-LTC_EXPORT = """
+from server.config import Config
+
+database_name = Config.MYSQL_DB
+
+LTC_EXPORT = f"""
 WITH item_count_data AS (
 	SELECT cu.collection_unit_id as collection_unit_id, (
 			SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
@@ -240,7 +244,7 @@ SELECT
 AS ltc_export;
 """
 
-UNIT_SCORES = """
+UNIT_SCORES = f"""
 					SELECT
                             `cu`.`collection_unit_id` AS `collection_unit_id`,
                             `di`.`division_name` AS `division_name`,
@@ -342,14 +346,14 @@ UNIT_SCORES = """
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
 --                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
-                            (`cu`.`unit_active` = 'yes') AND cu.collection_unit_id = %i
+                            (`cu`.`unit_active` = 'yes') AND cu.collection_unit_id = :collection_unit_id
                         order by
                             `se`.`section_name`,
                             `cu`.`sort_order`,
                             `cu`.`collection_unit_id`;
                    """
 
-RESCORE_UNITS = """
+RESCORE_UNITS = f"""
 					SELECT
                             `cu`.`collection_unit_id` AS `collection_unit_id`,
                             `di`.`division_name` AS `division_name`,
@@ -630,7 +634,7 @@ RESCORE_UNITS = """
 --                        left join `{database_name}`.`vw_metrics_current` `vmc` on
 --                            ((`{database_name}`.`vmc`.`collection_unit_id` = `cu`.`collection_unit_id`))
                         where
-                            (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = %i AND rs.status = 'in_progress'
+                            (`cu`.`unit_active` = 'yes') AND rsu.rescore_session_id = :rescore_session_id AND rs.status = 'in_progress'
                         order by
                             `se`.`section_name`,
                             `cu`.`sort_order`,

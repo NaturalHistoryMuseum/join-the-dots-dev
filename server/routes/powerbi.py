@@ -1,7 +1,8 @@
 from flask import Blueprint, abort, jsonify, request
+from sqlalchemy import text
 
 from server.config import Config
-from server.database import get_db_connection
+from server.database import db
 from server.utils import database_name
 
 powerbi_bp = Blueprint('powerbi', __name__)
@@ -49,6 +50,7 @@ def return_data(table):
         'department',
         'division',
         'section',
+        'geographic_origin',
         'vw_weighted_average_history',
         'vw_weighted_average_review',
         'vw_metrics_current',
@@ -69,12 +71,6 @@ def return_data(table):
         # Fetch the data
         query_template = f'SELECT * FROM {database_name}.{{table}}'
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(query_template.format(table=table))
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
+    data = db.session.execute(text(query_template.format(table=table))).fetchall()
     # Return the data as JSON
-    return jsonify(data)
+    return jsonify([dict(row._mapping) for row in data])
