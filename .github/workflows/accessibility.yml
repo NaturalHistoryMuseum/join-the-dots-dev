@@ -41,6 +41,7 @@ jobs:
         run: |
           python -m server.run &
           sleep 5
+          cat flask.log 
 
       - name: Start frontend
         run: |
