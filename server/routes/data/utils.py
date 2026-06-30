@@ -87,6 +87,9 @@ def create_rescore_session(units, user_id):
 
 
 def complete_draft_unit(unit_id, user_id, person_id):
+    """
+    Remove draft tag and upgrade the data points (scores, metrics, comment) from drafts.
+    """
     try:
         # Get the rescore_session_id
         rescore_session = RescoreSession.query.filter(
@@ -137,6 +140,9 @@ def column_exists(table_name, column_name):
 
 
 def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
+    """
+    Duplicate all aspects of a unit.
+    """
     # Create a new unit
 
     original_unit = CollectionUnit.query.filter(
@@ -215,7 +221,6 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
         db.session.flush()
 
         # Get the last id
-        # new_criterion_id = cursor.lastrowid
         new_criterion_id = new_uac.unit_assessment_criterion_id
 
         # Copy ranks belonging to this criterion
@@ -255,6 +260,9 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
 
 
 def close_rescore(rescore_session_id):
+    """
+    Mark a rescore session as completed.
+    """
     # Remove draft categories
     UnitCategoryDraft.query.filter(
         UnitCategoryDraft.rescore_session_units.has(
@@ -275,6 +283,11 @@ def close_rescore(rescore_session_id):
 
 
 def upgrade_draft_comments(rescore_session_id):
+    """
+    Duplicate comments from the draft table to the main table.
+
+    Remove draft comment.
+    """
     # Insert comments
     date_added = datetime.now()
     existing_unit_comment_drafts = UnitCommentDraft.query.filter(
@@ -310,6 +323,11 @@ def upgrade_draft_comments(rescore_session_id):
 
 
 def upgrade_draft_metrics(rescore_session_id):
+    """
+    Duplicate metrics from the draft table to the main table.
+
+    Remove draft metrics.
+    """
     # Set old metrics that are about to be inserted as not current
     date_now = datetime.now()
     # Get the draft metrics
@@ -348,6 +366,11 @@ def upgrade_draft_metrics(rescore_session_id):
 
 
 def upgrade_draft_ranks(rescore_session_id, person_id):
+    """
+    Duplicate ranks from the draft table to the main table.
+
+    Remove draft ranks.
+    """
     # Set old ranks that are about to be inserted as not current
     date_now = datetime.now()
     # Get the draft ranks
@@ -423,6 +446,9 @@ def upgrade_draft_ranks(rescore_session_id, person_id):
 def add_structural_change(
     person_id, higher_operation, operation, collection_unit_id, date, comment=None
 ):
+    """
+    Insert new structural change to the relevant tables.
+    """
     # Add structural change entry
     new_change_higher = StructuralChangesHigher(
         higher_operation=higher_operation,
@@ -453,6 +479,11 @@ def add_structural_change(
 
 
 def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False):
+    """
+    Save draft rank changes.
+
+    It will insert a new row if none exists or update if it does.
+    """
     try:
         # Only check if it exists if we dont know if we need to insert - saves time
         if not insert_only:
@@ -505,6 +536,11 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
 
 
 def handle_draft_metrics(rescore_session_units_id, metric_json):
+    """
+    Save draft metrics changes.
+
+    It will insert a new row if none exists or update if it does.
+    """
     try:
         # Loop through the metrics and update or insert them
         for metric in metric_json:
@@ -544,6 +580,11 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
 
 
 def handle_draft_comment(rescore_session_units_id, unit_comment):
+    """
+    Save draft comment changes.
+
+    It will insert a new row if none exists or update if it does.
+    """
     try:
         existing_comment = UnitCommentDraft.query.filter(
             UnitCommentDraft.rescore_session_units_id == rescore_session_units_id
@@ -566,6 +607,9 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
 
 
 def update_unit_assigned(unit_id, assigned_users):
+    """
+    Update the user assigned to a unit.
+    """
     # Get the current assigned users
     query = select(AssignedUnits).where(AssignedUnits.collection_unit_id == unit_id)
     current_assigned = db.session.execute(query).scalars().all()

@@ -11,6 +11,9 @@ user_bp = Blueprint('user', __name__)
 @user_bp.route('/edit-user-role', methods=['POST'])
 @jwt_required()
 def edit_user_role():
+    """
+    Amend a users role.
+    """
     data = request.get_json()
     role_id = data.get('role_id')
     user_id = data.get('user_id')
@@ -33,6 +36,9 @@ def edit_user_role():
 @user_bp.route('/update-division', methods=['POST'])
 @jwt_required()
 def edit_user_division():
+    """
+    Update a users assigned division.
+    """
     data = request.get_json()
     division_id = data.get('division_id')
     # Get user_id from the jwt token
@@ -48,6 +54,9 @@ def edit_user_division():
 @user_bp.route('/upgrade-viewer', methods=['POST'])
 @jwt_required()
 def upgrade_viewer():
+    """
+    Increase a users role from viewer to editor and assign a division.
+    """
     data = request.get_json()
     user_id = data.get('user_id')
     division_id = data.get('division_id')
@@ -64,6 +73,9 @@ def upgrade_viewer():
 @user_bp.route('/all-viewers', methods=['GET'])
 @jwt_required()
 def all_viewers():
+    """
+    Get all users with the viewer role.
+    """
     query = (
         select(*Users.__table__.columns, Roles.role, literal(False).label('selected'))
         .join(Roles, Roles.role_id == Users.role_id)

@@ -21,12 +21,18 @@ export_bp = Blueprint('export', __name__)
 # After a request, refresh the JWT token if it is about to expire
 @export_bp.after_request
 def refresh_expiring_jwts(response):
+    """
+    Refresh JWT Token.
+    """
     return refreshJWTToken(response)
 
 
 @export_bp.route('/data-export', methods=['POST'])
 @jwt_required()
 def make_export():
+    """
+    Build an sql query to export selected data.
+    """
     export_config = request.get_json()
     try:
         if export_config.get('selected_data_type') == 'ltc':
@@ -332,6 +338,10 @@ def generate_ltc_json(export_config):
 
 
 def generate_ltc_query(export_config):
+    """
+    Generate the LtC qery.
+    """
+
     ltc_query_start = f"""
     WITH item_count_data AS (
         SELECT cu.collection_unit_id as collection_unit_id, (
@@ -576,6 +586,9 @@ def generate_ltc_query(export_config):
 
 
 def where_claused(export_config):
+    """
+    Build the where clause of the query.
+    """
     # Init array
     where_clauses = []
     # Check filters and add if present

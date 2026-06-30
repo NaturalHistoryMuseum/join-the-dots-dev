@@ -9,6 +9,9 @@ powerbi_bp = Blueprint('powerbi', __name__)
 
 
 def require_api_key(f):
+    """
+    Check allowed api keys are present in request.
+    """
     from functools import wraps
 
     @wraps(f)
@@ -28,6 +31,9 @@ def require_api_key(f):
 @powerbi_bp.route('/data/<table>')
 @require_api_key
 def return_data(table):
+    """
+    Return requested table to facilitate power bi dashboard.
+    """
     allowed_tables = [
         'unit_assessment_criterion',
         'unit_assessment_rank',

@@ -40,6 +40,9 @@ def refreshJWTToken(response):
 
 
 def get_user_by_id(user_id):
+    """
+    Return the full users details.
+    """
     query = f"""SELECT u.*, r.role, r.`level`, p.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
             (
                 SELECT JSON_ARRAYAGG( au.collection_unit_id )
@@ -66,6 +69,9 @@ def get_user_by_id(user_id):
 
 
 def get_person_id(user_id):
+    """
+    Return only the person_id for a user.
+    """
     user = Users.query.filter(Users.user_id == user_id).first()
     person_id = user.person_id
     return person_id

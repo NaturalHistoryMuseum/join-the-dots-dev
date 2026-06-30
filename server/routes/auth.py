@@ -19,6 +19,7 @@ from server.database import db
 from server.models import Person, Users
 from server.utils import get_user_by_id
 
+GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
 auth_bp = Blueprint('auth', __name__)
 
 SCOPES = []
@@ -184,6 +185,9 @@ def logout():
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token():
+    """
+    Create a new access token.
+    """
     user_id = get_jwt_identity()
     new_access_token = create_access_token(identity=user_id)
     response = jsonify({'msg': 'Token refreshed'})
@@ -209,9 +213,6 @@ def insert_person_to_existing_user(user_id, first_name, last_name, job_title=Non
     )
     db.session.commit()
     return new_person_id
-
-
-GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
 
 
 @auth_bp.route('/azure/user', methods=['POST'])
