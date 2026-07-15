@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import text
+from sqlalchemy import text, update
 
 from server.database import db
 from server.models import (
@@ -47,13 +47,18 @@ def delete_units():
 
     try:
         for unit_id in unit_ids:
-            CollectionUnit.query.filter(
-                CollectionUnit.assigned_units.any(
-                    AssignedUnits.user_id == user_id,
-                ),
-                CollectionUnit.collection_unit_id == unit_id,
-            ).update({'unit_active': 'no'})
-
+            db.session.execute(
+                update(CollectionUnit)
+                .where(
+                    CollectionUnit.collection_unit_id == unit_id,
+                    CollectionUnit.assigned_units.any(
+                        AssignedUnits.user_id == user_id,
+                    )
+                )
+                .values(
+                    unit_active='no',
+                )
+            )
             # Add the change to the structural changes log
             add_structural_change(
                 person_id=person_id,
@@ -85,9 +90,15 @@ def update_assessed_date():
     date_now = datetime.now()
     try:
         # Update the assessed date
-        UnitAssessmentCriterion.query.filter(
-            UnitAssessmentCriterion.collection_unit_id.in_(unit_ids)
-        ).update({'date_assessed': date_now})
+        db.session.execute(
+            update(UnitAssessmentCriterion)
+            .where(
+                UnitAssessmentCriterion.collection_unit_id.in_(unit_ids)
+            )
+            .values(
+                date_assessed=date_now,
+            )
+        )
         db.session.commit()
         return jsonify(
             {'message': 'Assessed date updated successfully', 'success': True}
@@ -246,9 +257,12 @@ def submit_draft_unit():
                 and key != 'collection_unit_id'
                 and column_exists(table_name='collection_unit', column_name=key)
             }
-            CollectionUnit.query.filter(
-                CollectionUnit.collection_unit_id == unit_id
-            ).update(filtered)
+
+            db.session.execute(
+                update(CollectionUnit)
+                .where(CollectionUnit.collection_unit_id == unit_id)
+                .values(**filtered)
+            )
             db.session.flush()
             # Create the rescore session if we are adding the draft
             category_draft_ids = None
@@ -343,9 +357,11 @@ def submit_field():
 
     try:
         if column_exists(column_name=field_name, table_name='collection_unit'):
-            CollectionUnit.query.filter(
-                CollectionUnit.collection_unit_id == collection_unit_id
-            ).update({field_name: new_value})
+            db.session.execute(
+                update(CollectionUnit)
+                .where(CollectionUnit.collection_unit_id == collection_unit_id)
+                .values(**{field_name: new_value})
+            )
             db.session.commit()
             return jsonify({'success': True})
         else:
@@ -406,9 +422,15 @@ def split_unit():
             db.session.add(new_change_basic)
             db.session.flush()
 
-        CollectionUnit.query.filter(
-            CollectionUnit.collection_unit_id == unit_id
-        ).update({'unit_active': 'no'})
+        db.session.execute(
+            update(CollectionUnit)
+            .where(
+                CollectionUnit.collection_unit_id == unit_id
+            )
+            .values(
+                unit_active='no',
+            )
+        )
         # Basic structural change
         change_ = StructuralChangesBasic(
             structural_changes_higher_id=structural_changes_higher_id,
@@ -463,9 +485,15 @@ def combine_unit():
         db.session.flush()
         # Mark old units as not active
         for unit_id in unit_id_list:
-            CollectionUnit.query.filter(
-                CollectionUnit.collection_unit_id == unit_id
-            ).update({'unit_active': 'no'})
+            db.session.execute(
+                update(CollectionUnit)
+                .where(
+                    CollectionUnit.collection_unit_id == unit_id
+                )
+                .values(
+                    unit_active='no',
+                )
+            )
             # Basic structural change
             change_ = StructuralChangesBasic(
                 structural_changes_higher_id=structural_changes_higher_id,

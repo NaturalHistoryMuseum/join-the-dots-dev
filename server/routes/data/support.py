@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import desc
+from sqlalchemy import desc, update
 
 from server.database import db
 
@@ -65,12 +65,16 @@ def update_issue():
             date_resolved, '%a, %d %b %Y %H:%M:%S %Z'
         )
     try:
-        issue = Issues.query.filter(Issues.issue_id == issue_id).update(
-            {
-                'visible': visible,
-                'status': status,
-                'date_resolved': formatted_date_resolved,
-            }
+        db.session.execute(
+            update(Issues)
+            .where(
+                Issues.issue_id == issue_id
+            )
+            .values(
+                visible=visible,
+                status=status,
+                date_resolved=formatted_date_resolved,
+            )
         )
         db.session.commit()
         return jsonify({'message': 'Issue updated successfully', 'success': True}), 200
@@ -133,10 +137,16 @@ def update_guidance():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     try:
-        guidance = HelpGuidance.query.filter(
-            HelpGuidance.guidance_id == guidance_id
-        ).update(
-            {'header': header, 'guidance': guidance, 'recording_url': recording_url}
+        db.session.execute(
+            update(HelpGuidance)
+            .where(
+                HelpGuidance.guidance_id == guidance_id
+            )
+            .values(
+                header=header,
+                guidance=guidance,
+                recording_url=recording_url,
+            )
         )
         db.session.commit()
         return jsonify(
@@ -237,9 +247,16 @@ def update_change_log():
     title = data.get('title')
     log = data.get('log')
     try:
-        change_log = ChangeLog.query.filter(
-            ChangeLog.change_log_id == change_log_id
-        ).update({'title': title, 'log': log})
+        db.session.execute(
+            update(ChangeLog)
+            .where(
+                ChangeLog.change_log_id == change_log_id
+            )
+            .values(
+                title=title,
+                log=log,
+            )
+        )
         db.session.commit()
         return jsonify(
             {'message': 'Change log updated successfully', 'success': True}
@@ -294,8 +311,15 @@ def update_enhancements():
     description = data.get('description')
     expected_date = data.get('expected_date')
     try:
-        Enhancements.query.filter(Enhancements.enhancement_id == enhancement_id).update(
-            {'description': description, 'expected_date': expected_date}
+        db.session.execute(
+            update(Enhancements)
+            .where(
+                Enhancements.enhancement_id == enhancement_id
+            )
+            .values(
+                description=description,
+                expected_date=expected_date,
+            )
         )
         db.session.commit()
         return jsonify(

@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from flask import jsonify
-from sqlalchemy import and_, delete, desc, insert, select, text
+from sqlalchemy import and_, delete, desc, insert, select, text, update
 
 from server.config import Config
 from server.database import db
@@ -101,9 +101,15 @@ def complete_draft_unit(unit_id, user_id, person_id):
         ).first()
         rescore_session_id = rescore_session.rescore_session_id
 
-        unit = CollectionUnit.query.filter(
-            CollectionUnit.collection_unit_id == unit_id
-        ).update({'draft_unit': 0})
+        db.session.execute(
+            update(CollectionUnit)
+            .where(
+                CollectionUnit.collection_unit_id == unit_id
+            )
+            .values(
+                draft_unit='no',
+            )
+        )
         db.session.flush()
 
         # Submit draft comments
@@ -276,9 +282,17 @@ def close_rescore(rescore_session_id):
     ).delete()
     # Close the rescore session
     completed_at = datetime.now()
-    RescoreSession.query.filter(
-        RescoreSession.rescore_session_id == rescore_session_id
-    ).update({'status': 'complete', 'completed_at': completed_at})
+    
+    db.session.execute(
+        update(RescoreSession)
+        .where(
+            RescoreSession.rescore_session_id == rescore_session_id
+        )
+        .values(
+            status='complete',
+            completed_at=completed_at,
+        )
+    )
     db.session.flush()
 
 
@@ -343,14 +357,20 @@ def upgrade_draft_metrics(rescore_session_id):
     ).all()
     for metric_draft in draft_unit_metrics:
         # Set old metrics that are about to be inserted as not current
-        CollectionUnitMetric.query.filter(
-            CollectionUnitMetric.collection_unit_id
-            == metric_draft.rescore_session_units.collection_unit_id,
+        db.session.execute(
+            update(CollectionUnitMetric)
+            .where(
+                CollectionUnitMetric.collection_unit_id == metric_draft.rescore_session_units.collection_unit_id,
             CollectionUnitMetric.collection_unit_metric_definition_id
             == metric_draft.collection_unit_metric_definition_id,
             CollectionUnitMetric.current == 'yes',
-        ).update({'current': 'no', 'date_to': date_now})
-
+            )
+            .values(
+                current='no',
+                date_to=date_now,
+            )
+        )
+        db.session.flush()
         # Insert metrics from drafts
         new_metrics = CollectionUnitMetric(
             collection_unit_id=metric_draft.rescore_session_units.collection_unit_id,
@@ -389,11 +409,18 @@ def upgrade_draft_ranks(rescore_session_id, person_id):
 
     for draft_rank in draft_rows:
         # Set old ranks that are about to be inserted as not current
-        UnitAssessmentCriterion.query.filter(
-            UnitAssessmentCriterion.collection_unit_id
-            == draft_rank.unit_category_draft.rescore_session_units.collection_unit_id,
-            UnitAssessmentCriterion.criterion_id == draft_rank.criterion_id,
-        ).update({'current': 'no', 'date_to': date_now})
+        db.session.execute(
+            update(UnitAssessmentCriterion)
+            .where(
+                UnitAssessmentCriterion.collection_unit_id
+                == draft_rank.unit_category_draft.rescore_session_units.collection_unit_id,
+                UnitAssessmentCriterion.criterion_id == draft_rank.criterion_id,
+            )
+            .values(
+                current='no',
+                date_to=date_now,
+            )
+        )
 
     # Group rows by collection_unit_id and criterion_id
     grouped_assessment = defaultdict(list)
@@ -502,16 +529,19 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
                 for db_rank in data:
                     if db_rank.rank_id == sumbit_rank['rank_id']:
                         updated_at = datetime.now()
-                        UnitRankDraft.query.filter(
-                            UnitRankDraft.category_draft_id == category_draft_id,
-                            UnitRankDraft.criterion_id == criterion_id,
-                            UnitRankDraft.rank_id == rank_id,
-                        ).update(
-                            {
-                                'percentage': percentage,
-                                'comment': comment,
-                                'updated_at': updated_at,
-                            }
+                        
+                        db.session.execute(
+                            update(UnitRankDraft)
+                            .where(
+                                UnitRankDraft.category_draft_id == category_draft_id,
+                                UnitRankDraft.criterion_id == criterion_id,
+                                UnitRankDraft.rank_id == rank_id,
+                            )
+                            .values(
+                                percentage=percentage,
+                                comment=comment,
+                                updated_at=updated_at,
+                            )
                         )
                         in_db = True
 
