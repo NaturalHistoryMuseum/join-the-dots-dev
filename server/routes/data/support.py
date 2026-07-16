@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import desc, update
+from sqlalchemy import delete, desc, update
 
 from server.database import db
 
@@ -67,9 +67,7 @@ def update_issue():
     try:
         db.session.execute(
             update(Issues)
-            .where(
-                Issues.issue_id == issue_id
-            )
+            .where(Issues.issue_id == issue_id)
             .values(
                 visible=visible,
                 status=status,
@@ -139,9 +137,7 @@ def update_guidance():
     try:
         db.session.execute(
             update(HelpGuidance)
-            .where(
-                HelpGuidance.guidance_id == guidance_id
-            )
+            .where(HelpGuidance.guidance_id == guidance_id)
             .values(
                 header=header,
                 guidance=guidance,
@@ -192,7 +188,9 @@ def remove_guidance():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     try:
-        HelpGuidance.query.filter(HelpGuidance.guidance_id == guidance_id).delete()
+        db.session.execute(
+            delete(HelpGuidance).where(HelpGuidance.guidance_id == guidance_id)
+        )
         db.session.commit()
         return jsonify({'message': 'Guidance updated removed', 'success': True}), 200
     except Exception as e:
@@ -249,9 +247,7 @@ def update_change_log():
     try:
         db.session.execute(
             update(ChangeLog)
-            .where(
-                ChangeLog.change_log_id == change_log_id
-            )
+            .where(ChangeLog.change_log_id == change_log_id)
             .values(
                 title=title,
                 log=log,
@@ -313,9 +309,7 @@ def update_enhancements():
     try:
         db.session.execute(
             update(Enhancements)
-            .where(
-                Enhancements.enhancement_id == enhancement_id
-            )
+            .where(Enhancements.enhancement_id == enhancement_id)
             .values(
                 description=description,
                 expected_date=expected_date,

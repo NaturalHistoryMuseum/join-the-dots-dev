@@ -103,9 +103,7 @@ def complete_draft_unit(unit_id, user_id, person_id):
 
         db.session.execute(
             update(CollectionUnit)
-            .where(
-                CollectionUnit.collection_unit_id == unit_id
-            )
+            .where(CollectionUnit.collection_unit_id == unit_id)
             .values(
                 draft_unit='no',
             )
@@ -270,24 +268,24 @@ def close_rescore(rescore_session_id):
     Mark a rescore session as completed.
     """
     # Remove draft categories
-    UnitCategoryDraft.query.filter(
-        UnitCategoryDraft.rescore_session_units.has(
-            RescoreSessionUnits.rescore_session.has(
-                and_(
-                    RescoreSession.rescore_session_id == rescore_session_id,
-                    RescoreSession.status == 'in_progress',
+    db.session.execute(
+        delete(UnitCategoryDraft).where(
+            UnitCategoryDraft.rescore_session_units.has(
+                RescoreSessionUnits.rescore_session.has(
+                    and_(
+                        RescoreSession.rescore_session_id == rescore_session_id,
+                        RescoreSession.status == 'in_progress',
+                    )
                 )
             )
         )
-    ).delete()
+    )
     # Close the rescore session
     completed_at = datetime.now()
-    
+
     db.session.execute(
         update(RescoreSession)
-        .where(
-            RescoreSession.rescore_session_id == rescore_session_id
-        )
+        .where(RescoreSession.rescore_session_id == rescore_session_id)
         .values(
             status='complete',
             completed_at=completed_at,
@@ -324,16 +322,18 @@ def upgrade_draft_comments(rescore_session_id):
         db.session.add(new_comment)
 
     # Remove draft comments
-    UnitCommentDraft.query.filter(
-        UnitCommentDraft.rescore_session_units.has(
-            RescoreSessionUnits.rescore_session.has(
-                and_(
-                    RescoreSession.rescore_session_id == rescore_session_id,
-                    RescoreSession.status == 'in_progress',
+    db.session.execute(
+        delete(UnitCategoryDraft).where(
+            UnitCategoryDraft.rescore_session_units.has(
+                RescoreSessionUnits.rescore_session.has(
+                    and_(
+                        RescoreSession.rescore_session_id == rescore_session_id,
+                        RescoreSession.status == 'in_progress',
+                    )
                 )
             )
         )
-    ).delete()
+    )
 
 
 def upgrade_draft_metrics(rescore_session_id):
@@ -360,10 +360,11 @@ def upgrade_draft_metrics(rescore_session_id):
         db.session.execute(
             update(CollectionUnitMetric)
             .where(
-                CollectionUnitMetric.collection_unit_id == metric_draft.rescore_session_units.collection_unit_id,
-            CollectionUnitMetric.collection_unit_metric_definition_id
-            == metric_draft.collection_unit_metric_definition_id,
-            CollectionUnitMetric.current == 'yes',
+                CollectionUnitMetric.collection_unit_id
+                == metric_draft.rescore_session_units.collection_unit_id,
+                CollectionUnitMetric.collection_unit_metric_definition_id
+                == metric_draft.collection_unit_metric_definition_id,
+                CollectionUnitMetric.current == 'yes',
             )
             .values(
                 current='no',
@@ -529,7 +530,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
                 for db_rank in data:
                     if db_rank.rank_id == sumbit_rank['rank_id']:
                         updated_at = datetime.now()
-                        
+
                         db.session.execute(
                             update(UnitRankDraft)
                             .where(
