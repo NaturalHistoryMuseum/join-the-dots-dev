@@ -3,7 +3,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import case, func, select, union_all, update
+from sqlalchemy import case, desc, func, select, union_all, update
 from sqlalchemy.orm import joinedload
 
 from server.database import db
@@ -34,7 +34,6 @@ from server.models import (
     UnitAssessmentCriterion,
     Users,
 )
-from server.routes.queries.data_queries import UNIT_SCORES
 from server.schemas import *
 from server.utils import (
     get_user_by_id,
@@ -44,17 +43,191 @@ from . import data_bp
 from .utils import *
 
 
-@data_bp.route('/unit-scores/<unitId>', methods=['GET'])
+@data_bp.route('/unit-scores/<unit_id>', methods=['GET'])
 @jwt_required()
-def get_unit_scores(unitId):
+def get_unit_scores(unit_id):
     """
     Get all unit data, including scores and metrics.
     """
-    data = db.session.execute(
-        text(UNIT_SCORES), {'collection_unit_id': unitId}
-    ).fetchall()
+    find_assessor_subquery = (
+        select(UnitAssessmentCriterion.assessor_id.distinct())
+        .where(
+            UnitAssessmentCriterion.collection_unit_id
+            == CollectionUnit.collection_unit_id,
+            UnitAssessmentCriterion.current == 'yes',
+        )
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
 
-    return jsonify([dict(row._mapping) for row in data])
+    select_assessor_subquery = (
+        select(func.concat(Person.first_name, ' ', Person.last_name))
+        .where(Person.person_id.in_(find_assessor_subquery))
+        .limit(1)
+        .correlate(Person)
+        .scalar_subquery()
+    )
+
+    metric_subquery = (
+        select(
+            func.JSON_ARRAYAGG(
+                func.JSON_OBJECT(
+                    'collection_unit_metric_id',
+                    CollectionUnitMetric.collection_unit_metric_id,
+                    'metric_value',
+                    CollectionUnitMetric.metric_value,
+                    'confidence_level',
+                    CollectionUnitMetric.confidence_level,
+                    'date_from',
+                    func.date(CollectionUnitMetric.date_from),
+                    'metric_name',
+                    CollectionUnitMetricDefinition.metric_name,
+                    'metric_definition',
+                    CollectionUnitMetricDefinition.metric_definition,
+                    'metric_units',
+                    CollectionUnitMetricDefinition.metric_units,
+                    'metric_datatype',
+                    CollectionUnitMetricDefinition.metric_datatype,
+                    'collection_unit_metric_definition_id',
+                    CollectionUnitMetric.collection_unit_metric_definition_id,
+                )
+            )
+        )
+        .join(
+            CollectionUnitMetricDefinition,
+            CollectionUnitMetricDefinition.collection_unit_metric_definition_id
+            == CollectionUnitMetric.collection_unit_metric_definition_id,
+        )
+        .where(
+            CollectionUnit.collection_unit_id == CollectionUnit.collection_unit_id,
+            CollectionUnitMetric.current == 'yes',
+        )
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
+
+    comment_subquery = (
+        select(UnitComment.unit_comment)
+        .where(UnitComment.collection_unit_id == CollectionUnit.collection_unit_id)
+        .order_by(desc(UnitComment.date_added))
+        .limit(1)
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
+
+    comment_date_subquery = (
+        select(UnitComment.date_added)
+        .where(UnitComment.collection_unit_id == CollectionUnit.collection_unit_id)
+        .order_by(desc(UnitComment.date_added))
+        .limit(1)
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
+    assessment_crit_subquery = (
+        select(UnitAssessmentCriterion.unit_assessment_criterion_id)
+        .where(
+            UnitAssessmentCriterion.collection_unit_id
+            == CollectionUnit.collection_unit_id,
+            UnitAssessmentCriterion.current == 'yes',
+        )
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
+    ranks_subquery = (
+        select(
+            func.JSON_ARRAYAGG(
+                func.JSON_OBJECT(
+                    'percentage',
+                    case(
+                        (UnitAssessmentRank.percentage == 0, None),
+                        else_=UnitAssessmentRank.percentage,
+                    ),
+                    'rank_id',
+                    UnitAssessmentRank.rank_id,
+                    'rank_value',
+                    Rank.rank_value,
+                    'comment',
+                    UnitAssessmentRank.comment,
+                    'definition',
+                    Rank.definition,
+                    'criterion_id',
+                    Rank.criterion_id,
+                    'date_assessed',
+                    case(
+                        (
+                            UnitAssessmentCriterion.date_assessed == None,
+                            func.date(UnitAssessmentCriterion.date_from),
+                        ),
+                        else_=func.date(UnitAssessmentCriterion.date_assessed),
+                    ),
+                )
+            )
+        )
+        .select_from(UnitAssessmentCriterion)
+        .join(
+            UnitAssessmentRank,
+            UnitAssessmentRank.unit_assessment_criterion_id
+            == UnitAssessmentCriterion.unit_assessment_criterion_id,
+        )
+        .join(Rank, Rank.rank_id == UnitAssessmentRank.rank_id)
+        .where(
+            UnitAssessmentCriterion.collection_unit_id
+            == CollectionUnit.collection_unit_id,
+            UnitAssessmentRank.unit_assessment_criterion_id.in_(
+                assessment_crit_subquery
+            ),
+            UnitAssessmentRank.rank_id.in_(select(Rank.rank_id)),
+        )
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
+
+    query = (
+        select(
+            CollectionUnit,
+            Division,
+            Section,
+            Users,
+            CuratorialUnitDefinition,
+            select_assessor_subquery.label('assessor'),
+            metric_subquery.label('metric_json'),
+            comment_subquery.label('unit_comment'),
+            comment_date_subquery.label('unit_comment_date_added'),
+            ranks_subquery.label('ranks_json'),
+        )
+        .join(Section, Section.section_id == CollectionUnit.section_id)
+        .join(Division, Division.division_id == Section.division_id)
+        .join(Users, Users.user_id == CollectionUnit.responsible_curator_id)
+        .join(
+            CuratorialUnitDefinition,
+            CuratorialUnitDefinition.curatorial_unit_definition_id
+            == CollectionUnit.curatorial_unit_definition_id,
+        )
+        .where(
+            CollectionUnit.unit_active == 'yes',
+            CollectionUnit.collection_unit_id == unit_id,
+        )
+    )
+
+    data = db.session.execute(query).all()
+
+    return [
+        {
+            'collection_unit_id': row.CollectionUnit.collection_unit_id,
+            'division_name': row.Division.division_name,
+            'section_name': row.Section.section_name,
+            'responsible_curator': row.Users.display_name,
+            'curatorial_unit_type': row.CuratorialUnitDefinition.description,
+            'unit_name': row.CollectionUnit.unit_name,
+            'sort_order': row.CollectionUnit.sort_order,
+            'assessor': row.assessor,
+            'metric_json': row.metric_json,
+            'unit_comment': row.unit_comment,
+            'unit_comment_date_added': row.unit_comment_date_added,
+            'ranks_json': row.ranks_json,
+        }
+        for row in data
+    ]
 
 
 @data_bp.route('/unit-department', methods=['GET'])
