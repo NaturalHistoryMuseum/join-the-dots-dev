@@ -2,7 +2,19 @@ from collections import defaultdict
 from datetime import datetime
 
 from flask import jsonify
-from sqlalchemy import and_, delete, desc, insert, select, text, update
+from sqlalchemy import (
+    and_,
+    delete,
+    desc,
+    exists,
+    func,
+    insert,
+    literal,
+    null,
+    select,
+    text,
+    update,
+)
 
 from server.config import Config
 from server.database import db
@@ -12,8 +24,13 @@ from server.models import (
     AssignedUnits,
     CollectionUnit,
     CollectionUnitMetric,
+    CollectionUnitMetricDefinition,
+    CuratorialUnitDefinition,
+    Division,
+    Rank,
     RescoreSession,
     RescoreSessionUnits,
+    Section,
     StructuralChangesBasic,
     StructuralChangesComments,
     StructuralChangesHigher,
@@ -24,6 +41,7 @@ from server.models import (
     UnitCommentDraft,
     UnitMetricDraft,
     UnitRankDraft,
+    Users,
 )
 
 database_name = Config.MYSQL_DB
@@ -35,112 +53,101 @@ def create_rescore_session(units, user_id):
 
     It will then add category drafts for each of the units in the rescore.
     """
-    try:
-        # Insert session
+    # Insert session
+    new_rescore_session = RescoreSession(
+        user_id=user_id, status='in_progress', completed_at=None
+    )
+    db.session.add(new_rescore_session)
+    # adds new row but doesnt commit
+    db.session.flush()
 
-        new_rescore_session = RescoreSession(user_id=user_id, status='in_progress')
-        db.session.add(new_rescore_session)
+    # Get ID of last inserted row
+    rescore_session_id = new_rescore_session.rescore_session_id
+    # rescore_session_id = cursor.lastrowid
+
+    category_ids = [0, 1, 2, 3, 4]
+    category_draft_ids = []
+    # Insert units into session
+    for unit in units:
+        new_rescore_session_units = RescoreSessionUnits(
+            rescore_session_id=rescore_session_id, collection_unit_id=unit
+        )
+        db.session.add(new_rescore_session_units)
         # adds new row but doesnt commit
         db.session.flush()
-
         # Get ID of last inserted row
-        rescore_session_id = new_rescore_session.rescore_session_id
-        # rescore_session_id = cursor.lastrowid
+        rescore_session_units_id = new_rescore_session_units.rescore_session_units_id
 
-        category_ids = [0, 1, 2, 3, 4]
-        category_draft_ids = []
-        # Insert units into session
-        for unit in units:
-            new_rescore_session_units = RescoreSessionUnits(
-                rescore_session_id=rescore_session_id, collection_unit_id=unit
+        for category_id in category_ids:
+            # Add new category draft
+            new_unit_category_draft = UnitCategoryDraft(
+                rescore_session_units_id=rescore_session_units_id,
+                category_id=category_id,
+                complete=0,
             )
-            db.session.add(new_rescore_session_units)
-            # adds new row but doesnt commit
+            db.session.add(new_unit_category_draft)
             db.session.flush()
-            # Get ID of last inserted row
-            rescore_session_units_id = (
-                new_rescore_session_units.rescore_session_units_id
+            category_draft_id = new_unit_category_draft.category_draft_id
+
+            category_draft_ids.append(
+                {
+                    'category_id': category_id,
+                    'category_draft_id': category_draft_id,
+                    'rescore_session_units_id': rescore_session_units_id,
+                }
             )
 
-            for category_id in category_ids:
-                # Add new category draft
-                new_unit_category_draft = UnitCategoryDraft(
-                    rescore_session_units_id=rescore_session_units_id,
-                    category_id=category_id,
-                    complete=0,
-                )
-                db.session.add(new_unit_category_draft)
-                db.session.flush()
-                category_draft_id = new_unit_category_draft.category_draft_id
-
-                category_draft_ids.append(
-                    {
-                        'category_id': category_id,
-                        'category_draft_id': category_draft_id,
-                        'rescore_session_units_id': rescore_session_units_id,
-                    }
-                )
-
-        return (rescore_session_id, category_draft_ids)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return (rescore_session_id, category_draft_ids)
 
 
 def complete_draft_unit(unit_id, user_id, person_id):
     """
     Remove draft tag and upgrade the data points (scores, metrics, comment) from drafts.
     """
-    try:
-        # Get the rescore_session_id
-        rescore_session = RescoreSession.query.filter(
-            RescoreSession.rescore_session_units.any(
-                RescoreSessionUnits.collection_unit.has(
-                    CollectionUnit.collection_unit_id == unit_id
-                )
-            )
-        ).first()
-        rescore_session_id = rescore_session.rescore_session_id
-
-        db.session.execute(
-            update(CollectionUnit)
-            .where(CollectionUnit.collection_unit_id == unit_id)
-            .values(
-                draft_unit='no',
+    # Get the rescore_session_id
+    rescore_session = RescoreSession.query.filter(
+        RescoreSession.rescore_session_units.any(
+            RescoreSessionUnits.collection_unit.has(
+                CollectionUnit.collection_unit_id == unit_id
             )
         )
-        db.session.flush()
+    ).first()
+    rescore_session_id = rescore_session.rescore_session_id
 
-        # Submit draft comments
-        upgrade_draft_comments(rescore_session_id)
+    db.session.execute(
+        update(CollectionUnit)
+        .where(CollectionUnit.collection_unit_id == unit_id)
+        .values(
+            draft_unit='no',
+        )
+    )
+    db.session.flush()
 
-        # Submit draft metrics
-        upgrade_draft_metrics(rescore_session_id)
+    # Submit draft comments
+    upgrade_draft_comments(rescore_session_id)
 
-        # Submit draft ranks
-        upgrade_draft_ranks(rescore_session_id, person_id)
+    # Submit draft metrics
+    upgrade_draft_metrics(rescore_session_id)
 
-        # Close the rescore and remove draft categories
-        close_rescore(rescore_session_id)
+    # Submit draft ranks
+    upgrade_draft_ranks(rescore_session_id, person_id)
 
-    except Exception as e:
-        raise
+    # Close the rescore and remove draft categories
+    close_rescore(rescore_session_id)
 
 
 def column_exists(table_name, column_name):
-    try:
-        data = db.session.execute(
-            text(f"""
-            SELECT COUNT(*) as count
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE table_schema = '{database_name}' AND table_name = :table_name AND column_name = :column_name
-            """),
-            {'table_name': table_name, 'column_name': column_name},
-        ).fetchone()
+    data = db.session.execute(
+        text(f"""
+        SELECT COUNT(*) as count
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE table_schema = '{database_name}' AND table_name = :table_name AND column_name = :column_name
+        """),
+        {'table_name': table_name, 'column_name': column_name},
+    ).fetchone()
 
-        field_is_valid = True if data.count == 1 else False
-        return field_is_valid
-    except Exception as e:
-        raise
+    field_is_valid = True if data.count == 1 else False
+    return field_is_valid
 
 
 def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
@@ -616,25 +623,22 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
 
     It will insert a new row if none exists or update if it does.
     """
-    try:
-        existing_comment = UnitCommentDraft.query.filter(
-            UnitCommentDraft.rescore_session_units_id == rescore_session_units_id
-        ).first()
-        if existing_comment:
-            # If a comment already exists, update it
-            updated_at = datetime.now()
-            existing_comment.unit_comment = unit_comment
-            existing_comment.updated_at = updated_at
-        else:
-            # If no comment exists, insert a new one
-            new_comment_draft = UnitCommentDraft(
-                rescore_session_units_id=rescore_session_units_id,
-                unit_comment=unit_comment,
-            )
-            db.session.add(new_comment_draft)
-        db.session.flush()
-    except Exception as e:
-        raise
+    existing_comment = UnitCommentDraft.query.filter(
+        UnitCommentDraft.rescore_session_units_id == rescore_session_units_id
+    ).first()
+    if existing_comment:
+        # If a comment already exists, update it
+        updated_at = datetime.now()
+        existing_comment.unit_comment = unit_comment
+        existing_comment.updated_at = updated_at
+    else:
+        # If no comment exists, insert a new one
+        new_comment_draft = UnitCommentDraft(
+            rescore_session_units_id=rescore_session_units_id,
+            unit_comment=unit_comment,
+        )
+        db.session.add(new_comment_draft)
+    db.session.flush()
 
 
 def update_unit_assigned(unit_id, assigned_users):
@@ -667,3 +671,260 @@ def update_unit_assigned(unit_id, assigned_users):
                 AssignedUnits.user_id == user_id,
             )
             db.session.execute(delete_query)
+
+
+def rescore_units_query(rescore_session_id):
+    # metrics subquery
+    draft_metrics_query = select(
+        null().label('collection_unit_metric_id'),
+        UnitMetricDraft.metric_value,
+        UnitMetricDraft.confidence_level,
+        null().label('date_from'),
+        UnitMetricDraft.collection_unit_metric_definition_id,
+        literal(True).label('is_draft'),
+    ).where(
+        UnitMetricDraft.rescore_session_units_id
+        == RescoreSessionUnits.rescore_session_units_id
+    )
+
+    real_metrics_query = select(
+        CollectionUnitMetric.collection_unit_metric_id,
+        CollectionUnitMetric.metric_value,
+        CollectionUnitMetric.confidence_level,
+        func.date(CollectionUnitMetric.date_from).label('date_from'),
+        CollectionUnitMetric.collection_unit_metric_definition_id,
+        literal(False).label('is_draft'),
+    ).where(
+        CollectionUnitMetric.collection_unit_id == CollectionUnit.collection_unit_id,
+        CollectionUnitMetric.current == 'yes',
+        ~exists(
+            select(1).where(
+                UnitMetricDraft.rescore_session_units_id
+                == RescoreSessionUnits.rescore_session_units_id,
+                UnitMetricDraft.collection_unit_metric_definition_id
+                == CollectionUnitMetric.collection_unit_metric_definition_id,
+            )
+        ),
+    )
+
+    metrics = draft_metrics_query.union(real_metrics_query).subquery('metrics')
+
+    metric_subquery = (
+        select(
+            func.JSON_ARRAYAGG(
+                func.JSON_OBJECT(
+                    'collection_unit_metric_id',
+                    metrics.c.collection_unit_metric_id,
+                    'metric_value',
+                    metrics.c.metric_value,
+                    'confidence_level',
+                    metrics.c.confidence_level,
+                    'date_from',
+                    func.date(metrics.c.date_from),
+                    'metric_name',
+                    CollectionUnitMetricDefinition.metric_name,
+                    'metric_definition',
+                    CollectionUnitMetricDefinition.metric_definition,
+                    'metric_units',
+                    CollectionUnitMetricDefinition.metric_units,
+                    'metric_datatype',
+                    CollectionUnitMetricDefinition.metric_datatype,
+                    'collection_unit_metric_definition_id',
+                    metrics.c.collection_unit_metric_definition_id,
+                )
+            )
+        )
+        .select_from(metrics)
+        .join(
+            CollectionUnitMetricDefinition,
+            metrics.c.collection_unit_metric_definition_id
+            == CollectionUnitMetricDefinition.collection_unit_metric_definition_id,
+        )
+        .correlate(RescoreSessionUnits, CollectionUnit)
+        .scalar_subquery()
+    )
+
+    # comments subquery
+    draft_comments = select(
+        UnitCommentDraft.unit_comment.label('unit_comment'),
+        UnitCommentDraft.updated_at.label('date_added'),
+        literal(True).label('is_draft'),
+    ).where(
+        UnitCommentDraft.rescore_session_units_id
+        == RescoreSessionUnits.rescore_session_units_id
+    )
+
+    final_comments = select(
+        UnitComment.unit_comment.label('unit_comment'),
+        UnitComment.date_added,
+        literal(False).label('is_draft'),
+    ).where(UnitComment.collection_unit_id == CollectionUnit.collection_unit_id)
+
+    comments_union = (
+        draft_comments.union_all(final_comments)
+        .order_by(text('date_added DESC'))
+        .limit(1)
+    )
+
+    comments_lateral = comments_union.subquery().lateral('comments')
+
+    # ranks query
+    draft_ranks_query = (
+        select(
+            UnitRankDraft.percentage,
+            UnitRankDraft.rank_id,
+            UnitRankDraft.comment,
+            UnitRankDraft.criterion_id,
+            UnitRankDraft.updated_at.label('date_assessed'),
+            literal(True).label('is_draft'),
+        )
+        .join(
+            UnitCategoryDraft,
+            UnitCategoryDraft.category_draft_id == UnitRankDraft.category_draft_id,
+        )
+        .where(
+            UnitCategoryDraft.rescore_session_units_id
+            == RescoreSessionUnits.rescore_session_units_id
+        )
+        .correlate(RescoreSessionUnits)
+    )
+
+    full_ranks_query = (
+        select(
+            UnitAssessmentRank.percentage,
+            UnitAssessmentRank.rank_id,
+            UnitAssessmentRank.comment,
+            Rank.criterion_id,
+            func.coalesce(
+                UnitAssessmentCriterion.date_assessed, UnitAssessmentCriterion.date_from
+            ).label('date_assessed'),
+            literal(False).label('is_draft'),
+        )
+        .select_from(UnitAssessmentCriterion)
+        .join(
+            UnitAssessmentRank,
+            UnitAssessmentRank.unit_assessment_criterion_id
+            == UnitAssessmentCriterion.unit_assessment_criterion_id,
+        )
+        .join(Rank, Rank.rank_id == UnitAssessmentRank.rank_id)
+        .where(
+            UnitAssessmentCriterion.collection_unit_id
+            == CollectionUnit.collection_unit_id,
+            UnitAssessmentCriterion.current == 'yes',
+            ~exists(
+                select(1)
+                .select_from(UnitCategoryDraft)
+                .join(
+                    UnitRankDraft,
+                    UnitRankDraft.category_draft_id
+                    == UnitCategoryDraft.category_draft_id,
+                )
+                .where(
+                    UnitCategoryDraft.rescore_session_units_id
+                    == RescoreSessionUnits.rescore_session_units_id,
+                    UnitRankDraft.criterion_id == Rank.criterion_id,
+                )
+                .correlate(RescoreSessionUnits, Rank)
+            ),
+        )
+        .correlate(CollectionUnit, RescoreSessionUnits)
+    )
+
+    ranks = draft_ranks_query.union(full_ranks_query).subquery('ranks')
+
+    ranks_subquery = (
+        select(
+            func.JSON_ARRAYAGG(
+                func.JSON_OBJECT(
+                    'percentage',
+                    ranks.c.percentage,
+                    'rank_id',
+                    ranks.c.rank_id,
+                    'rank_value',
+                    Rank.rank_value,
+                    'comment',
+                    ranks.c.comment,
+                    'definition',
+                    Rank.definition,
+                    'criterion_id',
+                    ranks.c.criterion_id,
+                    'date_assessed',
+                    ranks.c.date_assessed,
+                    'is_draft',
+                    ranks.c.is_draft,
+                )
+            )
+        )
+        .select_from(ranks)
+        .join(Rank, Rank.rank_id == ranks.c.rank_id)
+        .correlate(RescoreSessionUnits, CollectionUnit)
+        .scalar_subquery()
+    )
+
+    # category tracking query
+    tracking_subquery = (
+        select(
+            func.JSON_ARRAYAGG(
+                func.JSON_OBJECT(
+                    'category_draft_id',
+                    UnitCategoryDraft.category_draft_id,
+                    'rescore_session_units_id',
+                    UnitCategoryDraft.rescore_session_units_id,
+                    'category_id',
+                    UnitCategoryDraft.category_id,
+                    'complete',
+                    UnitCategoryDraft.complete,
+                    'updated_at',
+                    UnitCategoryDraft.updated_at,
+                )
+            )
+        )
+        .where(
+            UnitCategoryDraft.rescore_session_units_id
+            == RescoreSessionUnits.rescore_session_units_id
+        )
+        .correlate(RescoreSessionUnits)
+        .scalar_subquery()
+    )
+
+    # final query
+    query = (
+        select(
+            RescoreSession,
+            RescoreSessionUnits,
+            CollectionUnit,
+            Division,
+            Section,
+            Users,
+            CuratorialUnitDefinition,
+            metric_subquery.label('metric_json'),
+            comments_lateral.c.unit_comment,
+            comments_lateral.c.date_added.label('unit_comment_date_added'),
+            comments_lateral.c.is_draft.label('unit_comment_is_draft'),
+            ranks_subquery.label('ranks_json'),
+            tracking_subquery.label('category_tracking'),
+        )
+        .select_from(RescoreSessionUnits)
+        .join(
+            CollectionUnit,
+            CollectionUnit.collection_unit_id == RescoreSessionUnits.collection_unit_id,
+        )
+        .join(
+            RescoreSession,
+            RescoreSession.rescore_session_id == RescoreSessionUnits.rescore_session_id,
+        )
+        .join(Section, Section.section_id == CollectionUnit.section_id)
+        .join(Division, Division.division_id == Section.division_id)
+        .join(Users, Users.user_id == CollectionUnit.responsible_curator_id)
+        .join(
+            CuratorialUnitDefinition,
+            CuratorialUnitDefinition.curatorial_unit_definition_id
+            == CollectionUnit.curatorial_unit_definition_id,
+        )
+        .where(
+            CollectionUnit.unit_active == 'yes',
+            RescoreSession.rescore_session_id == rescore_session_id,
+            RescoreSession.status == 'in_progress',
+        )
+    )
+    return query

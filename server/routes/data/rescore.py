@@ -5,11 +5,16 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import func, text, update
+from sqlalchemy import func, update
 
 from server.database import db
-from server.models import CollectionUnit, RescoreSession, RescoreSessionUnits, Users
-from server.routes.queries.data_queries import RESCORE_UNITS
+from server.models import (
+    CollectionUnit,
+    RescoreSession,
+    RescoreSessionUnits,
+    Users,
+)
+from server.routes.data.utils import rescore_units_query
 from server.utils import get_person_id
 
 from . import data_bp
@@ -33,6 +38,7 @@ def get_mark_rescore_open():
         rescore_session_id, rescore_session_units_ids = create_rescore_session(
             units, user_id
         )
+        print(rescore_session_id, rescore_session_units_ids)
         db.session.commit()
         return jsonify({'rescore_session_id': rescore_session_id, 'success': True})
     except Exception as e:
@@ -152,10 +158,32 @@ def get_rescore_units(rescore_session_id):
 
     These provide all the data needed to display and edit units on the rescore page.
     """
-    data = db.session.execute(
-        text(RESCORE_UNITS), {'rescore_session_id': rescore_session_id}
-    ).fetchall()
-    return jsonify([dict(row._mapping) for row in data])
+
+    query = rescore_units_query(rescore_session_id)
+    data = db.session.execute(query).all()
+
+    return [
+        {
+            'rescore_session_id': row.RescoreSession.rescore_session_id,
+            'status': row.RescoreSession.status,
+            'created_at': row.RescoreSession.created_at,
+            'completed_at': row.RescoreSession.completed_at,
+            'rescore_session_units_id': row.RescoreSessionUnits.rescore_session_units_id,
+            'collection_unit_id': row.CollectionUnit.collection_unit_id,
+            'division_name': row.Division.division_name,
+            'section_name': row.Section.section_name,
+            'responsible_curator': row.Users.display_name,
+            'curatorial_unit_type': row.CuratorialUnitDefinition.description,
+            'unit_name': row.CollectionUnit.unit_name,
+            'sort_order': row.CollectionUnit.sort_order,
+            'metric_json': row.metric_json,
+            'unit_comment': row.unit_comment,
+            'unit_comment_date_added': row.unit_comment_date_added,
+            'ranks_json': row.ranks_json,
+            'category_tracking': row.category_tracking,
+        }
+        for row in data
+    ]
 
 
 @data_bp.route('/submit-draft-rank', methods=['POST'])
