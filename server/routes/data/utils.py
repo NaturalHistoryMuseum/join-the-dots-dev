@@ -54,40 +54,41 @@ def create_rescore_session(units, user_id):
     It will then add category drafts for each of the units in the rescore.
     """
     # Insert session
-    new_rescore_session = RescoreSession(
-        user_id=user_id, status='in_progress', completed_at=None
+    new_rescore_session = db.session.execute(
+        insert(RescoreSession).values(
+            user_id=user_id, status='in_progress', completed_at=None
+        )
     )
-    db.session.add(new_rescore_session)
+    # Get ID of last inserted row
+    rescore_session_id = new_rescore_session.lastrowid
     # adds new row but doesnt commit
     db.session.flush()
-
-    # Get ID of last inserted row
-    rescore_session_id = new_rescore_session.rescore_session_id
-    # rescore_session_id = cursor.lastrowid
 
     category_ids = [0, 1, 2, 3, 4]
     category_draft_ids = []
     # Insert units into session
     for unit in units:
-        new_rescore_session_units = RescoreSessionUnits(
-            rescore_session_id=rescore_session_id, collection_unit_id=unit
+        result = db.session.execute(
+            insert(RescoreSessionUnits).values(
+                rescore_session_id=rescore_session_id, collection_unit_id=unit
+            )
         )
-        db.session.add(new_rescore_session_units)
+        # Get ID of last inserted row
+        rescore_session_units_id = result.lastrowid
         # adds new row but doesnt commit
         db.session.flush()
-        # Get ID of last inserted row
-        rescore_session_units_id = new_rescore_session_units.rescore_session_units_id
 
         for category_id in category_ids:
             # Add new category draft
-            new_unit_category_draft = UnitCategoryDraft(
-                rescore_session_units_id=rescore_session_units_id,
-                category_id=category_id,
-                complete=0,
+            result = db.session.execute(
+                insert(UnitCategoryDraft).values(
+                    rescore_session_units_id=rescore_session_units_id,
+                    category_id=category_id,
+                    complete=0,
+                )
             )
-            db.session.add(new_unit_category_draft)
+            category_draft_id = result.lastrowid
             db.session.flush()
-            category_draft_id = new_unit_category_draft.category_draft_id
 
             category_draft_ids.append(
                 {
@@ -161,38 +162,41 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     ).first()
     db.session.flush()
     # create new unit
-    new_unit = CollectionUnit(
-        unit_name=original_unit.unit_name + unit_name_addition,
-        public_unit_name=original_unit.public_unit_name,
-        section_id=original_unit.section_id,
-        unit_active=original_unit.unit_active,
-        responsible_curator_id=original_unit.responsible_curator_id,
-        curatorial_unit_definition_id=original_unit.curatorial_unit_definition_id,
-        storage_room_id=original_unit.storage_room_id,
-        storage_container_id=original_unit.storage_container_id,
-        geographic_origin_id=original_unit.geographic_origin_id,
-        library_and_archives_function_id=original_unit.library_and_archives_function_id,
-        geological_time_period_from_id=original_unit.geological_time_period_from_id,
-        geological_time_period_to_id=original_unit.geological_time_period_to_id,
-        type_collection_flag=original_unit.type_collection_flag,
-        publish_flag=original_unit.publish_flag,
-        informal_taxon=original_unit.informal_taxon,
-        named_collection=original_unit.named_collection,
-        es_recent_specimen_flag=original_unit.es_recent_specimen_flag,
-        archives_fond_ref=original_unit.archives_fond_ref,
-        count_curatorial_units_flag=original_unit.count_curatorial_units_flag,
-        sort_order=original_unit.sort_order,
-        taxon_id=original_unit.taxon_id,
-        draft_unit=original_unit.draft_unit,
+    result = db.session.execute(
+        insert(CollectionUnit).values(
+            unit_name=original_unit.unit_name + unit_name_addition,
+            public_unit_name=original_unit.public_unit_name,
+            section_id=original_unit.section_id,
+            unit_active=original_unit.unit_active,
+            responsible_curator_id=original_unit.responsible_curator_id,
+            curatorial_unit_definition_id=original_unit.curatorial_unit_definition_id,
+            storage_room_id=original_unit.storage_room_id,
+            storage_container_id=original_unit.storage_container_id,
+            geographic_origin_id=original_unit.geographic_origin_id,
+            library_and_archives_function_id=original_unit.library_and_archives_function_id,
+            geological_time_period_from_id=original_unit.geological_time_period_from_id,
+            geological_time_period_to_id=original_unit.geological_time_period_to_id,
+            type_collection_flag=original_unit.type_collection_flag,
+            publish_flag=original_unit.publish_flag,
+            informal_taxon=original_unit.informal_taxon,
+            named_collection=original_unit.named_collection,
+            es_recent_specimen_flag=original_unit.es_recent_specimen_flag,
+            archives_fond_ref=original_unit.archives_fond_ref,
+            count_curatorial_units_flag=original_unit.count_curatorial_units_flag,
+            sort_order=original_unit.sort_order,
+            taxon_id=original_unit.taxon_id,
+            draft_unit=original_unit.draft_unit,
+        )
     )
-    db.session.add(new_unit)
+    new_unit_id = result.lastrowid
     db.session.flush()
 
     new_unit_id = new_unit.collection_unit_id
 
     # Assign unit to current user
-    new_assignment = AssignedUnits(user_id=user_id, collection_unit_id=new_unit_id)
-    db.session.add(new_assignment)
+    db.session.execute(
+        insert(AssignedUnits).values(user_id=user_id, collection_unit_id=new_unit_id)
+    )
 
     # Insert the comment
     original_unit_comment = (
@@ -202,12 +206,13 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     )
 
     if original_unit_comment:
-        new_unit_comment = UnitComment(
-            collection_unit_id=new_unit_id,
-            unit_comment=original_unit_comment.unit_comment,
-            date_added=original_unit_comment.date_added,
+        db.session.execute(
+            insert(UnitComment).values(
+                collection_unit_id=new_unit_id,
+                unit_comment=original_unit_comment.unit_comment,
+                date_added=original_unit_comment.date_added,
+            )
         )
-        db.session.add(new_unit_comment)
 
     # Select the current assessment criterion
     criteria_to_copy = UnitAssessmentCriterion.query.filter(
@@ -218,21 +223,21 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     # Go through each criterion
     for criterion in criteria_to_copy:
         # Insert the current criterion
-        new_uac = UnitAssessmentCriterion(
-            collection_unit_id=new_unit_id,
-            criterion_id=criterion.criterion_id,
-            assessor_id=criterion.assessor_id,
-            criteria_assessment=criterion.criteria_assessment,
-            date_assessed=criterion.date_assessed,
-            date_from=criterion.date_from,
-            date_to=criterion.date_to,
-            current=criterion.current,
+        result = db.session.execute(
+            insert(UnitAssessmentCriterion).values(
+                collection_unit_id=new_unit_id,
+                criterion_id=criterion.criterion_id,
+                assessor_id=criterion.assessor_id,
+                criteria_assessment=criterion.criteria_assessment,
+                date_assessed=criterion.date_assessed,
+                date_from=criterion.date_from,
+                date_to=criterion.date_to,
+                current=criterion.current,
+            )
         )
-        db.session.add(new_uac)
-        db.session.flush()
-
         # Get the last id
-        new_criterion_id = new_uac.unit_assessment_criterion_id
+        new_criterion_id = result.lastrowid
+        db.session.flush()
 
         # Copy ranks belonging to this criterion
         existing_ranks = UnitAssessmentRank.query.filter(
@@ -241,13 +246,14 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
         ).all()
         db.session.flush()
         for rank in existing_ranks:
-            new_rank = UnitAssessmentRank(
-                unit_assessment_criterion_id=new_criterion_id,
-                rank_id=rank.rank_id,
-                percentage=rank.percentage,
-                comment=rank.comment,
+            db.session.execute(
+                insert(UnitAssessmentRank).values(
+                    unit_assessment_criterion_id=new_criterion_id,
+                    rank_id=rank.rank_id,
+                    percentage=rank.percentage,
+                    comment=rank.comment,
+                )
             )
-            db.session.add(new_rank)
 
     # Insert Unit Metrics
     existing_metrics = CollectionUnitMetric.query.filter(
@@ -256,16 +262,17 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     ).all()
     db.session.flush()
     for metric in existing_metrics:
-        new_metric = CollectionUnitMetric(
-            collection_unit_id=new_unit_id,
-            collection_unit_metric_definition_id=metric.collection_unit_metric_definition_id,
-            metric_value=metric.metric_value,
-            confidence_level=metric.confidence_level,
-            date_from=metric.date_from,
-            date_to=metric.date_to,
-            current=metric.current,
+        db.session.execute(
+            insert(CollectionUnitMetric).values(
+                collection_unit_id=new_unit_id,
+                collection_unit_metric_definition_id=metric.collection_unit_metric_definition_id,
+                metric_value=metric.metric_value,
+                confidence_level=metric.confidence_level,
+                date_from=metric.date_from,
+                date_to=metric.date_to,
+                current=metric.current,
+            )
         )
-        db.session.add(new_metric)
 
     return new_unit_id
 
@@ -321,12 +328,13 @@ def upgrade_draft_comments(rescore_session_id):
     ).all()
 
     for comment in existing_unit_comment_drafts:
-        new_comment = UnitComment(
-            collection_unit_id=comment.rescore_session_units.collection_unit_id,
-            unit_comment=comment.unit_comment,
-            date_added=date_added,
+        db.session.execute(
+            insert(UnitComment).values(
+                collection_unit_id=comment.rescore_session_units.collection_unit_id,
+                unit_comment=comment.unit_comment,
+                date_added=date_added,
+            )
         )
-        db.session.add(new_comment)
 
     # Remove draft comments
     db.session.execute(
@@ -380,15 +388,16 @@ def upgrade_draft_metrics(rescore_session_id):
         )
         db.session.flush()
         # Insert metrics from drafts
-        new_metrics = CollectionUnitMetric(
-            collection_unit_id=metric_draft.rescore_session_units.collection_unit_id,
-            collection_unit_metric_definition_id=metric_draft.collection_unit_metric_definition_id,
-            metric_value=metric_draft.metric_value,
-            confidence_level=metric_draft.confidence_level,
-            date_from=date_now,
-            current='yes',
+        db.session.execute(
+            insert(CollectionUnitMetric).values(
+                collection_unit_id=metric_draft.rescore_session_units.collection_unit_id,
+                collection_unit_metric_definition_id=metric_draft.collection_unit_metric_definition_id,
+                metric_value=metric_draft.metric_value,
+                confidence_level=metric_draft.confidence_level,
+                date_from=date_now,
+                current='yes',
+            )
         )
-        db.session.add(new_metrics)
         # Remove draft metrics
         db.session.delete(metric_draft)
 
@@ -444,17 +453,18 @@ def upgrade_draft_ranks(rescore_session_id, person_id):
         collection_unit_id,
         criterion_id,
     ), group_rows in grouped_assessment.items():
-        new_criterion = UnitAssessmentCriterion(
-            collection_unit_id=collection_unit_id,
-            criterion_id=criterion_id,
-            assessor_id=person_id,
-            date_assessed=date_now,
-            date_from=date_now,
-            current='yes',
+        result = db.session.execute(
+            insert(UnitAssessmentCriterion).values(
+                collection_unit_id=collection_unit_id,
+                criterion_id=criterion_id,
+                assessor_id=person_id,
+                date_assessed=date_now,
+                date_from=date_now,
+                current='yes',
+            )
         )
-        db.session.add(new_criterion)
+        inserted_id = result.lastrowid
         db.session.flush()
-        inserted_id = new_criterion.unit_assessment_criterion_id
 
         inserted_ids[(collection_unit_id, criterion_id)] = inserted_id
 
@@ -466,13 +476,14 @@ def upgrade_draft_ranks(rescore_session_id, person_id):
         )
         assessment_criterion_id = inserted_ids[criterion_key]
 
-        new_rank = UnitAssessmentRank(
-            unit_assessment_criterion_id=assessment_criterion_id,
-            rank_id=row.rank_id,
-            percentage=row.percentage,
-            comment=row.comment,
+        db.session.execute(
+            insert(UnitAssessmentRank).values(
+                unit_assessment_criterion_id=assessment_criterion_id,
+                rank_id=row.rank_id,
+                percentage=row.percentage,
+                comment=row.comment,
+            )
         )
-        db.session.add(new_rank)
         db.session.flush()
         # Delete draft rank
         db.session.delete(row)
@@ -485,31 +496,35 @@ def add_structural_change(
     Insert new structural change to the relevant tables.
     """
     # Add structural change entry
-    new_change_higher = StructuralChangesHigher(
-        higher_operation=higher_operation,
-        effective_date=date,
-        change_agent_id=person_id,
-        cause='Requested by curator',
+    result = db.session.execute(
+        insert(StructuralChangesHigher).values(
+            higher_operation=higher_operation,
+            effective_date=date,
+            change_agent_id=person_id,
+            cause='Requested by curator',
+        )
     )
-    db.session.add(new_change_higher)
+    structural_changes_higher_id = result.lastrowid
     db.session.flush()
     structural_changes_higher_id = new_change_higher.structural_changes_higher_id
 
     # Basic structural change
-    new_change_basic = StructuralChangesBasic(
-        structural_changes_higher_id=structural_changes_higher_id,
-        collection_unit_id=collection_unit_id,
-        operation=operation,
+    db.session.execute(
+        insert(StructuralChangesBasic).values(
+            structural_changes_higher_id=structural_changes_higher_id,
+            collection_unit_id=collection_unit_id,
+            operation=operation,
+        )
     )
-    db.session.add(new_change_basic)
     db.session.flush()
     if comment:
-        new_change_comments = StructuralChangesComments(
-            structural_changes_higher_id=structural_changes_higher_id,
-            comment=comment,
-            date_added=date,
+        db.session.execute(
+            insert(StructuralChangesComments).values(
+                structural_changes_higher_id=structural_changes_higher_id,
+                comment=comment,
+                date_added=date,
+            )
         )
-        db.session.add(new_change_comments)
         db.session.flush()
 
 
@@ -555,15 +570,15 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
 
             # If the rank does not exist, insert it
             if not in_db:
-                new_rank_draft = UnitRankDraft(
-                    category_draft_id=category_draft_id,
-                    criterion_id=criterion_id,
-                    rank_id=rank_id,
-                    percentage=percentage,
-                    comment=comment,
+                db.session.execute(
+                    insert(UnitRankDraft).values(
+                        category_draft_id=category_draft_id,
+                        criterion_id=criterion_id,
+                        rank_id=rank_id,
+                        percentage=percentage,
+                        comment=comment,
+                    )
                 )
-
-                db.session.add(new_rank_draft)
         db.session.flush()
         return jsonify(
             {'message': 'Draft rank submitted successfully', 'success': True}
@@ -603,13 +618,14 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
                     existing_metric.updated_at = updated_at
                     db.session.flush()
                 else:
-                    new_metric_draft = UnitMetricDraft(
-                        rescore_session_units_id=rescore_session_units_id,
-                        collection_unit_metric_definition_id=collection_unit_metric_definition_id,
-                        metric_value=metric_value,
-                        confidence_level=confidence_level,
+                    db.session.execute(
+                        insert(UnitMetricDraft).values(
+                            rescore_session_units_id=rescore_session_units_id,
+                            collection_unit_metric_definition_id=collection_unit_metric_definition_id,
+                            metric_value=metric_value,
+                            confidence_level=confidence_level,
+                        )
                     )
-                    db.session.add(new_metric_draft)
                     db.session.flush()
         return jsonify({'message': 'Draft metrics submitted successfully'})
 
@@ -633,11 +649,12 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
         existing_comment.updated_at = updated_at
     else:
         # If no comment exists, insert a new one
-        new_comment_draft = UnitCommentDraft(
-            rescore_session_units_id=rescore_session_units_id,
-            unit_comment=unit_comment,
+        db.session.execute(
+            insert(UnitCommentDraft).values(
+                rescore_session_units_id=rescore_session_units_id,
+                unit_comment=unit_comment,
+            )
         )
-        db.session.add(new_comment_draft)
     db.session.flush()
 
 

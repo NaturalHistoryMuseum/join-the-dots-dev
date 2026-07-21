@@ -128,10 +128,12 @@ def submit_unit():
     }
 
     try:
-        new_unit = CollectionUnit(**filter_unit_data)
-        db.session.add(new_unit)
+        # new_unit = CollectionUnit(**filter_unit_data)
+        # db.session.add(new_unit)
+        result = db.session.execute(insert(CollectionUnit).values(**filter_unit_data))
+        new_unit_id = result.lastrowid
         db.session.flush()
-        new_unit_id = new_unit.collection_unit_id
+        # new_unit_id = new_unit.collection_unit_id
 
         if new_unit_id is None:
             return jsonify({'error': 'Failed to create new unit'}), 500
@@ -145,31 +147,33 @@ def submit_unit():
                 metric_value = metric.get('metric_value')
                 confidence_level = metric.get('confidence_level')
                 if metric_value is not None or confidence_level is not None:
-                    new_metric = CollectionUnitMetric(
-                        collection_unit_id=new_unit_id,
-                        collection_unit_metric_definition_id=collection_unit_metric_definition_id,
-                        metric_value=metric_value,
-                        confidence_level=confidence_level,
-                        date_from=date_now,
-                        current='yes',
+                    db.session.execute(
+                        insert(CollectionUnitMetric).values(
+                            collection_unit_id=new_unit_id,
+                            collection_unit_metric_definition_id=collection_unit_metric_definition_id,
+                            metric_value=metric_value,
+                            confidence_level=confidence_level,
+                            date_from=date_now,
+                            current='yes',
+                        )
                     )
-                    db.session.add(new_metric)
                     db.session.flush()
         # Handle ranks
         if ranks_json:
             for criterion in ranks_json:
                 criterion_id = criterion[0]['criterion_id']
                 # Add the criterion to the unit_assessment_criterion table and get the new id
-                new_criterion_assess = UnitAssessmentCriterion(
-                    collection_unit_id=new_unit_id,
-                    criterion_id=criterion_id,
-                    assessor_id=person_id,
-                    date_assessed=date_now,
-                    date_from=date_now,
-                    current='yes',
-                    criteria_assessment='known',
+                db.session.execute(
+                    insert(UnitAssessmentCriterion).values(
+                        collection_unit_id=new_unit_id,
+                        criterion_id=criterion_id,
+                        assessor_id=person_id,
+                        date_assessed=date_now,
+                        date_from=date_now,
+                        current='yes',
+                        criteria_assessment='known',
+                    )
                 )
-                db.session.add(new_criterion_assess)
                 db.session.flush()
                 unit_assessment_criterion_id = (
                     new_criterion_assess.unit_assessment_criterion_id
@@ -179,13 +183,14 @@ def submit_unit():
                     rank_id = rank['rank_id']
                     percentage = rank['percentage']
                     comment = rank['comment']
-                    new_rank = UnitAssessmentRank(
-                        unit_assessment_criterion_id=unit_assessment_criterion_id,
-                        rank_id=rank_id,
-                        percentage=percentage,
-                        comment=comment,
+                    db.session.execute(
+                        insert(UnitAssessmentRank).values(
+                            unit_assessment_criterion_id=unit_assessment_criterion_id,
+                            rank_id=rank_id,
+                            percentage=percentage,
+                            comment=comment,
+                        )
                     )
-                    db.session.add(new_rank)
         # Add the change to the structural changes log
         add_structural_change(
             person_id=person_id,
@@ -235,10 +240,14 @@ def submit_draft_unit():
                 for key, value in unit_data.items()
                 if value is not None and key != 'collection_unit_id'
             }
-            new_unit = CollectionUnit(**filter_unit_data)
-            db.session.add(new_unit)
+            # new_unit = CollectionUnit(**filter_unit_data)
+            # db.session.add(new_unit)
+            result = db.session.execute(
+                insert(CollectionUnit).values(**filter_unit_data)
+            )
+            unit_id = result.lastrowid
             db.session.flush()
-            unit_id = new_unit.collection_unit_id
+            # unit_id = new_unit.collection_unit_id
             if unit_id is None:
                 return jsonify({'error': 'Failed to create new unit'}), 500
             # Create the rescore session if we are adding the draft
@@ -414,13 +423,14 @@ def split_unit():
 
     try:
         # Add structural change entry
-        new_change_higher = StructuralChangesHigher(
-            higher_operation='split',
-            effective_date=date_now,
-            change_agent_id=person_id,
-            cause='Requested by curator',
+        db.session.execute(
+            insert(StructuralChangesHigher).values(
+                higher_operation='split',
+                effective_date=date_now,
+                change_agent_id=person_id,
+                cause='Requested by curator',
+            )
         )
-        db.session.add(new_change_higher)
         db.session.flush()
         structural_changes_higher_id = new_change_higher.structural_changes_higher_id
 
@@ -435,12 +445,13 @@ def split_unit():
             new_units.append(new_unit_id)
 
             # Basic structural change
-            new_change_basic = StructuralChangesBasic(
-                structural_changes_higher_id=structural_changes_higher_id,
-                collection_unit_id=new_unit_id,
-                operation='create',
+            db.session.execute(
+                insert(StructuralChangesBasic).values(
+                    structural_changes_higher_id=structural_changes_higher_id,
+                    collection_unit_id=new_unit_id,
+                    operation='create',
+                )
             )
-            db.session.add(new_change_basic)
             db.session.flush()
 
         db.session.execute(
@@ -451,12 +462,13 @@ def split_unit():
             )
         )
         # Basic structural change
-        change_ = StructuralChangesBasic(
-            structural_changes_higher_id=structural_changes_higher_id,
-            collection_unit_id=unit_id,
-            operation='delete',
+        db.session.execute(
+            insert(StructuralChangesBasic).values(
+                structural_changes_higher_id=structural_changes_higher_id,
+                collection_unit_id=unit_id,
+                operation='delete',
+            )
         )
-        db.session.add(new_change_basic)
         # Commit the transaction queries
         db.session.commit()
         return jsonify({'new_units': new_units, 'success': True})
@@ -483,24 +495,26 @@ def combine_unit():
 
     try:
         # Add structural change entry
-        new_change_higher = StructuralChangesHigher(
-            higher_operation='merge',
-            effective_date=date_now,
-            change_agent_id=person_id,
-            cause='Requested by curator',
+        db.session.execute(
+            insert(StructuralChangesHigher).values(
+                higher_operation='merge',
+                effective_date=date_now,
+                change_agent_id=person_id,
+                cause='Requested by curator',
+            )
         )
-        db.session.add(new_change_higher)
         db.session.flush()
         structural_changes_higher_id = new_change_higher.structural_changes_higher_id
 
         # Copy the original primary unit
         new_unit_id = copy_unit(unit_id_to_copy=primary_unit_id, user_id=user_id)
-        new_change_basic = StructuralChangesBasic(
-            structural_changes_higher_id=structural_changes_higher_id,
-            collection_unit_id=new_unit_id,
-            operation='create',
+        db.session.execute(
+            insert(StructuralChangesBasic).values(
+                structural_changes_higher_id=structural_changes_higher_id,
+                collection_unit_id=new_unit_id,
+                operation='create',
+            )
         )
-        db.session.add(new_change_basic)
         db.session.flush()
         # Mark old units as not active
         for unit_id in unit_id_list:

@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import delete, desc, update
+from sqlalchemy import delete, desc, insert, update
 
 from server.database import db
 
@@ -92,14 +92,15 @@ def submit_issue():
     user_id = get_jwt_identity()
     date_added = datetime.now()
     try:
-        new_issue = Issues(
-            issue=issue,
-            user_id=user_id,
-            date_added=date_added,
-            visible=0,
-            status='raised',
+        db.session.execute(
+            insert(Issues).values(
+                issue=issue,
+                user_id=user_id,
+                date_added=date_added,
+                visible=0,
+                status='raised',
+            )
         )
-        db.session.add(new_issue)
         db.session.commit()
         return jsonify(
             {'message': 'Issue submitted successfully', 'success': True}
@@ -165,10 +166,11 @@ def add_guidance():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     try:
-        new_guidance = HelpGuidance(
-            header=header, guidance=guidance, recording_url=recording_url
+        db.session.execute(
+            insert(HelpGuidance).values(
+                header=header, guidance=guidance, recording_url=recording_url
+            )
         )
-        db.session.add(new_guidance)
         db.session.commit()
         return jsonify(
             {'message': 'Guidance updated successfully', 'success': True}
@@ -224,8 +226,9 @@ def add_change_log():
     log = data.get('log')
     date_added = datetime.now()
     try:
-        new_log = ChangeLog(title=title, log=log, date_added=date_added)
-        db.session.add(new_log)
+        db.session.execute(
+            insert(ChangeLog).values(title=title, log=log, date_added=date_added)
+        )
         db.session.commit()
         return jsonify(
             {'message': 'Change log added successfully', 'success': True}
@@ -284,10 +287,11 @@ def add_enhancements():
     description = data.get('description')
     expected_date = data.get('expected_date')
     try:
-        new_enhancement = Enhancements(
-            description=description, expected_date=expected_date
+        db.session.execute(
+            insert(Enhancements).values(
+                description=description, expected_date=expected_date
+            )
         )
-        db.session.add(new_enhancement)
         db.session.commit()
         return jsonify(
             {'message': 'Enhancement added successfully', 'success': True}

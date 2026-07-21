@@ -202,11 +202,11 @@ def insert_person_to_existing_user(user_id, first_name, last_name, job_title=Non
     Insert a new person into the database.
     """
     result = db.session.execute(
-        insert(Person)
-        .values(first_name=first_name, last_name=last_name, job_title=job_title)
-        .returning(Person.person_id)
+        insert(Person).values(
+            first_name=first_name, last_name=last_name, job_title=job_title
+        )
     )
-    new_person_id = result.scalar()
+    new_person_id = result.lastrowid
 
     db.session.execute(
         insert(Users).where(Users.user_id == user_id).values(person_id=new_person_id)

@@ -513,10 +513,11 @@ def reassign_responsible_curator():
         ).all()
 
         for unit in owned_units:
-            new_assigned_unit = AssignedUnits(
-                user_id=new_user_id, collection_unit_id=unit.collection_unit_id
+            db.session.execute(
+                insert(AssignedUnits).values(
+                    user_id=new_user_id, collection_unit_id=unit.collection_unit_id
+                )
             )
-            db.session.add(new_assigned_unit)
 
         # Remove all units assigned to old user
         db.session.execute(
@@ -643,8 +644,11 @@ def set_user_assigned():
 
         # Insert new assignments
         for unit_id in units_to_add:
-            new_assignment = AssignedUnits(user_id=user_id, collection_unit_id=unit_id)
-            db.session.add(new_assignment)
+            db.session.execute(
+                insert(AssignedUnits).values(
+                    user_id=user_id, collection_unit_id=unit_id
+                )
+            )
 
         # Remove old assignments
         for unit_id in units_to_remove:
