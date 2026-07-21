@@ -23,9 +23,14 @@
             v-model="search_email"
           />
         </div>
-        <div class="field-container">
+        <div class="add-users">
           <UpgradeViewerModal
             :divisions="divisions"
+            @update:refreshData="fetchAllUsers"
+          />
+          <AddNewUserModal
+            :division_options="divisions"
+            :role_options="roles"
             @update:refreshData="fetchAllUsers"
           />
         </div>
@@ -51,6 +56,7 @@
 </template>
 
 <script>
+import AddNewUserModal from '@/components/modals/AddNewUserModal.vue';
 import ManageUserModel from '@/components/modals/ManageUserModal.vue';
 import UpgradeViewerModal from '@/components/modals/UpgradeViewerModal.vue';
 import OverlayMessage from '@/components/OverlayMessage.vue';
@@ -66,6 +72,7 @@ export default {
     OverlayMessage,
     ManageUserModel,
     UpgradeViewerModal,
+    AddNewUserModal,
   },
   data() {
     return {
@@ -194,6 +201,13 @@ export default {
   width: 10rem;
   text-align: left;
   justify-self: center;
+}
+
+.add-users {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
 }
 
 .user-filter-row {
