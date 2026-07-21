@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from server.database import db
 from server.models import (
@@ -332,12 +332,14 @@ def get_draft_scores(unit_id):
     """
     Get the scores of a draft unit that can be edited.
     """
-    rescore_session = RescoreSession.query.filter(
-        RescoreSession.status == 'in_progress',
-        RescoreSession.rescore_session_units.any(
-            RescoreSessionUnits.collection_unit_id == unit_id
-        ),
-    ).first()
+    rescore_session = db.session.execute(
+        select(RescoreSession).where(
+            RescoreSession.status == 'in_progress',
+            RescoreSession.rescore_session_units.any(
+                RescoreSessionUnits.collection_unit_id == unit_id
+            ),
+        )
+    ).scalar()
     rescore_session_id = rescore_session.rescore_session_id
 
     query = rescore_units_query(rescore_session_id)

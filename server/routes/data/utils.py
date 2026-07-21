@@ -106,13 +106,15 @@ def complete_draft_unit(unit_id, user_id, person_id):
     Remove draft tag and upgrade the data points (scores, metrics, comment) from drafts.
     """
     # Get the rescore_session_id
-    rescore_session = RescoreSession.query.filter(
-        RescoreSession.rescore_session_units.any(
-            RescoreSessionUnits.collection_unit.has(
-                CollectionUnit.collection_unit_id == unit_id
+    rescore_session = db.session.execute(
+        select(RescoreSession).filter(
+            RescoreSession.rescore_session_units.any(
+                RescoreSessionUnits.collection_unit.has(
+                    CollectionUnit.collection_unit_id == unit_id
+                )
             )
         )
-    ).first()
+    ).scalar()
     rescore_session_id = rescore_session.rescore_session_id
 
     db.session.execute(
@@ -156,10 +158,11 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     Duplicate all aspects of a unit.
     """
     # Create a new unit
-
-    original_unit = CollectionUnit.query.filter(
-        CollectionUnit.collection_unit_id == unit_id_to_copy
-    ).first()
+    original_unit = db.session.execute(
+        select(CollectionUnit).filter(
+            CollectionUnit.collection_unit_id == unit_id_to_copy
+        )
+    ).scalar()
     db.session.flush()
     # create new unit
     result = db.session.execute(
@@ -199,11 +202,11 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     )
 
     # Insert the comment
-    original_unit_comment = (
-        UnitComment.query.filter(UnitComment.collection_unit_id == unit_id_to_copy)
+    original_unit_comment = db.session.execute(
+        select(UnitComment)
+        .filter(UnitComment.collection_unit_id == unit_id_to_copy)
         .order_by(desc(UnitComment.unit_comment_id))
-        .first()
-    )
+    ).scalar()
 
     if original_unit_comment:
         db.session.execute(
@@ -215,10 +218,16 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
         )
 
     # Select the current assessment criterion
-    criteria_to_copy = UnitAssessmentCriterion.query.filter(
-        UnitAssessmentCriterion.collection_unit_id == unit_id_to_copy,
-        UnitAssessmentCriterion.current == 'yes',
-    ).all()
+    criteria_to_copy = (
+        db.session.execute(
+            select(UnitAssessmentCriterion).filter(
+                UnitAssessmentCriterion.collection_unit_id == unit_id_to_copy,
+                UnitAssessmentCriterion.current == 'yes',
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     # Go through each criterion
     for criterion in criteria_to_copy:
@@ -240,10 +249,16 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
         db.session.flush()
 
         # Copy ranks belonging to this criterion
-        existing_ranks = UnitAssessmentRank.query.filter(
-            UnitAssessmentRank.unit_assessment_criterion_id
-            == criterion.unit_assessment_criterion_id
-        ).all()
+        existing_ranks = (
+            db.session.execute(
+                select(UnitAssessmentRank).filter(
+                    UnitAssessmentRank.unit_assessment_criterion_id
+                    == criterion.unit_assessment_criterion_id
+                )
+            )
+            .scalars()
+            .all()
+        )
         db.session.flush()
         for rank in existing_ranks:
             db.session.execute(
@@ -256,10 +271,16 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
             )
 
     # Insert Unit Metrics
-    existing_metrics = CollectionUnitMetric.query.filter(
-        CollectionUnitMetric.collection_unit_id == unit_id_to_copy,
-        CollectionUnitMetric.current == 'yes',
-    ).all()
+    existing_metrics = (
+        db.session.execute(
+            select(CollectionUnitMetric).filter(
+                CollectionUnitMetric.collection_unit_id == unit_id_to_copy,
+                CollectionUnitMetric.current == 'yes',
+            )
+        )
+        .scalars()
+        .all()
+    )
     db.session.flush()
     for metric in existing_metrics:
         db.session.execute(
@@ -316,16 +337,22 @@ def upgrade_draft_comments(rescore_session_id):
     """
     # Insert comments
     date_added = datetime.now()
-    existing_unit_comment_drafts = UnitCommentDraft.query.filter(
-        UnitCommentDraft.rescore_session_units.has(
-            RescoreSessionUnits.rescore_session.has(
-                and_(
-                    RescoreSession.rescore_session_id == rescore_session_id,
-                    RescoreSession.status == 'in_progress',
+    existing_unit_comment_drafts = (
+        db.session.execute(
+            select(UnitCommentDraft).filter(
+                UnitCommentDraft.rescore_session_units.has(
+                    RescoreSessionUnits.rescore_session.has(
+                        and_(
+                            RescoreSession.rescore_session_id == rescore_session_id,
+                            RescoreSession.status == 'in_progress',
+                        )
+                    )
                 )
             )
         )
-    ).all()
+        .scalars()
+        .all()
+    )
 
     for comment in existing_unit_comment_drafts:
         db.session.execute(
@@ -360,16 +387,22 @@ def upgrade_draft_metrics(rescore_session_id):
     # Set old metrics that are about to be inserted as not current
     date_now = datetime.now()
     # Get the draft metrics
-    draft_unit_metrics = UnitMetricDraft.query.filter(
-        UnitMetricDraft.rescore_session_units.has(
-            RescoreSessionUnits.rescore_session.has(
-                and_(
-                    RescoreSession.status == 'in_progress',
-                    RescoreSession.rescore_session_id == rescore_session_id,
+    draft_unit_metrics = (
+        db.session.execute(
+            select(UnitMetricDraft).filter(
+                UnitMetricDraft.rescore_session_units.has(
+                    RescoreSessionUnits.rescore_session.has(
+                        and_(
+                            RescoreSession.status == 'in_progress',
+                            RescoreSession.rescore_session_id == rescore_session_id,
+                        )
+                    )
                 )
             )
         )
-    ).all()
+        .scalars()
+        .all()
+    )
     for metric_draft in draft_unit_metrics:
         # Set old metrics that are about to be inserted as not current
         db.session.execute(
@@ -411,18 +444,24 @@ def upgrade_draft_ranks(rescore_session_id, person_id):
     # Set old ranks that are about to be inserted as not current
     date_now = datetime.now()
     # Get the draft ranks
-    draft_rows = UnitRankDraft.query.filter(
-        UnitRankDraft.unit_category_draft.has(
-            UnitCategoryDraft.rescore_session_units.has(
-                RescoreSessionUnits.rescore_session.has(
-                    and_(
-                        RescoreSession.status == 'in_progress',
-                        RescoreSession.rescore_session_id == rescore_session_id,
+    draft_rows = (
+        db.session.execute(
+            select(UnitRankDraft).filter(
+                UnitRankDraft.unit_category_draft.has(
+                    UnitCategoryDraft.rescore_session_units.has(
+                        RescoreSessionUnits.rescore_session.has(
+                            and_(
+                                RescoreSession.status == 'in_progress',
+                                RescoreSession.rescore_session_id == rescore_session_id,
+                            )
+                        )
                     )
                 )
             )
         )
-    ).all()
+        .scalars()
+        .all()
+    )
 
     for draft_rank in draft_rows:
         # Set old ranks that are about to be inserted as not current
@@ -537,10 +576,16 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
     try:
         # Only check if it exists if we dont know if we need to insert - saves time
         if not insert_only:
-            data = UnitRankDraft.query.filter(
-                UnitRankDraft.criterion_id == criterion_id,
-                UnitRankDraft.category_draft_id == category_draft_id,
-            ).all()
+            data = (
+                db.session.execute(
+                    select(UnitRankDraft).filter(
+                        UnitRankDraft.criterion_id == criterion_id,
+                        UnitRankDraft.category_draft_id == category_draft_id,
+                    )
+                )
+                .scalars()
+                .all()
+            )
         # Loop through the ranks and update or insert them
         for sumbit_rank in ranks:
             in_db = False
@@ -604,13 +649,14 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
             confidence_level = metric['confidence_level']
             if metric_value is not None or confidence_level is not None:
                 # Check if the metric already exists in the database and update it if it does
-
-                existing_metric = UnitMetricDraft.query.filter(
-                    UnitMetricDraft.rescore_session_units_id
-                    == rescore_session_units_id,
-                    UnitMetricDraft.collection_unit_metric_definition_id
-                    == collection_unit_metric_definition_id,
-                ).first()
+                existing_metric = db.session.execute(
+                    select(UnitMetricDraft).filter(
+                        UnitMetricDraft.rescore_session_units_id
+                        == rescore_session_units_id,
+                        UnitMetricDraft.collection_unit_metric_definition_id
+                        == collection_unit_metric_definition_id,
+                    )
+                ).scalar()
                 if existing_metric:
                     updated_at = datetime.now()
                     existing_metric.metric_value = metric_value
@@ -639,9 +685,11 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
 
     It will insert a new row if none exists or update if it does.
     """
-    existing_comment = UnitCommentDraft.query.filter(
-        UnitCommentDraft.rescore_session_units_id == rescore_session_units_id
-    ).first()
+    existing_comment = db.session.execute(
+        select(UnitCommentDraft).filter(
+            UnitCommentDraft.rescore_session_units_id == rescore_session_units_id
+        )
+    ).scalar()
     if existing_comment:
         # If a comment already exists, update it
         updated_at = datetime.now()

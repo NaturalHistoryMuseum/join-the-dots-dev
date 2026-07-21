@@ -704,7 +704,7 @@ def get_category():
     """
     Get all category data.
     """
-    data = Category.query.all()
+    data = db.session.execute(select(Category)).scalars().all()
     return jsonify(data)
 
 
@@ -714,7 +714,7 @@ def get_roles():
     """
     Get all roles data.
     """
-    data = Roles.query.all()
+    data = db.session.execute(select(Roles)).scalars().all()
     return jsonify(data)
 
 
@@ -724,7 +724,7 @@ def get_metric_definitions():
     """
     Get all metrics definitions data.
     """
-    data = CollectionUnitMetricDefinition.query.all()
+    data = db.session.execute(select(CollectionUnitMetricDefinition)).scalars().all()
     return jsonify(data)
 
 
@@ -734,9 +734,15 @@ def get_all_sections():
     """
     Get all sections data in dropdown format.
     """
-    sections = Section.query.options(
-        joinedload(Section.division).joinedload(Division.department)
-    ).all()
+    sections = (
+        db.session.execute(
+            select(Section).options(
+                joinedload(Section.division).joinedload(Division.department)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     return [
         {
@@ -765,7 +771,7 @@ def get_all_geographic_origin():
     """
     Get all geographic origin data in dropdown format.
     """
-    data = GeographicOrigin.query.all()
+    data = db.session.execute(select(GeographicOrigin)).scalars().all()
     schema = GeographicOriginDDSchema(many=True)
     return jsonify(schema.dump(data))
 
@@ -776,7 +782,7 @@ def get_all_geological_time_period():
     """
     Get all geological-time-period data in dropdown format.
     """
-    data = GeologicalTimePeriod.query.all()
+    data = db.session.execute(select(GeologicalTimePeriod)).scalars().all()
     schema = GeologicalTimePeriodDDSchema(many=True)
     return jsonify(schema.dump(data))
 
@@ -787,7 +793,7 @@ def get_all_divisions():
     """
     Get all division data in dropdown format.
     """
-    data = Division.query.all()
+    data = db.session.execute(select(Division)).scalars().all()
     schema = DivisionDDSchema(many=True)
     return jsonify(schema.dump(data))
 
@@ -798,7 +804,7 @@ def get_all_containers():
     """
     Get all container data in dropdown format.
     """
-    data = StorageContainer.query.all()
+    data = db.session.execute(select(StorageContainer)).scalars().all()
     schema = StorageContainerDDSchema(many=True)
     return jsonify(schema.dump(data))
 

@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     set_access_cookies,
 )
-from sqlalchemy import text
+from sqlalchemy import select, text
 
 from server.config import Config
 from server.database import db
@@ -72,6 +72,6 @@ def get_person_id(user_id):
     """
     Return only the person_id for a user.
     """
-    user = Users.query.filter(Users.user_id == user_id).first()
+    user = db.session.execute(select(Users).where(Users.user_id == user_id)).scalar()
     person_id = user.person_id
     return person_id

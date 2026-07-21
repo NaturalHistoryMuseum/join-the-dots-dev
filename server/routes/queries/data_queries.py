@@ -174,25 +174,6 @@ SELECT
 		    									)
 	    									, JSON_OBJECT())
     									),
-	--     									METHOD FOR FINDING WEIGHTED AVERAGE - IS SLOW!
-	--     									IF(
-	--     										(SELECT
-	-- 												MAX(vwar.weighted_average)
-	-- 												FROM {database_name}.vw_weighted_average_review vwar
-	-- 												WHERE vwar.collection_unit_id = cu.collection_unit_id AND vwar.criterion_code = "C1"
-	-- 											) IS NOT NULL,
-	-- 											JSON_OBJECT(
-	-- 	    										'ltc:measurementDerivation', '',
-	-- 	    										'dwc:measurementMethod', 'Curator assessment',
-	-- 	    										'dwc:measurementType', 'C1: Physical accessibility',
-	-- 	    										'dwc:measurementValue',
-	-- 	    											(SELECT
-	-- 	    												MAX(vwar.weighted_average)
-	-- 	    												FROM {database_name}.vw_weighted_average_review vwar
-	-- 	    												WHERE vwar.collection_unit_id = cu.collection_unit_id AND vwar.criterion_code = "C1"
-	-- 	    											)
-	-- 	    									)
-	-- 	    								, JSON_OBJECT())
 	--     									METHOD FOR DOING EACH RANK INDIVIDUALLY
     									COALESCE (
 	    									(

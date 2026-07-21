@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import delete, desc, insert, update
+from sqlalchemy import delete, desc, insert, select, update
 
 from server.database import db
 
@@ -24,7 +24,7 @@ def get_all_issues():
     Fetches all issues.
     """
     try:
-        issues = Issues.query.all()
+        issues = db.session.execute(select(Issues)).scalars().all()
         return jsonify(issues)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -38,8 +38,12 @@ def get_visible_issues():
     """
     try:
         issues = (
-            Issues.query.filter(Issues.visible == 1)
-            .order_by(desc(Issues.date_added))
+            db.session.execute(
+                select(Issues)
+                .where(Issues.visible == 1)
+                .order_by(desc(Issues.date_added))
+            )
+            .scalars()
             .all()
         )
         return jsonify(issues)
@@ -118,7 +122,7 @@ def get_all_guidance():
     """
     Fetch all the help guidance.
     """
-    guidance = HelpGuidance.query.all()
+    guidance = db.session.execute(select(HelpGuidance)).scalars().all()
     return jsonify(guidance)
 
 
@@ -209,7 +213,11 @@ def get_change_log():
     Fetch all change logs.
     """
     try:
-        change_logs = ChangeLog.query.order_by(desc(ChangeLog.date_added)).all()
+        change_logs = (
+            db.session.execute(select(ChangeLog).order_by(desc(ChangeLog.date_added)))
+            .scalars()
+            .all()
+        )
         return jsonify(change_logs)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -271,8 +279,8 @@ def get_enhancements():
     Fetch all enhancements.
     """
     try:
-        enhancements = Enhancements.query.all()
-        return jsonify(enhancements)
+        enhancements = db.session.execute(select(HelpGuidance)).scalars().all()
+        return jsonify(Enhancements)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

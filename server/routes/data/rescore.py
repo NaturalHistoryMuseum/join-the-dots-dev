@@ -38,7 +38,6 @@ def get_mark_rescore_open():
         rescore_session_id, rescore_session_units_ids = create_rescore_session(
             units, user_id
         )
-        print(rescore_session_id, rescore_session_units_ids)
         db.session.commit()
         return jsonify({'rescore_session_id': rescore_session_id, 'success': True})
     except Exception as e:

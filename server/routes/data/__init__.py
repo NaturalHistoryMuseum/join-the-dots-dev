@@ -5,6 +5,7 @@ from flask_jwt_extended import (
 )
 
 from server.utils import (
+    get_person_id,
     refreshJWTToken,
 )
 
@@ -33,8 +34,7 @@ def set_current_user():
         verify_jwt_in_request()
         user_id = get_jwt_identity()
         if user_id:
-            user = Users.query.filter(Users.user_id == user_id).first()
-            person_id = user.person_id if user else None
+            person_id = get_person_id(user_id)
         else:
             person_id = None
 
