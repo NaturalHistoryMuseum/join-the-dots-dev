@@ -1,4 +1,7 @@
+import msal
+import requests
 from flask import Blueprint, jsonify, request
+from flask import current_app as app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import literal, select, update
 
@@ -68,6 +71,24 @@ def upgrade_viewer():
     )
     db.session.commit()
     return jsonify({'success': True}), 201
+
+
+@user_bp.route('/check-user-by-email', methods=['POST'])
+@jwt_required()
+def check_user_by_email():
+    data = request.get_json()
+    email = data.get('email')
+    try:
+        data = fetch_data(
+            """SELECT *
+                FROM {database_name}.users u
+                WHERE u.email = %s
+                    """,
+            (email,),
+        )
+        return jsonify({'data': data, 'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @user_bp.route('/all-viewers', methods=['GET'])

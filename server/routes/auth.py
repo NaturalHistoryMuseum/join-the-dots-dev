@@ -1,7 +1,6 @@
 import secrets
 
 import msal
-import requests
 from flask import Blueprint, jsonify, make_response, request, session
 from flask import current_app as app
 from flask_jwt_extended import (
