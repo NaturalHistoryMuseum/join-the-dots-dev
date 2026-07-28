@@ -714,9 +714,7 @@ def update_unit_assigned(unit_id, assigned_users):
     query = select(AssignedUnits).where(AssignedUnits.collection_unit_id == unit_id)
     current_assigned = db.session.execute(query).scalars().all()
 
-    current_assigned = set(
-        row.user_id for row in current_assigned
-    )  # if fetch_data returns dicts
+    current_assigned = set(row.user_id for row in current_assigned)
     assigned_users = set(int(user) for user in assigned_users)
     # Compare lists
     users_to_add = assigned_users - current_assigned
