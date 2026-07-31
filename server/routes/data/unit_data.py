@@ -3,7 +3,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import case, desc, func, select, union_all, update
+from sqlalchemy import and_, case, delete, desc, func, insert, select, union_all, update
 from sqlalchemy.orm import joinedload
 
 from server.database import db
@@ -24,7 +24,9 @@ from server.models import (
     GeologicalTimePeriod,
     ItemType,
     LibraryAndArchivesFunction,
+    Person,
     PreservationMethod,
+    Rank,
     Roles,
     Section,
     Site,
@@ -32,15 +34,28 @@ from server.models import (
     StorageRoom,
     Taxon,
     UnitAssessmentCriterion,
+    UnitAssessmentRank,
+    UnitComment,
     Users,
 )
-from server.schemas import *
+from server.routes.data.utils import update_unit_assigned
+from server.schemas import (
+    CuratorialUnitDefinitionDDSchema,
+    DivisionDDSchema,
+    GeographicOriginDDSchema,
+    GeologicalTimePeriodDDSchema,
+    LibraryAndArchivesFunctionDDSchema,
+    StorageContainerDDSchema,
+    StorageRoomDDSchema,
+    TaxonDDSchema,
+    UnitByUsersSchema,
+    UsersDDSchema,
+)
 from server.utils import (
     get_user_by_id,
 )
 
 from . import data_bp
-from .utils import *
 
 
 @data_bp.route('/unit-scores/<unit_id>', methods=['GET'])
@@ -341,6 +356,9 @@ def get_units_assigned():
         # Fetch user level
         user = get_user_by_id(user_id)
 
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
         au_subquery = (
             select(func.JSON_ARRAYAGG(AssignedUnits.user_id))
             .where(
@@ -399,8 +417,6 @@ def get_units_by_division(division_id):
     """
     Gets units for a specific division.
     """
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     try:
         query = select(CollectionUnit).where(
             CollectionUnit.unit_active == 'yes',
@@ -425,6 +441,8 @@ def get_division_users():
     try:
         # Fetch user level
         user = get_user_by_id(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
         role_id = user['role_id']
         if role_id >= 3:
             au_subquery = (
@@ -501,8 +519,6 @@ def reassign_responsible_curator():
     data = request.get_json()
     old_user_id = data.get('old_user_id')
     new_user_id = data.get('new_user_id')
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
 
     try:
         # Transfer units the old user was responsible for to the new user
@@ -552,9 +568,6 @@ def set_unit_assigned():
     if not assigned_users:
         return jsonify({'error': 'assigned_users is required'}), 400
 
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
-
     try:
         update_unit_assigned(unit_id, assigned_users)
 
@@ -584,9 +597,6 @@ def set_bulk_unit_permissions():
         return jsonify(
             {'error': 'assigned_users or responsible_curator_id is required'}
         ), 400
-
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
 
     try:
         # add assinged users per unit
@@ -762,7 +772,6 @@ def get_all_sections():
         }
         for section in sections
     ]
-    return jsonify(data)
 
 
 @data_bp.route('/all-geographic-origin', methods=['GET'])
@@ -950,6 +959,8 @@ def get_units_by_user():
     user_id = get_jwt_identity()
     # Fetch user level
     user = get_user_by_id(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
     role_id = user['role_id']
 
     # make subquery for the last time units where rescored

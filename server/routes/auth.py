@@ -69,6 +69,8 @@ def auth_redirect():
 
     if 'access_token' in token_response:
         user_info = token_response.get('id_token_claims')
+        if not user_info:
+            return jsonify({'error': 'No user info found'}), 400
         # Get user from db
         user = db.session.execute(
             select(Users).where(Users.azure_id == str(user_info['oid']))
@@ -114,38 +116,39 @@ def auth_redirect():
                     .values(email=user_info['preferred_username'])
                 )
                 db.session.commit()
-        # Store user info in session
-        user_data = {
-            'user_id': user.user_id,
-            'display_name': user.display_name,
-            'email': user.email,
-            'role_id': user.role_id,
-            'role': user.roles.role,
-            'division_id': user.division_id,
-            'level': user.roles.level,
-        }
-        session['user'] = user_data
-        session.modified = True
-        # Generate JWT token
+        if user:
+            # Store user info in session
+            user_data = {
+                'user_id': user.user_id,
+                'display_name': user.display_name,
+                'email': user.email,
+                'role_id': user.role_id,
+                'role': user.roles.role,
+                'division_id': user.division_id,
+                'level': user.roles.level,
+            }
+            session['user'] = user_data
+            session.modified = True
+            # Generate JWT token
 
-        # Create access token with user identity and extra claims
-        jwt_token = create_access_token(
-            identity=str(user.user_id),
-            additional_claims=user_data,
-        )
-        # Create refresh token
-        refresh_token = create_refresh_token(identity=str(user.user_id))
-        # Store in session for later retrieval
-        session['jwt_token'] = jwt_token
+            # Create access token with user identity and extra claims
+            jwt_token = create_access_token(
+                identity=str(user.user_id),
+                additional_claims=user_data,
+            )
+            # Create refresh token
+            refresh_token = create_refresh_token(identity=str(user.user_id))
+            # Store in session for later retrieval
+            session['jwt_token'] = jwt_token
 
-        # Generate CSRF token
-        csrf_access_token = secrets.token_urlsafe(32)
-        response = make_response(jsonify({'message': 'Login successful'}))
-        # Set jwt token as access token in cookies
-        set_access_cookies(response, jwt_token)
-        set_refresh_cookies(response, refresh_token)
+            # Generate CSRF token
+            csrf_access_token = secrets.token_urlsafe(32)
+            response = make_response(jsonify({'message': 'Login successful'}))
+            # Set jwt token as access token in cookies
+            set_access_cookies(response, jwt_token)
+            set_refresh_cookies(response, refresh_token)
 
-        return response
+            return response
 
     return jsonify({'error': 'Authentication failed'}), 401
 
@@ -208,7 +211,7 @@ def insert_person_to_existing_user(user_id, first_name, last_name, job_title=Non
     new_person_id = result.lastrowid
 
     db.session.execute(
-        insert(Users).where(Users.user_id == user_id).values(person_id=new_person_id)
+        update(Users).where(Users.user_id == user_id).values(person_id=new_person_id)
     )
     db.session.commit()
     return new_person_id

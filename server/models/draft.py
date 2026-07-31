@@ -74,7 +74,7 @@ class UnitMetricDraft(db.Model):
         ),
         nullable=False,
     )
-    metric_value: Mapped[int] = mapped_column(db.Double, nullable=False)
+    metric_value: Mapped[float] = mapped_column(db.Double, nullable=False)
     confidence_level: Mapped[str] = mapped_column(db.String(1000), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         db.DateTime, default_factory=datetime.now

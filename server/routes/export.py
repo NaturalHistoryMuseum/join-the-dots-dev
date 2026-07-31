@@ -9,22 +9,9 @@ from flask_jwt_extended import (
 from sqlalchemy import text
 
 from server.database import db
-from server.routes.queries.data_queries import *
-from server.utils import (
-    database_name,
-    refreshJWTToken,
-)
+from server.utils import database_name
 
 export_bp = Blueprint('export', __name__)
-
-
-# After a request, refresh the JWT token if it is about to expire
-@export_bp.after_request
-def refresh_expiring_jwts(response):
-    """
-    Refresh JWT Token.
-    """
-    return refreshJWTToken(response)
 
 
 @export_bp.route('/data-export', methods=['POST'])
@@ -44,18 +31,38 @@ def make_export():
         else:
             # Initilise query parts
             selects_query = """
-                    SELECT  cu.collection_unit_id,	cu.unit_name,	cu.public_unit_name,	cu.section_id, s.section_name, d.division_id, d.division_name, d2.department_id AS discipline_id, d2.department_name AS discipline_name ,	cu.type_collection_flag,	cu.publish_flag,	cu.informal_taxon,	cu.named_collection,	cu.es_recent_specimen_flag,	cu.archives_fond_ref,
-                    cu.count_curatorial_units_flag,	cu.sort_order,	cud.curatorial_unit_definition_id,	cud.description,	bl.bibliographic_level,	it.item_type,	pm.preservation_method,	sr.storage_room_id,	sr.room_code,	sr.room_name,	f.floor_name,
-                    b.building_name,	st.site_name,	sc.storage_container_id,	sc.container_name,	sc.temperature,	sc.relative_humidity,	go.geographic_origin_id,	go.geographic_origin_name,	go.region_type,	laaf.library_and_archives_function_id,	laaf.function_name,
-                    gtpf.geological_time_period_id as geological_time_period_from_id,	gtpf.period_name as period_name_from,	gtpf.rank as rank_from,	gtpt.geological_time_period_id as geological_time_period_to_id,	gtpt.period_name as period_name_to,	gtpt.rank as rank_to,	t.taxon_id,	t.taxon_name,	t.taxon_rank,	t.external_ref_name,	t.external_ref_id,
-                    COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS responsible_curator,
+                    SELECT  cu.collection_unit_id,	cu.unit_name, cu.public_unit_name,
+                    cu.section_id, s.section_name, d.division_id, d.division_name,
+                    d2.department_id AS discipline_id,
+                    d2.department_name AS discipline_name, cu.type_collection_flag,
+                    cu.publish_flag,	cu.informal_taxon, cu.named_collection,
+                    cu.es_recent_specimen_flag,	cu.archives_fond_ref,
+                    cu.count_curatorial_units_flag,	cu.sort_order,
+                    cud.curatorial_unit_definition_id, cud.description,
+                    bl.bibliographic_level,	it.item_type, pm.preservation_method,
+                    sr.storage_room_id,	sr.room_code, sr.room_name,	f.floor_name,
+                    b.building_name,	st.site_name, sc.storage_container_id,
+                    sc.container_name,	sc.temperature,	sc.relative_humidity,
+                    go.geographic_origin_id,	go.geographic_origin_name,
+                    go.region_type,	laaf.library_and_archives_function_id,
+                    laaf.function_name,
+                    gtpf.geological_time_period_id as geological_time_period_from_id,
+                    gtpf.period_name as period_name_from,	gtpf.rank as rank_from,
+                    gtpt.geological_time_period_id as geological_time_period_to_id,
+                    gtpt.period_name as period_name_to,	gtpt.rank as rank_to,
+                    t.taxon_id,	t.taxon_name,	t.taxon_rank,	t.external_ref_name,
+                    t.external_ref_id,
+                    COALESCE(
+                        CONCAT(p.first_name, ' ', p.last_name), u.display_name
+                    ) AS responsible_curator,
                     uc.unit_comment, DATE(uc.date_added) AS date_comment_added
                     """
             metrics_selects_query = """
                     , (
                         SELECT JSON_ARRAYAGG(
                             JSON_OBJECT(
-                                'collection_unit_metric_id', cum.collection_unit_metric_id,
+                                'collection_unit_metric_id',
+                                cum.collection_unit_metric_id,
                                 'metric_value', cum.metric_value,
                                 'confidence_level', cum.confidence_level,
                                 'metric_name', cumd.metric_name
@@ -63,7 +70,8 @@ def make_export():
                         ) AS metric_json
                         FROM {database_name}.collection_unit_metric_definition cumd
                         LEFT JOIN {database_name}.collection_unit_metric cum
-                            ON cum.collection_unit_metric_definition_id = cumd.collection_unit_metric_definition_id
+                            ON cum.collection_unit_metric_definition_id =
+                            cumd.collection_unit_metric_definition_id
                         AND cum.collection_unit_id = cu.collection_unit_id
                         AND cum.current = 'yes'
                     ) AS metric_json
@@ -73,7 +81,8 @@ def make_export():
                     (
                         SELECT JSON_ARRAYAGG(
                             JSON_OBJECT(
-                                'percentage', IF(uar.percentage = 0, NULL, uar.percentage),
+                                'percentage',
+                                IF(uar.percentage = 0, NULL, uar.percentage),
                                 'rank_id', uar.rank_id, 'rank_value', r.rank_value,
                                 'comment', uar.comment,
                                 'criterion_id', r.criterion_id,
@@ -81,14 +90,20 @@ def make_export():
                             )
                         ) AS percentages_json
                         FROM {database_name}.unit_assessment_criterion uac
-                        JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                        JOIN {database_name}.rank r ON r.rank_id = uar.rank_id JOIN {database_name}.criterion c ON c.criterion_id = r.criterion_id
+                        JOIN {database_name}.unit_assessment_rank uar
+                            ON uac.unit_assessment_criterion_id =
+                            uar.unit_assessment_criterion_id
+                        JOIN {database_name}.rank r
+                            ON r.rank_id = uar.rank_id
+                        JOIN {database_name}.criterion c
+                            ON c.criterion_id = r.criterion_id
                         WHERE
                             uac.collection_unit_id = cu.collection_unit_id
                             AND uar.unit_assessment_criterion_id IN (
                                 SELECT uac.unit_assessment_criterion_id
                                 FROM {database_name}.unit_assessment_criterion uac
-                                JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+                                JOIN {database_name}.collection_unit cu
+                                ON cu.collection_unit_id = uac.collection_unit_id
                                 WHERE uac.current = 'yes'
                             )
                             AND uar.rank_id IN (
@@ -108,11 +123,17 @@ def make_export():
                             )
                         )
                         FROM (
-                            SELECT r.criterion_id, c.criterion_code, SUM(r.rank_value * uar.percentage) / NULLIF(SUM(uar.percentage), 0) AS avg_rank_value
+                            SELECT r.criterion_id, c.criterion_code,
+                            SUM(r.rank_value * uar.percentage) /
+                                NULLIF(SUM(uar.percentage), 0) AS avg_rank_value
                             FROM {database_name}.unit_assessment_rank uar
-                            JOIN {database_name}.unit_assessment_criterion uac ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                            JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
-                            JOIN {database_name}.criterion c  ON c.criterion_id = r.criterion_id
+                            JOIN {database_name}.unit_assessment_criterion uac
+                                ON uac.unit_assessment_criterion_id =
+                                uar.unit_assessment_criterion_id
+                            JOIN {database_name}.rank r
+                                ON r.rank_id = uar.rank_id
+                            JOIN {database_name}.criterion c
+                                ON c.criterion_id = r.criterion_id
                             WHERE uac.collection_unit_id = cu.collection_unit_id
                                 AND uac.current = 'yes'
                                 AND uar.percentage IS NOT NULL
@@ -124,30 +145,53 @@ def make_export():
                     ) AS ranks_averages_json"""
             origins_query = """
                     FROM {database_name}.collection_unit cu
-                    LEFT JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
-                    LEFT JOIN {database_name}.person p ON p.person_id = u.person_id
+                    LEFT JOIN {database_name}.users u
+                        ON u.user_id = cu.responsible_curator_id
+                    LEFT JOIN {database_name}.person p
+                        ON p.person_id = u.person_id
                     LEFT JOIN {database_name}.unit_comment uc ON uc.unit_comment_id = (
-				        SELECT MAX(uc2.unit_comment_id)
-				        FROM {database_name}.unit_comment uc2
-				        WHERE uc2.collection_unit_id = cu.collection_unit_id
-				    )
-                    LEFT JOIN {database_name}.geological_time_period gtpf ON gtpf.geological_time_period_id = cu.geological_time_period_from_id
-                    LEFT JOIN {database_name}.geological_time_period gtpt ON gtpt.geological_time_period_id = cu.geological_time_period_to_id
-                    LEFT JOIN {database_name}.geographic_origin go ON go.geographic_origin_id = cu.geographic_origin_id
-                    LEFT JOIN {database_name}.library_and_archives_function laaf ON laaf.library_and_archives_function_id = cu.library_and_archives_function_id
-                    LEFT JOIN {database_name}.storage_container sc ON sc.storage_container_id = cu.storage_container_id
-                    LEFT JOIN {database_name}.curatorial_unit_definition cud ON cud.curatorial_unit_definition_id = cu.curatorial_unit_definition_id
-                    LEFT JOIN {database_name}.bibliographic_level bl ON bl.bibliographic_level_id = cud.bibliographic_level_id
-                    LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id
-                    LEFT JOIN {database_name}.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id
-                    LEFT JOIN {database_name}.taxon t ON t.taxon_id = cu.taxon_id
-                    LEFT JOIN {database_name}.storage_room sr ON sr.storage_room_id = cu.storage_room_id
-                    LEFT JOIN {database_name}.floor f ON f.floor_id = sr.floor_id
-                    LEFT JOIN {database_name}.building b ON b.building_id = f.building_id
-                    LEFT JOIN {database_name}.site st ON st.site_id = b.site_id
-                    LEFT JOIN {database_name}.`section` s ON s.section_id = cu.section_id
-                    LEFT JOIN {database_name}.division d ON d.division_id = s.division_id
-                    LEFT JOIN {database_name}.department d2 ON d2.department_id = d.department_id
+                        SELECT MAX(uc2.unit_comment_id)
+                        FROM {database_name}.unit_comment uc2
+                        WHERE uc2.collection_unit_id = cu.collection_unit_id
+                    )
+                    LEFT JOIN {database_name}.geological_time_period gtpf
+                        ON gtpf.geological_time_period_id =
+                        cu.geological_time_period_from_id
+                    LEFT JOIN {database_name}.geological_time_period gtpt
+                        ON gtpt.geological_time_period_id =
+                        cu.geological_time_period_to_id
+                    LEFT JOIN {database_name}.geographic_origin go
+                        ON go.geographic_origin_id = cu.geographic_origin_id
+                    LEFT JOIN {database_name}.library_and_archives_function laaf
+                        ON laaf.library_and_archives_function_id =
+                        cu.library_and_archives_function_id
+                    LEFT JOIN {database_name}.storage_container sc
+                        ON sc.storage_container_id = cu.storage_container_id
+                    LEFT JOIN {database_name}.curatorial_unit_definition cud
+                        ON cud.curatorial_unit_definition_id =
+                        cu.curatorial_unit_definition_id
+                    LEFT JOIN {database_name}.bibliographic_level bl
+                        ON bl.bibliographic_level_id = cud.bibliographic_level_id
+                    LEFT JOIN {database_name}.item_type it
+                        ON it.item_type_id = cud.item_type_id
+                    LEFT JOIN {database_name}.preservation_method pm
+                        ON pm.preservation_method_id = cud.preservation_method_id
+                    LEFT JOIN {database_name}.taxon t
+                        ON t.taxon_id = cu.taxon_id
+                    LEFT JOIN {database_name}.storage_room sr
+                        ON sr.storage_room_id = cu.storage_room_id
+                    LEFT JOIN {database_name}.floor f
+                        ON f.floor_id = sr.floor_id
+                    LEFT JOIN {database_name}.building b
+                        ON b.building_id = f.building_id
+                    LEFT JOIN {database_name}.site st
+                        ON st.site_id = b.site_id
+                    LEFT JOIN {database_name}.`section` s
+                        ON s.section_id = cu.section_id
+                    LEFT JOIN {database_name}.division d
+                        ON d.division_id = s.division_id
+                    LEFT JOIN {database_name}.department d2
+                        ON d2.department_id = d.department_id
                     WHERE cu.unit_active = 'yes' AND cu.draft_unit = 0
                             """
 
@@ -239,7 +283,9 @@ def make_export():
                             if new_col_name not in col_names:
                                 col_names.append(new_col_name)
                             # Set the new comment column name
-                            comment_col_name = f'{rank["criterion_code"]}_rank_{rank["rank_value"]}_comment'
+                            comment_col_name = f"""
+                                {rank['criterion_code']}_rank_{rank['rank_value']}_comment
+                            """
                             # Add new column to row
                             row[comment_col_name] = rank['comment']
                             # Add to list of columns
@@ -297,6 +343,8 @@ def make_export():
                     'attachment; filename=test-export.csv'
                 )
                 response.set_data('\ufeff' + return_data)
+            else:
+                response = jsonify(data)
 
             return response
     except Exception as e:
@@ -305,6 +353,9 @@ def make_export():
 
 # Create CSV response
 def generate_csv(col_names, data):
+    """
+    Create CSV from the data and column names.
+    """
     # Format column names for csv
     formatted_col_names = [col_name.replace('_', ' ').title() for col_name in col_names]
     output = io.StringIO()
@@ -320,6 +371,9 @@ def generate_csv(col_names, data):
 
 
 def generate_ltc_json(export_config):
+    """
+    Create the LtC JSON export.
+    """
     res = db.session.execute(text(generate_ltc_query(export_config))).fetchall()
     data = [dict(row._mapping) for row in res]
     if data:
@@ -345,11 +399,15 @@ def generate_ltc_query(export_config):
     ltc_query_start = f"""
     WITH item_count_data AS (
         SELECT cu.collection_unit_id as collection_unit_id, (
-                SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
+                SELECT cum.metric_value
+                FROM {database_name}.collection_unit_metric cum
+                WHERE ((cum.collection_unit_id = cu.collection_unit_id)
                     and (cum.current = 'yes')
                     and (cum.collection_unit_metric_definition_id = 1))
             ) AS item_count, (
-                SELECT cum.confidence_level FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
+                SELECT cum.confidence_level
+                FROM {database_name}.collection_unit_metric cum
+                WHERE ((cum.collection_unit_id = cu.collection_unit_id)
                     and (cum.current = 'yes')
                     and (cum.collection_unit_metric_definition_id = 1))
             ) AS item_count_confidence_level
@@ -357,11 +415,14 @@ def generate_ltc_query(export_config):
     ),
     unit_count_data AS (
         SELECT cu.collection_unit_id as collection_unit_id, (
-                SELECT cum.metric_value FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
+                SELECT cum.metric_value
+                FROM {database_name}.collection_unit_metric cum
+                WHERE ((cum.collection_unit_id = cu.collection_unit_id)
                     and (cum.current = 'yes')
                     and (cum.collection_unit_metric_definition_id = 2))
             ) AS curatorial_unit_count, (
-                SELECT cum.confidence_level FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
+                SELECT cum.confidence_level
+                FROM {database_name}.collection_unit_metric cum WHERE ((cum.collection_unit_id = cu.collection_unit_id)
                     and (cum.current = 'yes')
                     and (cum.collection_unit_metric_definition_id = 2))
             ) AS curatorial_unit_count_confidence_level
@@ -379,7 +440,8 @@ def generate_ltc_query(export_config):
     --     			ObjectGroup
                     SELECT JSON_ARRAYAGG(
                         JSON_MERGE_PRESERVE(
-                            JSON_OBJECT('ltc:baseTypeOfObjectGroup', JSON_ARRAY('MaterialEntity')),
+                            JSON_OBJECT('ltc:baseTypeOfObjectGroup',
+                            JSON_ARRAY('MaterialEntity')),
     -- 	    					Collection Name
                             JSON_OBJECT('ltc:collectionName', cu.unit_name),
     --     						Scheme Name
@@ -388,10 +450,12 @@ def generate_ltc_query(export_config):
                                 JSON_OBJECT('ltc:objectType', JSON_ARRAY(it.item_type))
                             , JSON_OBJECT()),
                             IF(cud.description IS NOT NULL,
-                                JSON_OBJECT('ltc:preparationType', JSON_ARRAY(cud.description))
+                                JSON_OBJECT('ltc:preparationType',
+                                JSON_ARRAY(cud.description))
                             , JSON_OBJECT()),
                             IF(pm.preservation_method IS NOT NULL,
-                                JSON_OBJECT('ltc:preservationMethod', JSON_ARRAY(pm.preservation_method))
+                                JSON_OBJECT('ltc:preservationMethod',
+                                JSON_ARRAY(pm.preservation_method))
                             , JSON_OBJECT()),
     -- 	    					EcologicalContext
                             IF(go2.region_type IS NOT NULL,
@@ -423,18 +487,24 @@ def generate_ltc_query(export_config):
                                             'ltc:hasParentOrganisationalUnit',
                                                 JSON_ARRAY(
                                                     JSON_OBJECT(
-                                                        'ltc:organisationalUnitName', d.division_name,
-                                                        'ltc:organisationalUnitType', 'Division',
+                                                        'ltc:organisationalUnitName',
+                                                        d.division_name,
+                                                        'ltc:organisationalUnitType',
+                                                        'Division',
                                                         'ltc:hasParentOrganisationalUnit',
                                                             JSON_ARRAY(
                                                                 JSON_OBJECT(
-                                                                    'ltc:organisationalUnitName', d2.department_name,
-                                                                    'ltc:organisationalUnitType', 'Department',
+                                                                    'ltc:organisationalUnitName',
+                                                                    d2.department_name,
+                                                                    'ltc:organisationalUnitType',
+                                                                    'Department',
                                                                     'ltc:hasParentOrganisationalUnit',
                                                                         JSON_ARRAY(
                                                                             JSON_OBJECT(
-                                                                                'ltc:organisationalUnitName', 'Natural History Museum, London',
-                                                                                'ltc:organisationalUnitType', 'Institution'
+                                                                                'ltc:organisationalUnitName',
+                                                                                'Natural History Museum, London',
+                                                                                'ltc:organisationalUnitType',
+                                                                                'Institution'
                                                                             )
                                                                         )
                                                                 )
@@ -445,7 +515,8 @@ def generate_ltc_query(export_config):
                                     )
                                 )
                             , JSON_OBJECT()),
-                            IF(cu.taxon_life_science_id IS NOT NULL OR cu.taxon_palaeontology_id IS NOT NULL,
+                            IF(cu.taxon_life_science_id IS NOT NULL
+                                OR cu.taxon_palaeontology_id IS NOT NULL,
                                 JSON_OBJECT(
                                     'ltc:hasTaxon',
                                         JSON_ARRAY(
@@ -456,9 +527,12 @@ def generate_ltc_query(export_config):
                                                     'ltc:hasIdentifier',
                                                         JSON_ARRAY(
                                                             JSON_OBJECT(
-                                                                'ltc:identifierSource', tls.external_ref_name,
-                                                                'ltc:identifierType', 'Taxon ID',
-                                                                'ltc:identifierValue', tls.external_ref_id
+                                                                'ltc:identifierSource',
+                                                                tls.external_ref_name,
+                                                                'ltc:identifierType',
+                                                                'Taxon ID',
+                                                                'ltc:identifierValue',
+                                                                tls.external_ref_id
                                                             )
                                                         )
                                                 )
@@ -468,9 +542,12 @@ def generate_ltc_query(export_config):
                                                     'ltc:hasIdentifier',
                                                         JSON_ARRAY(
                                                             JSON_OBJECT(
-                                                                'ltc:identifierSource', tp.external_ref_name,
-                                                                'ltc:identifierType', 'Taxon ID',
-                                                                'ltc:identifierValue', tp.external_ref_id
+                                                                'ltc:identifierSource',
+                                                                  tp.external_ref_name,
+                                                                'ltc:identifierType',
+                                                                'Taxon ID',
+                                                                'ltc:identifierValue',
+                                                                tp.external_ref_id
                                                             )
                                                         )
                                                 )
@@ -491,7 +568,8 @@ def generate_ltc_query(export_config):
                             )
     """
     ltc_measures_query = f""",
-                            IF (item_count IS NOT NULL AND curatorial_unit_count IS NOT NULL,
+                            IF (item_count IS NOT NULL
+                            AND curatorial_unit_count IS NOT NULL,
                                 JSON_OBJECT(
                                     'ltc:hasMeasurementOrFact',
                                         JSON_MERGE_PRESERVE(
@@ -499,20 +577,29 @@ def generate_ltc_query(export_config):
         --     										Item count
                                                 IF(item_count IS NOT NULL ,
                                                     JSON_OBJECT(
-                                                        'ltc:measurementDerivation', 'Reported',
-                                                        'dwc:measurementType', 'Reporting count',
-                                                        'dwc:measurementUnit', 'Count',
-                                                        'dwc:measurementAccuracy', item_count_confidence_level,
-                                                        'dwc:measurementValue', item_count
+                                                        'ltc:measurementDerivation',
+                                                        'Reported',
+                                                        'dwc:measurementType',
+                                                        'Reporting count',
+                                                        'dwc:measurementUnit',
+                                                        'Count',
+                                                        'dwc:measurementAccuracy',
+                                                        item_count_confidence_level,
+                                                        'dwc:measurementValue',
+                                                        item_count
                                                     )
                                                 , JSON_OBJECT()),
                                                 IF(curatorial_unit_count IS NOT NULL ,
                                                     JSON_OBJECT(
-                                                        'ltc:measurementDerivation', 'Reported',
-                                                        'dwc:measurementType', 'Curatorial unit count',
+                                                        'ltc:measurementDerivation',
+                                                        'Reported',
+                                                        'dwc:measurementType',
+                                                        'Curatorial unit count',
                                                         'dwc:measurementUnit', 'Count',
-                                                        'dwc:measurementAccuracy', curatorial_unit_count_confidence_level,
-                                                        'dwc:measurementValue', curatorial_unit_count
+                                                        'dwc:measurementAccuracy',
+                                                        curatorial_unit_count_confidence_level,
+                                                        'dwc:measurementValue',
+                                                        curatorial_unit_count
                                                     )
                                                 , JSON_OBJECT())
                                             )
@@ -522,25 +609,43 @@ def generate_ltc_query(export_config):
                                                 (
                                                     SELECT JSON_ARRAYAGG(
                                                         JSON_OBJECT(
-                                                            'ltc:measurementDerivation', 'Reported',
-                                                            'dwc:measurementType', CONCAT(c.criterion_code, ': ', c.criterion_name, ' - (Rank ', r.rank_value, ')'),
-                                                            'dwc:measurementUnit', 'Percentage',
-                                                            'dwc:measurementValue', uar.percentage
+                                                            'ltc:measurementDerivation',
+                                                            'Reported',
+                                                            'dwc:measurementType',
+                                                            CONCAT(
+                                                                c.criterion_code, ': ',
+                                                                c.criterion_name,
+                                                                ' - (Rank ',
+                                                                r.rank_value,
+                                                                ')'
+                                                            ),
+                                                            'dwc:measurementUnit',
+                                                            'Percentage',
+                                                            'dwc:measurementValue',
+                                                            uar.percentage
                                                         )
                                                     ) AS percentages_json
                                                     FROM {database_name}.unit_assessment_criterion uac
-                                                    JOIN {database_name}.unit_assessment_rank uar ON uac.unit_assessment_criterion_id = uar.unit_assessment_criterion_id
-                                                    JOIN {database_name}.rank r ON r.rank_id = uar.rank_id
-                                                    RIGHT JOIN {database_name}.criterion c ON r.criterion_id = c.criterion_id
-                                                    WHERE ((uac.collection_unit_id = cu.collection_unit_id)
+                                                    JOIN {database_name}.unit_assessment_rank uar
+                                                        ON uac.unit_assessment_criterion_id =
+                                                        uar.unit_assessment_criterion_id
+                                                    JOIN {database_name}.rank r
+                                                        ON r.rank_id = uar.rank_id
+                                                    RIGHT JOIN {database_name}.criterion c
+                                                    ON r.criterion_id = c.criterion_id
+                                                    WHERE ((uac.collection_unit_id =
+                                                        cu.collection_unit_id)
                                                     AND uar.unit_assessment_criterion_id IN (
                                                         SELECT uac.unit_assessment_criterion_id
                                                         FROM {database_name}.unit_assessment_criterion uac
-                                                        JOIN {database_name}.collection_unit cu ON cu.collection_unit_id = uac.collection_unit_id
+                                                        JOIN {database_name}.collection_unit cu
+                                                            ON cu.collection_unit_id =
+                                                            uac.collection_unit_id
                                                         WHERE uac.current = 'yes'
                                                     )
                                                     AND uar.rank_id IN (
-                                                        SELECT r.rank_id FROM {database_name}.rank r
+                                                        SELECT r.rank_id
+                                                        FROM {database_name}.rank r
                                                     ))
                                                     ORDER BY r.rank_id
                                                 )
@@ -553,17 +658,29 @@ def generate_ltc_query(export_config):
                         )
                     )
                     FROM {database_name}.collection_unit cu
-                    LEFT JOIN {database_name}.section s ON s.section_id = cu.section_id
-                    LEFT JOIN {database_name}.division d ON d.division_id = s.division_id
-                    LEFT JOIN {database_name}.department d2 ON d2.department_id = d.department_id
-                    LEFT JOIN {database_name}.curatorial_unit_definition cud ON cud.curatorial_unit_definition_id = cu.curatorial_unit_definition_id
-                    LEFT JOIN {database_name}.item_type it ON it.item_type_id = cud.item_type_id
-                    LEFT JOIN {database_name}.preservation_method pm ON pm.preservation_method_id = cud.preservation_method_id
-                    LEFT JOIN {database_name}.geographic_origin go2 ON go2.geographic_origin_id = cu.geographic_origin_id
-                    LEFT JOIN {database_name}.taxon_palaeontology tp ON tp.taxon_palaeontology_id = cu.taxon_palaeontology_id
-                    LEFT JOIN {database_name}.taxon_life_science tls ON tls.taxon_life_science_id = cu.taxon_life_science_id
-                    JOIN item_count_data on item_count_data.collection_unit_id = cu.collection_unit_id
-                    JOIN unit_count_data on unit_count_data.collection_unit_id = cu.collection_unit_id
+                    LEFT JOIN {database_name}.section s
+                        ON s.section_id = cu.section_id
+                    LEFT JOIN {database_name}.division d
+                        ON d.division_id = s.division_id
+                    LEFT JOIN {database_name}.department d2
+                        ON d2.department_id = d.department_id
+                    LEFT JOIN {database_name}.curatorial_unit_definition cud
+                        ON cud.curatorial_unit_definition_id =
+                        cu.curatorial_unit_definition_id
+                    LEFT JOIN {database_name}.item_type it
+                        ON it.item_type_id = cud.item_type_id
+                    LEFT JOIN {database_name}.preservation_method pm
+                        ON pm.preservation_method_id = cud.preservation_method_id
+                    LEFT JOIN {database_name}.geographic_origin go2
+                        ON go2.geographic_origin_id = cu.geographic_origin_id
+                    LEFT JOIN {database_name}.taxon_palaeontology tp
+                        ON tp.taxon_palaeontology_id = cu.taxon_palaeontology_id
+                    LEFT JOIN {database_name}.taxon_life_science tls
+                        ON tls.taxon_life_science_id = cu.taxon_life_science_id
+                    JOIN item_count_data
+                        ON item_count_data.collection_unit_id = cu.collection_unit_id
+                    JOIN unit_count_data
+                        ON unit_count_data.collection_unit_id = cu.collection_unit_id
     """
     ltc_query_end = """
                 )
@@ -594,27 +711,43 @@ def where_claused(export_config):
     # Check filters and add if present
     if export_config.get('selected_sections'):
         where_clauses.append(
-            f' cu.section_id IN ({", ".join(map(str, export_config.get("selected_sections")))})'
+            f""" cu.section_id IN
+                ({', '.join(map(str, export_config.get('selected_sections')))})
+            """
         )
     if export_config.get('selected_divisions'):
         where_clauses.append(
-            f' d.division_id IN ({", ".join(map(str, export_config.get("selected_divisions")))})'
+            f""" d.division_id IN
+                ({', '.join(map(str, export_config.get('selected_divisions')))})
+            """
         )
     if export_config.get('selected_curators'):
         where_clauses.append(
-            f' u.user_id IN ({", ".join(map(str, export_config.get("selected_curators")))})'
+            f""" u.user_id IN
+                ({', '.join(map(str, export_config.get('selected_curators')))})
+            """
         )
     if export_config.get('selected_rooms'):
         where_clauses.append(
-            f' sr.storage_room_id IN ({", ".join(map(str, export_config.get("selected_rooms")))})'
+            f""" sr.storage_room_id IN
+                ({', '.join(map(str, export_config.get('selected_rooms')))})
+            """
         )
     if export_config.get('selected_curatorial_definitions'):
         where_clauses.append(
-            f' cud.curatorial_unit_definition_id IN ({", ".join(map(str, export_config.get("selected_curatorial_definitions")))})'
+            f""" cud.curatorial_unit_definition_id IN
+                ({
+                ', '.join(
+                    map(str, export_config.get('selected_curatorial_definitions'))
+                )
+            })
+            """
         )
     if export_config.get('selected_taxons'):
         where_clauses.append(
-            f' t.taxon_id IN ({", ".join(map(str, export_config.get("selected_taxons")))})'
+            f""" t.taxon_id IN
+                ({', '.join(map(str, export_config.get('selected_taxons')))})
+            """
         )
     # Return filter query
     return where_clauses

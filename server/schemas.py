@@ -1,5 +1,15 @@
 from server.extensions import ma
-from server.models import *
+from server.models import (
+    CollectionUnit,
+    CuratorialUnitDefinition,
+    Division,
+    GeographicOrigin,
+    GeologicalTimePeriod,
+    LibraryAndArchivesFunction,
+    StorageContainer,
+    StorageRoom,
+    Users,
+)
 
 
 class GeographicOriginDDSchema(ma.SQLAlchemyAutoSchema):

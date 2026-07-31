@@ -5,20 +5,30 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import func, update
+from sqlalchemy import func, select, update
 
 from server.database import db
 from server.models import (
     CollectionUnit,
     RescoreSession,
     RescoreSessionUnits,
+    UnitCategoryDraft,
     Users,
 )
-from server.routes.data.utils import rescore_units_query
+from server.routes.data.utils import (
+    close_rescore,
+    create_rescore_session,
+    handle_draft_comment,
+    handle_draft_metrics,
+    handle_draft_rank,
+    rescore_units_query,
+    upgrade_draft_comments,
+    upgrade_draft_metrics,
+    upgrade_draft_ranks,
+)
 from server.utils import get_person_id
 
 from . import data_bp
-from .utils import *
 
 
 @data_bp.route('/mark-rescore-open', methods=['POST'])
@@ -42,7 +52,6 @@ def get_mark_rescore_open():
         return jsonify({'rescore_session_id': rescore_session_id, 'success': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-        connection.close()
 
 
 @data_bp.route('/rescore-complete', methods=['POST'])
@@ -117,8 +126,6 @@ def get_all_open_rescores():
     """
     Retrieve all current open rescores.
     """
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     query = (
         select(
             RescoreSession.rescore_session_id,
@@ -193,15 +200,12 @@ def submit_draft_rank():
     """
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
-    collection_unit_id = data.get('collection_unit_id')
     criterion_id = data.get('criterion_id')
     ranks = data.get('ranks')
     category_draft_id = data.get('category_draft_id')
 
     if not category_draft_id:
         return jsonify({'error': 'category_draft_id is required'}), 400
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not criterion_id:
@@ -224,8 +228,6 @@ def submit_draft_metrics():
     rescore_session_units_id = data.get('rescore_session_units_id')
     collection_unit_id = data.get('collection_unit_id')
     metric_json = data.get('metric_json')
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400
     if not collection_unit_id:
@@ -249,8 +251,6 @@ def submit_draft_comment():
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     unit_comment = data.get('unit_comment')
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
 
     if not rescore_session_units_id:
         return jsonify({'error': 'rescore_session_units_id is required'}), 400

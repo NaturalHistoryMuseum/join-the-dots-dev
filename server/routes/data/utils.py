@@ -101,7 +101,7 @@ def create_rescore_session(units, user_id):
     return (rescore_session_id, category_draft_ids)
 
 
-def complete_draft_unit(unit_id, user_id, person_id):
+def complete_draft_unit(unit_id, person_id):
     """
     Remove draft tag and upgrade the data points (scores, metrics, comment) from drafts.
     """
@@ -115,41 +115,47 @@ def complete_draft_unit(unit_id, user_id, person_id):
             )
         )
     ).scalar()
-    rescore_session_id = rescore_session.rescore_session_id
+    if rescore_session:
+        rescore_session_id = rescore_session.rescore_session_id
 
-    db.session.execute(
-        update(CollectionUnit)
-        .where(CollectionUnit.collection_unit_id == unit_id)
-        .values(
-            draft_unit='no',
+        db.session.execute(
+            update(CollectionUnit)
+            .where(CollectionUnit.collection_unit_id == unit_id)
+            .values(
+                draft_unit='no',
+            )
         )
-    )
-    db.session.flush()
+        db.session.flush()
 
-    # Submit draft comments
-    upgrade_draft_comments(rescore_session_id)
+        # Submit draft comments
+        upgrade_draft_comments(rescore_session_id)
 
-    # Submit draft metrics
-    upgrade_draft_metrics(rescore_session_id)
+        # Submit draft metrics
+        upgrade_draft_metrics(rescore_session_id)
 
-    # Submit draft ranks
-    upgrade_draft_ranks(rescore_session_id, person_id)
+        # Submit draft ranks
+        upgrade_draft_ranks(rescore_session_id, person_id)
 
-    # Close the rescore and remove draft categories
-    close_rescore(rescore_session_id)
+        # Close the rescore and remove draft categories
+        close_rescore(rescore_session_id)
 
 
 def column_exists(table_name, column_name):
+    """
+    Check if a column exists in a table in the database.
+    """
     data = db.session.execute(
         text(f"""
         SELECT COUNT(*) as count
         FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE table_schema = '{database_name}' AND table_name = :table_name AND column_name = :column_name
+        WHERE table_schema = '{database_name}'
+            AND table_name = :table_name
+            AND column_name = :column_name
         """),
         {'table_name': table_name, 'column_name': column_name},
     ).fetchone()
 
-    field_is_valid = True if data.count == 1 else False
+    field_is_valid = True if data and data.count == 1 else False
     return field_is_valid
 
 
@@ -163,6 +169,10 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
             CollectionUnit.collection_unit_id == unit_id_to_copy
         )
     ).scalar()
+
+    if original_unit is None:
+        return None
+
     db.session.flush()
     # create new unit
     result = db.session.execute(
@@ -193,8 +203,6 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
     )
     new_unit_id = result.lastrowid
     db.session.flush()
-
-    new_unit_id = new_unit.collection_unit_id
 
     # Assign unit to current user
     db.session.execute(
@@ -545,7 +553,6 @@ def add_structural_change(
     )
     structural_changes_higher_id = result.lastrowid
     db.session.flush()
-    structural_changes_higher_id = new_change_higher.structural_changes_higher_id
 
     # Basic structural change
     db.session.execute(
@@ -574,6 +581,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
     It will insert a new row if none exists or update if it does.
     """
     try:
+        data = None
         # Only check if it exists if we dont know if we need to insert - saves time
         if not insert_only:
             data = (
@@ -586,6 +594,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
                 .scalars()
                 .all()
             )
+
         # Loop through the ranks and update or insert them
         for sumbit_rank in ranks:
             in_db = False
@@ -593,7 +602,8 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
             percentage = sumbit_rank['percentage']
             comment = sumbit_rank['comment']
             if not insert_only and data is not None:
-                # Check if the rank already exists in the database and update it if it does
+                # Check if the rank already exists in the
+                # database and update it if it does
                 for db_rank in data:
                     if db_rank.rank_id == sumbit_rank['rank_id']:
                         updated_at = datetime.now()
@@ -629,7 +639,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
             {'message': 'Draft rank submitted successfully', 'success': True}
         )
 
-    except Exception as e:
+    except Exception:
         raise
 
 
@@ -659,8 +669,10 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
                 ).scalar()
                 if existing_metric:
                     updated_at = datetime.now()
-                    existing_metric.metric_value = metric_value
-                    existing_metric.confidence_level = confidence_level
+                    if metric_value is not None:
+                        existing_metric.metric_value = metric_value
+                    if confidence_level is not None:
+                        existing_metric.confidence_level = confidence_level
                     existing_metric.updated_at = updated_at
                     db.session.flush()
                 else:
@@ -675,7 +687,7 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
                     db.session.flush()
         return jsonify({'message': 'Draft metrics submitted successfully'})
 
-    except Exception as e:
+    except Exception:
         raise
 
 
@@ -737,6 +749,10 @@ def update_unit_assigned(unit_id, assigned_users):
 
 
 def rescore_units_query(rescore_session_id):
+    """
+    Get rescore units with their metrics, comments and ranks for a given rescore
+    session.
+    """
     # metrics subquery
     draft_metrics_query = select(
         null().label('collection_unit_metric_id'),

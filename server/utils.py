@@ -15,7 +15,7 @@ from server.models import Users
 database_name = Config.MYSQL_DB
 
 
-def refreshJWTToken(response):
+def refresh_jwt_token(response):
     """
     Refresh the JWT token in the response if it is about to expire.
     """
@@ -43,11 +43,13 @@ def get_user_by_id(user_id):
     """
     Return the full users details.
     """
-    query = f"""SELECT u.*, r.role, r.`level`, p.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
+    query = f"""SELECT u.*, r.role, r.`level`, p.*,
+            COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
             (
                 SELECT JSON_ARRAYAGG( au.collection_unit_id )
                 FROM {database_name}.assigned_units au
-                JOIN {database_name}.collection_unit cu ON au.collection_unit_id = cu.collection_unit_id
+                JOIN {database_name}.collection_unit cu
+                    ON au.collection_unit_id = cu.collection_unit_id
                 WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
             ) AS assigned_units,
             (
@@ -73,5 +75,7 @@ def get_person_id(user_id):
     Return only the person_id for a user.
     """
     user = db.session.execute(select(Users).where(Users.user_id == user_id)).scalar()
+    if not user:
+        return None
     person_id = user.person_id
     return person_id

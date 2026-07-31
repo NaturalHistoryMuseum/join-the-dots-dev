@@ -1,6 +1,6 @@
 import msal
 import requests
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Config, jsonify, request
 from flask import current_app as app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import delete, insert, literal, select, update
@@ -32,6 +32,9 @@ def get_msal_app():
 @user_bp.route('/user/<azure_id>', methods=['GET'])
 @jwt_required()
 def get_user(azure_id):
+    """
+    Get a user by their Azure ID.
+    """
     data = db.session.execute(select(Users).where(Users.azure_id == str(azure_id)))
     if data == []:
         return jsonify({'message': 'no user found'})
@@ -41,6 +44,9 @@ def get_user(azure_id):
 @user_bp.route('/add-user', methods=['POST'])
 @jwt_required()
 def add_user():
+    """
+    Add a new user.
+    """
     data = request.get_json()
 
     # Extract user details from request JSON
@@ -97,6 +103,9 @@ def edit_user_role():
 @user_bp.route('/assign-units', methods=['POST'])
 @jwt_required()
 def edit_assign_units():
+    """
+    Assign units to a user.
+    """
     data = request.get_json()
     user_id = data.get('user_id')
     units = data.get('units')
@@ -108,7 +117,9 @@ def edit_assign_units():
 
     # Delete current user units
     try:
-        db.session.execute(delete(AssignedUnits).where(AssignedUnits.user_id == use))
+        db.session.execute(
+            delete(AssignedUnits).where(AssignedUnits.user_id == user_id)
+        )
         db.session.flush()
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -130,6 +141,9 @@ def edit_assign_units():
 @user_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
 def get_all_roles():
+    """
+    Get all roles.
+    """
     data = db.session.execute(select(Roles))
     return jsonify(data)
 
@@ -174,6 +188,9 @@ def upgrade_viewer():
 @user_bp.route('/check-user-by-email', methods=['POST'])
 @jwt_required()
 def check_user_by_email():
+    """
+    Check if a user exists by their email address.
+    """
     data = request.get_json()
     email = data.get('email')
     try:
@@ -217,7 +234,7 @@ def get_user_by_email():
         scopes=['https://graph.microsoft.com/.default']
     )
 
-    if 'access_token' not in token_response:
+    if not token_response or 'access_token' not in token_response:
         return jsonify(
             {'error': 'Could not acquire token', 'details': token_response}
         ), 401

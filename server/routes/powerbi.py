@@ -69,7 +69,11 @@ def return_data(table):
         return jsonify({'error': 'Table is not allowed'}), 400
     if table == 'collection_unit':
         # Special case for collection_unit to exclude sensitive fields
-        query_template = f"""SELECT cu.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS responsible_curator
+        query_template = f"""
+        SELECT cu.*,
+        COALESCE(
+            CONCAT(p.first_name, ' ', p.last_name), u.display_name
+        ) AS responsible_curator
         FROM {database_name}.collection_unit cu
         LEFT JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
         LEFT JOIN {database_name}.person p ON p.person_id = u.person_id"""

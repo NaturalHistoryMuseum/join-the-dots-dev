@@ -23,7 +23,7 @@ class CollectionUnitMetric(db.Model):
         ),
         nullable=False,
     )
-    metric_value: Mapped[int] = mapped_column(db.Double, nullable=False)
+    metric_value: Mapped[float] = mapped_column(db.Double, nullable=False)
     confidence_level: Mapped[str] = mapped_column(db.String(255))
     date_from: Mapped[datetime] = mapped_column(
         db.DateTime, nullable=False, default_factory=datetime.now

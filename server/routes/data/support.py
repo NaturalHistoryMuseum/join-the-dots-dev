@@ -137,8 +137,6 @@ def update_guidance():
     header = data.get('header')
     guidance = data.get('guidance')
     recording_url = data.get('recording_url', None)
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     try:
         db.session.execute(
             update(HelpGuidance)
@@ -167,8 +165,6 @@ def add_guidance():
     header = data.get('header')
     guidance = data.get('guidance')
     recording_url = data.get('recording_url', None)
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     try:
         db.session.execute(
             insert(HelpGuidance).values(
@@ -191,8 +187,6 @@ def remove_guidance():
     """
     data = request.get_json()
     guidance_id = data.get('guidance_id')
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     try:
         db.session.execute(
             delete(HelpGuidance).where(HelpGuidance.guidance_id == guidance_id)
@@ -279,8 +273,8 @@ def get_enhancements():
     Fetch all enhancements.
     """
     try:
-        enhancements = db.session.execute(select(HelpGuidance)).scalars().all()
-        return jsonify(Enhancements)
+        enhancements = db.session.execute(select(Enhancements)).scalars().all()
+        return jsonify(enhancements)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

@@ -5,7 +5,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import select, update
+from sqlalchemy import insert, select, update
 
 from server.database import db
 from server.models import (
@@ -14,16 +14,27 @@ from server.models import (
     CollectionUnitMetric,
     RescoreSession,
     RescoreSessionUnits,
+    StructuralChangesBasic,
+    StructuralChangesHigher,
     UnitAssessmentCriterion,
     UnitAssessmentRank,
 )
-from server.routes.data.utils import rescore_units_query
+from server.routes.data.utils import (
+    add_structural_change,
+    column_exists,
+    complete_draft_unit,
+    copy_unit,
+    create_rescore_session,
+    handle_draft_comment,
+    handle_draft_metrics,
+    handle_draft_rank,
+    rescore_units_query,
+)
 from server.utils import (
     get_person_id,
 )
 
 from . import data_bp
-from .utils import *
 
 
 @data_bp.route('/delete-units', methods=['POST'])
@@ -85,8 +96,6 @@ def update_assessed_date():
     """
     data = request.get_json()
     unit_ids = data.get('unit_ids')
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
     date_now = datetime.now()
     try:
         # Update the assessed date
@@ -128,12 +137,9 @@ def submit_unit():
     }
 
     try:
-        # new_unit = CollectionUnit(**filter_unit_data)
-        # db.session.add(new_unit)
         result = db.session.execute(insert(CollectionUnit).values(**filter_unit_data))
         new_unit_id = result.lastrowid
         db.session.flush()
-        # new_unit_id = new_unit.collection_unit_id
 
         if new_unit_id is None:
             return jsonify({'error': 'Failed to create new unit'}), 500
@@ -162,8 +168,9 @@ def submit_unit():
         if ranks_json:
             for criterion in ranks_json:
                 criterion_id = criterion[0]['criterion_id']
-                # Add the criterion to the unit_assessment_criterion table and get the new id
-                db.session.execute(
+                # Add the criterion to the unit_assessment_criterion table
+                # and get the new id
+                result = db.session.execute(
                     insert(UnitAssessmentCriterion).values(
                         collection_unit_id=new_unit_id,
                         criterion_id=criterion_id,
@@ -175,9 +182,7 @@ def submit_unit():
                     )
                 )
                 db.session.flush()
-                unit_assessment_criterion_id = (
-                    new_criterion_assess.unit_assessment_criterion_id
-                )
+                unit_assessment_criterion_id = result.lastrowid
 
                 for rank in criterion:
                     rank_id = rank['rank_id']
@@ -300,6 +305,8 @@ def submit_draft_unit():
                         if category.get('category_id') == category_id
                     ]
                     category_draft_id = current_category[0]['category_draft_id']
+                else:
+                    raise
                 # Make the score change
                 handle_draft_rank(
                     criterion_id,
@@ -316,7 +323,7 @@ def submit_draft_unit():
             handle_draft_comment(rescore_session_units_id, unit_comment)
         # If no longer draft, upgrade to full unit
         if draft_unit == 0:
-            complete_draft_unit(unit_id, user_id, person_id)
+            complete_draft_unit(unit_id, person_id)
 
         # Commit the transaction queries
         db.session.commit()
@@ -340,7 +347,7 @@ def get_draft_scores(unit_id):
             ),
         )
     ).scalar()
-    rescore_session_id = rescore_session.rescore_session_id
+    rescore_session_id = rescore_session.lastrowid
 
     query = rescore_units_query(rescore_session_id)
     data = db.session.execute(query).all()
@@ -367,8 +374,6 @@ def get_draft_scores(unit_id):
         }
         for row in data
     ]
-
-    return jsonify([dict(row._mapping) for row in data])
 
 
 @data_bp.route('/submit-field', methods=['POST'])
@@ -425,7 +430,7 @@ def split_unit():
 
     try:
         # Add structural change entry
-        db.session.execute(
+        result = db.session.execute(
             insert(StructuralChangesHigher).values(
                 higher_operation='split',
                 effective_date=date_now,
@@ -433,8 +438,8 @@ def split_unit():
                 cause='Requested by curator',
             )
         )
+        structural_changes_higher_id = result.lastrowid
         db.session.flush()
-        structural_changes_higher_id = new_change_higher.structural_changes_higher_id
 
         # Create new units
         for i in range(new_count):
@@ -497,7 +502,7 @@ def combine_unit():
 
     try:
         # Add structural change entry
-        db.session.execute(
+        result = db.session.execute(
             insert(StructuralChangesHigher).values(
                 higher_operation='merge',
                 effective_date=date_now,
@@ -506,7 +511,7 @@ def combine_unit():
             )
         )
         db.session.flush()
-        structural_changes_higher_id = new_change_higher.structural_changes_higher_id
+        structural_changes_higher_id = result.lastrowid
 
         # Copy the original primary unit
         new_unit_id = copy_unit(unit_id_to_copy=primary_unit_id, user_id=user_id)
@@ -528,10 +533,12 @@ def combine_unit():
                 )
             )
             # Basic structural change
-            change_ = StructuralChangesBasic(
-                structural_changes_higher_id=structural_changes_higher_id,
-                collection_unit_id=unit_id,
-                operation='delete',
+            db.session.execute(
+                insert(StructuralChangesBasic).values(
+                    structural_changes_higher_id=structural_changes_higher_id,
+                    collection_unit_id=unit_id,
+                    operation='delete',
+                )
             )
 
         # Commit the transaction queries
