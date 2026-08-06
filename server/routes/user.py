@@ -1,6 +1,6 @@
 import msal
 import requests
-from flask import Blueprint, Config, jsonify, request
+from flask import Blueprint, jsonify, request
 from flask import current_app as app
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import delete, insert, literal, select, update
@@ -20,12 +20,12 @@ def get_msal_app():
         # Don't use Azure in CI mode
         raise RuntimeError('MSAL should not be used in CI mode')
 
-    authority = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
+    authority = f'https://login.microsoftonline.com/{app.config["TENANT_ID"]}'
 
     return msal.ConfidentialClientApplication(
-        Config.CLIENT_ID,
+        app.config['CLIENT_ID'],
         authority=authority,
-        client_credential=Config.CLIENT_SECRET,
+        client_credential=app.config['CLIENT_SECRET'],
     )
 
 
@@ -35,7 +35,9 @@ def get_user(azure_id):
     """
     Get a user by their Azure ID.
     """
-    data = db.session.execute(select(Users).where(Users.azure_id == str(azure_id)))
+    data = db.session.execute(
+        select(Users).where(Users.azure_id == str(azure_id))
+    ).all()
     if data == []:
         return jsonify({'message': 'no user found'})
     return jsonify(data)

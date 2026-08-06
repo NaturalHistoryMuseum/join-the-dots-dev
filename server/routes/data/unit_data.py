@@ -818,9 +818,6 @@ def get_all_containers():
     return jsonify(schema.dump(data))
 
 
-taxon_dd_schema = TaxonDDSchema(many=True)
-
-
 @data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
 def get_all_taxon():
@@ -829,9 +826,10 @@ def get_all_taxon():
 
     Also adds the department tag to the label name.
     """
+    taxon_dd_schema = TaxonDDSchema(many=True)
     label_prefix = case(
-        (Taxon.taxon_life_science_id == None, 'ES '),
-        (Taxon.taxon_palaeontology_id == None, 'LS '),
+        (Taxon.taxon_life_science_id.is_(None), 'ES '),
+        (Taxon.taxon_palaeontology_id.is_(None), 'LS '),
         else_='',
     )
     label = func.concat(label_prefix, Taxon.taxon_name, ' ', Taxon.taxon_rank).label(

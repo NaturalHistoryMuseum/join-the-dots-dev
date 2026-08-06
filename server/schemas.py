@@ -1,3 +1,5 @@
+from marshmallow import fields
+
 from server.extensions import ma
 from server.models import (
     CollectionUnit,
@@ -13,31 +15,43 @@ from server.models import (
 
 
 class GeographicOriginDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = GeographicOrigin
         exclude = ('geographic_origin_name', 'geographic_origin_id')
 
-    label = ma.String(attribute='geographic_origin_name')
-    value = ma.String(attribute='geographic_origin_id')
+    label = fields.String(attribute='geographic_origin_name')
+    value = fields.String(attribute='geographic_origin_id')
 
 
 class GeologicalTimePeriodDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = GeologicalTimePeriod
         exclude = ('period_name', 'geological_time_period_id')
 
-    label = ma.String(attribute='period_name')
-    value = ma.String(attribute='geological_time_period_id')
+    label = fields.String(attribute='period_name')
+    value = fields.String(attribute='geological_time_period_id')
 
 
 class DivisionDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = Division
 
-    label = ma.Method('get_label')
-    value = ma.Method('get_value')
-    division_id = ma.String()
-    division_name = ma.String()
+    label = fields.Method('get_label')
+    value = fields.Method('get_value')
+    division_id = fields.String()
+    division_name = fields.String()
 
     def get_label(self, obj):
         return obj.division_name
@@ -47,54 +61,78 @@ class DivisionDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class StorageContainerDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = StorageContainer
         exclude = ('container_name', 'storage_container_id')
 
-    label = ma.String(attribute='container_name')
-    value = ma.String(attribute='storage_container_id')
+    label = fields.String(attribute='container_name')
+    value = fields.String(attribute='storage_container_id')
 
 
 class StorageRoomDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = StorageRoom
         exclude = ('room_code', 'storage_room_id')
 
-    label = ma.String(attribute='room_code')
-    value = ma.String(attribute='storage_room_id')
+    label = fields.String(attribute='room_code')
+    value = fields.String(attribute='storage_room_id')
 
 
 class TaxonDDSchema(ma.Schema):
-    label = ma.String()
-    value = ma.String()
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
+    label = fields.String()
+    value = fields.String()
 
 
 class CuratorialUnitDefinitionDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = CuratorialUnitDefinition
         exclude = ('description', 'curatorial_unit_definition_id')
 
-    label = ma.String(attribute='description')
-    value = ma.String(attribute='curatorial_unit_definition_id')
+    label = fields.String(attribute='description')
+    value = fields.String(attribute='curatorial_unit_definition_id')
 
 
 class LibraryAndArchivesFunctionDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = LibraryAndArchivesFunction
         exclude = ('function_name', 'library_and_archives_function_id')
 
-    label = ma.String(attribute='function_name')
-    value = ma.String(attribute='library_and_archives_function_id')
+    label = fields.String(attribute='function_name')
+    value = fields.String(attribute='library_and_archives_function_id')
 
 
 class UsersDDSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema to be used in dropdown fields.
+    """
+
     class Meta:
         model = Users
 
-    label = ma.Method('get_label')
-    value = ma.Method('get_value')
-    display_name = ma.String()
-    user_id = ma.String()
+    label = fields.Method('get_label')
+    value = fields.Method('get_value')
+    display_name = fields.String()
+    user_id = fields.String()
 
     def get_label(self, obj):
         return obj.display_name
@@ -104,35 +142,14 @@ class UsersDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class UnitByUsersSchema(ma.SQLAlchemyAutoSchema):
+    """
+    Creates a schema for the units by users endpoint.
+    """
+
     class Meta:
         model = CollectionUnit
 
-    last_rescored = ma.Date(load_default=None)
-    last_assessed = ma.Date(load_default=None)
-    section_name = ma.Method('get_section_name')
-    division_name = ma.Method('get_division_name')
-
-    def get_section_name(self, obj):
-        return obj.section.section_name
-
-    def get_division_name(self, obj):
-        return obj.section.division.division_name
-
-
-class UsersSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Users
-        include_only = ('display_name', 'email', 'role_id', 'division_id')
-
-    role = ma.Method('get_role')
-    level = ma.Method('get_level')
-    role_id = ma.Method('get_role_id')
-
-    def get_role(self, obj):
-        return obj.roles.role
-
-    def get_level(self, obj):
-        return obj.roles.level
-
-    def get_role_id(self, obj):
-        return obj.roles.role_id
+    last_rescored = fields.Date(load_default=None)
+    last_assessed = fields.Date(load_default=None)
+    division_name = fields.String(attribute='section.division.division_name')
+    section_name = fields.String(attribute='section.section_name')

@@ -245,14 +245,11 @@ def submit_draft_unit():
                 for key, value in unit_data.items()
                 if value is not None and key != 'collection_unit_id'
             }
-            # new_unit = CollectionUnit(**filter_unit_data)
-            # db.session.add(new_unit)
             result = db.session.execute(
                 insert(CollectionUnit).values(**filter_unit_data)
             )
             unit_id = result.lastrowid
             db.session.flush()
-            # unit_id = new_unit.collection_unit_id
             if unit_id is None:
                 return jsonify({'error': 'Failed to create new unit'}), 500
             # Create the rescore session if we are adding the draft
@@ -350,8 +347,8 @@ def get_draft_scores(unit_id):
     rescore_session_id = rescore_session.lastrowid
 
     query = rescore_units_query(rescore_session_id)
-    data = db.session.execute(query).all()
-
+    data = db.session.execute(query).scalars().all()
+    return jsonify(data)
     return [
         {
             'rescore_session_id': row.RescoreSession.rescore_session_id,

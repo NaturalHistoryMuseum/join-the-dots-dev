@@ -26,7 +26,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = connection_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    DEBUG = True
     PROPAGATE_EXCEPTIONS = True
 
     # Azure Configuration

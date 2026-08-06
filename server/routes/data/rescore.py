@@ -215,7 +215,7 @@ def submit_draft_rank():
     handle_draft_rank(criterion_id, ranks, category_draft_id)
     db.session.commit()
 
-    return jsonify({'message': 'Draft rank submitted successfully'})
+    return jsonify({'message': 'Draft rank submitted successfully', 'success': True})
 
 
 @data_bp.route('/submit-draft-metrics', methods=['POST'])
@@ -273,7 +273,6 @@ def bulk_upload_rescore():
     data = request.get_json()
     units = data.get('units')
     rescore_data = data.get('rescore_data')
-    # Get user_id from the jwt token
     success_count = 0
 
     for unit in units:

@@ -13,7 +13,6 @@ from flask_jwt_extended import (
 )
 from sqlalchemy import insert, select, update
 
-from server.config import Config
 from server.database import db
 from server.models import Person, Users
 from server.utils import get_user_by_id
@@ -32,12 +31,12 @@ def get_msal_app():
         # Don't use Azure in CI mode
         raise RuntimeError('MSAL should not be used in CI mode')
 
-    authority = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
+    authority = f'https://login.microsoftonline.com/{app.config["TENANT_ID"]}'
 
     return msal.ConfidentialClientApplication(
-        Config.CLIENT_ID,
+        app.config['CLIENT_ID'],
         authority=authority,
-        client_credential=Config.CLIENT_SECRET,
+        client_credential=app.config['CLIENT_SECRET'],
     )
 
 
