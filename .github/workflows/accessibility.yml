@@ -39,8 +39,15 @@ jobs:
           CI: 'true'
           FLASK_ENV: testing
         run: |
-          python -m server.run &
+          python -m server.run > flask.log 2>&1 &
+          echo $! > flask.pid
           sleep 5
+          echo "--- flask.log ---"
+          cat flask.log
+          if ! kill -0 $(cat flask.pid) 2>/dev/null; then
+            echo "Flask process is not running"
+            exit 1
+          fi
 
       - name: Start frontend
         run: |
