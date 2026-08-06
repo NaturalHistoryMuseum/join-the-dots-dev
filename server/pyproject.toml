@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "dotenv~=0.9.9",
-    "flask~=3.0",
+    "flask~=2.3",
     "flask-cors~=5.0.0",
     "flask-dance~=7.1.0",
     "msal~=1.27.0",
