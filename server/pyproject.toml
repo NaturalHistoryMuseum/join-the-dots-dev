@@ -21,7 +21,6 @@ dependencies = [
     "flask-dance~=7.1.0",
     "msal~=1.27.0",
     "mysql-connector-python~=8.0.33",
-    "pyjwt~=2.4.0",
     "requests~=2.31.0",
     "flask_jwt_extended~=4.7.1",
     "gunicorn~=23.0.0",
