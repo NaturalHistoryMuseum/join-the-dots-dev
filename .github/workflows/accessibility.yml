@@ -21,7 +21,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install backend deps
         # Install python dependencies from project.toml
@@ -39,27 +39,13 @@ jobs:
           CI: 'true'
           FLASK_ENV: testing
         run: |
-          python -m server.run > flask.log 2>&1 &
-          echo $! > flask.pid
-          sleep 10
-          echo "--- flask.log ---"
-          cat flask.log
-          if ! kill -0 $(cat flask.pid) 2>/dev/null; then
-            echo "Flask process is not running"
-            exit 1
-          fi
+          python -m server.run &
+          sleep 5
 
       - name: Start frontend
         run: |
-          npm run preview > frontend.log 2>&1 &
-          echo $! > frontend.pid
+          npm run preview &
           sleep 5
-          echo "--- frontend.log ---"
-          cat frontend.log
-          if ! kill -0 $(cat frontend.pid) 2>/dev/null; then
-            echo "Frontend process is not running"
-            exit 1
-          fi
         env:
           FRONTEND_PORT: 4173
 
