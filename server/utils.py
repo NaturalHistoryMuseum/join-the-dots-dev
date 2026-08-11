@@ -6,11 +6,11 @@ from flask_jwt_extended import (
     get_jwt_identity,
     set_access_cookies,
 )
-from sqlalchemy import select, text
+from sqlalchemy import func, select
 
 from server.config import Config
 from server.database import db
-from server.models import Users
+from server.models import AssignedUnits, CollectionUnit, Roles, Users
 
 database_name = Config.MYSQL_DB
 
@@ -43,31 +43,51 @@ def get_user_by_id(user_id):
     """
     Return the full users details.
     """
-    query = f"""SELECT u.*, r.role, r.`level`, p.*,
-            COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
-            (
-                SELECT JSON_ARRAYAGG( au.collection_unit_id )
-                FROM {database_name}.assigned_units au
-                JOIN {database_name}.collection_unit cu
-                    ON au.collection_unit_id = cu.collection_unit_id
-                WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
-            ) AS assigned_units,
-            (
-                SELECT JSON_ARRAYAGG(
-                    cu.collection_unit_id
-                )
-                FROM {database_name}.collection_unit cu
-                WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
-            ) AS responsible_units
-            FROM {database_name}.users u
-            LEFT JOIN {database_name}.roles r ON u.role_id = r.role_id
-            LEFT JOIN {database_name}.person p ON u.person_id = p.person_id
-            WHERE user_id = :user_id;"""
+    au_subquery = (
+        select(func.JSON_ARRAYAGG(AssignedUnits.collection_unit_id))
+        .join(
+            CollectionUnit,
+            CollectionUnit.collection_unit_id == AssignedUnits.collection_unit_id,
+        )
+        .where(
+            AssignedUnits.user_id == Users.user_id,
+            CollectionUnit.unit_active == 'yes',
+        )
+        .correlate(Users)
+        .scalar_subquery()
+    )
 
-    data = db.session.execute(text(query), {'user_id': user_id}).fetchone()
-    if not data:
+    ru_subquery = (
+        select(func.JSON_ARRAYAGG(CollectionUnit.collection_unit_id))
+        .where(
+            CollectionUnit.responsible_curator_id == Users.user_id,
+            CollectionUnit.unit_active == 'yes',
+        )
+        .correlate(Users)
+        .scalar_subquery()
+    )
+
+    data = db.session.execute(
+        select(
+            Users,
+            Roles,
+            au_subquery.label('assigned_units'),
+            ru_subquery.label('responsible_units'),
+        )
+        .join(Roles, Users.role_id == Roles.role_id)
+        .where(Users.user_id == user_id)
+    ).one_or_none()
+
+    if data is None:
         return None
-    return dict(data._mapping)
+
+    return {
+        **{c.name: getattr(data.Users, c.name) for c in Users.__table__.columns},
+        **{c.name: getattr(data.Roles, c.name) for c in Roles.__table__.columns},
+        'name': data.Users.display_name,
+        'assigned_units': data.assigned_units,
+        'responsible_units': data.responsible_units,
+    }
 
 
 def get_person_id(user_id):
