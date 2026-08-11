@@ -19,6 +19,11 @@ from server.models import (
     UnitAssessmentCriterion,
     UnitAssessmentRank,
 )
+from server.models.utils import (
+    CriteriaAssessmentEnum,
+    HigherOperationEnum,
+    OperationEnum,
+)
 from server.routes.data.utils import (
     add_structural_change,
     column_exists,
@@ -73,8 +78,8 @@ def delete_units():
             # Add the change to the structural changes log
             add_structural_change(
                 person_id=person_id,
-                higher_operation='delete',
-                operation='delete',
+                higher_operation=HigherOperationEnum.delete,
+                operation=OperationEnum.delete,
                 collection_unit_id=unit_id,
                 comment=justification,
                 date=date_now,
@@ -178,7 +183,7 @@ def submit_unit():
                         date_assessed=date_now,
                         date_from=date_now,
                         current='yes',
-                        criteria_assessment='known',
+                        criteria_assessment=CriteriaAssessmentEnum.known,
                     )
                 )
                 db.session.flush()
@@ -199,8 +204,8 @@ def submit_unit():
         # Add the change to the structural changes log
         add_structural_change(
             person_id=person_id,
-            higher_operation='create',
-            operation='create',
+            higher_operation=HigherOperationEnum.create,
+            operation=OperationEnum.create,
             collection_unit_id=new_unit_id,
             date=date_now,
         )
@@ -429,7 +434,7 @@ def split_unit():
         # Add structural change entry
         result = db.session.execute(
             insert(StructuralChangesHigher).values(
-                higher_operation='split',
+                higher_operation=HigherOperationEnum.split,
                 effective_date=date_now,
                 change_agent_id=person_id,
                 cause='Requested by curator',
@@ -453,7 +458,7 @@ def split_unit():
                 insert(StructuralChangesBasic).values(
                     structural_changes_higher_id=structural_changes_higher_id,
                     collection_unit_id=new_unit_id,
-                    operation='create',
+                    operation=OperationEnum.create,
                 )
             )
             db.session.flush()
@@ -470,7 +475,7 @@ def split_unit():
             insert(StructuralChangesBasic).values(
                 structural_changes_higher_id=structural_changes_higher_id,
                 collection_unit_id=unit_id,
-                operation='delete',
+                operation=OperationEnum.delete,
             )
         )
         # Commit the transaction queries
@@ -501,7 +506,7 @@ def combine_unit():
         # Add structural change entry
         result = db.session.execute(
             insert(StructuralChangesHigher).values(
-                higher_operation='merge',
+                higher_operation=HigherOperationEnum.merge,
                 effective_date=date_now,
                 change_agent_id=person_id,
                 cause='Requested by curator',
@@ -516,7 +521,7 @@ def combine_unit():
             insert(StructuralChangesBasic).values(
                 structural_changes_higher_id=structural_changes_higher_id,
                 collection_unit_id=new_unit_id,
-                operation='create',
+                operation=OperationEnum.create,
             )
         )
         db.session.flush()
@@ -534,7 +539,7 @@ def combine_unit():
                 insert(StructuralChangesBasic).values(
                     structural_changes_higher_id=structural_changes_higher_id,
                     collection_unit_id=unit_id,
-                    operation='delete',
+                    operation=OperationEnum.delete,
                 )
             )
 

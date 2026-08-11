@@ -11,6 +11,7 @@ from server.database import db
 
 # Data models
 from server.models import ChangeLog, Enhancements, HelpGuidance, Issues
+from server.models.utils import StatusEnum
 
 from . import data_bp
 
@@ -102,7 +103,7 @@ def submit_issue():
                 user_id=user_id,
                 date_added=date_added,
                 visible=0,
-                status='raised',
+                status=StatusEnum.raised,
             )
         )
         db.session.commit()

@@ -15,6 +15,7 @@ from server.models import (
     UnitCategoryDraft,
     Users,
 )
+from server.models.utils import StatusEnum
 from server.routes.data.utils import (
     close_rescore,
     create_rescore_session,
@@ -335,7 +336,7 @@ def update_end_rescore(rescore_session_id):
     db.session.execute(
         update(RescoreSession)
         .where(RescoreSession.rescore_session_id == rescore_session_id)
-        .values(status='complete', completed_at=date)
+        .values(status=StatusEnum.complete, completed_at=date)
     )
     db.session.commit()
     return jsonify(

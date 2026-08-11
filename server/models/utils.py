@@ -29,3 +29,4 @@ class OperationEnum(str, enum.Enum):
 class StatusEnum(str, enum.Enum):
     in_progress = 'in_progress'
     complete = 'complete'
+    raised = 'raised'

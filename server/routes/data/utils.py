@@ -43,6 +43,7 @@ from server.models import (
     UnitRankDraft,
     Users,
 )
+from server.models.utils import StatusEnum
 
 database_name = Config.MYSQL_DB
 
@@ -56,7 +57,7 @@ def create_rescore_session(units, user_id):
     # Insert session
     new_rescore_session = db.session.execute(
         insert(RescoreSession).values(
-            user_id=user_id, status='in_progress', completed_at=None
+            user_id=user_id, status=StatusEnum.in_progress, completed_at=None
         )
     )
     # Get ID of last inserted row
@@ -330,7 +331,7 @@ def close_rescore(rescore_session_id):
         update(RescoreSession)
         .where(RescoreSession.rescore_session_id == rescore_session_id)
         .values(
-            status='complete',
+            status=StatusEnum.complete,
             completed_at=completed_at,
         )
     )
