@@ -45,14 +45,12 @@ def get_mark_rescore_open():
 
     if not units:
         return jsonify({'error': 'Units are required'}), 400
-    try:
-        rescore_session_id, rescore_session_units_ids = create_rescore_session(
-            units, user_id
-        )
-        db.session.commit()
-        return jsonify({'rescore_session_id': rescore_session_id, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
+    rescore_session_id, rescore_session_units_ids = create_rescore_session(
+        units, user_id
+    )
+    db.session.commit()
+    return jsonify({'rescore_session_id': rescore_session_id, 'success': True})
 
 
 @data_bp.route('/rescore-complete', methods=['POST'])
@@ -69,27 +67,21 @@ def submit_rescore_complete():
     user_id = get_jwt_identity()
     person_id = get_person_id(user_id)
 
-    try:
-        # Submit draft comments
-        upgrade_draft_comments(rescore_session_id)
+    # Submit draft comments
+    upgrade_draft_comments(rescore_session_id)
 
-        # Submit draft metrics
-        upgrade_draft_metrics(rescore_session_id)
+    # Submit draft metrics
+    upgrade_draft_metrics(rescore_session_id)
 
-        # Submit draft ranks
-        upgrade_draft_ranks(rescore_session_id, person_id)
+    # Submit draft ranks
+    upgrade_draft_ranks(rescore_session_id, person_id)
 
-        # Close the rescore and remove draft categories
-        close_rescore(rescore_session_id)
+    # Close the rescore and remove draft categories
+    close_rescore(rescore_session_id)
 
-        db.session.commit()
+    db.session.commit()
 
-        return jsonify(
-            {'message': 'Rescore session marked as complete', 'success': True}
-        )
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'message': 'Rescore session marked as complete', 'success': True})
 
 
 @data_bp.route('/open-rescore', methods=['GET'])
@@ -369,20 +361,17 @@ def update_complete_category():
     if not isinstance(category_ids_arr, list):
         return jsonify({'error': 'category_ids_arr should be a list'}), 400
 
-    try:
-        db.session.execute(
-            update(UnitCategoryDraft)
-            .where(
-                UnitCategoryDraft.rescore_session_units_id == rescore_session_units_id,
-                UnitCategoryDraft.category_id.in_(category_ids_arr),
-            )
-            .values(complete=new_val)
+    db.session.execute(
+        update(UnitCategoryDraft)
+        .where(
+            UnitCategoryDraft.rescore_session_units_id == rescore_session_units_id,
+            UnitCategoryDraft.category_id.in_(category_ids_arr),
         )
-        db.session.commit()
-        return jsonify(
-            {
-                'success': True,
-            }
-        )
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        .values(complete=new_val)
+    )
+    db.session.commit()
+    return jsonify(
+        {
+            'success': True,
+        }
+    )

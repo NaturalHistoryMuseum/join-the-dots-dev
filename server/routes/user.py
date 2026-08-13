@@ -61,20 +61,16 @@ def add_user():
     if not azure_id or not display_name or not email or not division_id or not role_id:
         return jsonify({'error': 'Missing required fields'}), 400
 
-    try:
-        db.session.execute(
-            insert(Users).values(
-                azure_id=azure_id,
-                display_name=display_name,
-                email=email,
-                division_id=division_id,
-                role_id=role_id,
-            )
+    db.session.execute(
+        insert(Users).values(
+            azure_id=azure_id,
+            display_name=display_name,
+            email=email,
+            division_id=division_id,
+            role_id=role_id,
         )
-        return jsonify({'message': 'User added successfully', 'success': True}), 201
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    )
+    return jsonify({'message': 'User added successfully', 'success': True}), 201
 
 
 @user_bp.route('/edit-user-role', methods=['POST'])
@@ -91,15 +87,11 @@ def edit_user_role():
         return jsonify({'error': 'Role is required'}), 400
 
     # Update role and commit changes
-    try:
-        db.session.execute(
-            update(Users).where(Users.user_id == user_id).values(role_id=role_id)
-        )
-        db.session.commit()
-        return jsonify({'message': 'Role successfully changed', 'success': True}), 201
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    db.session.execute(
+        update(Users).where(Users.user_id == user_id).values(role_id=role_id)
+    )
+    db.session.commit()
+    return jsonify({'message': 'Role successfully changed', 'success': True}), 201
 
 
 @user_bp.route('/assign-units', methods=['POST'])
@@ -118,26 +110,17 @@ def edit_assign_units():
         return jsonify({'error': 'User is required'}), 400
 
     # Delete current user units
-    try:
-        db.session.execute(
-            delete(AssignedUnits).where(AssignedUnits.user_id == user_id)
-        )
-        db.session.flush()
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    db.session.execute(delete(AssignedUnits).where(AssignedUnits.user_id == user_id))
+    db.session.flush()
 
     # Update current user units
-    try:
-        for unit in units:
-            db.session.execute(
-                insert(AssignedUnits).values(user_id=user_id, collection_unit_id=unit)
-            )
+    for unit in units:
+        db.session.execute(
+            insert(AssignedUnits).values(user_id=user_id, collection_unit_id=unit)
+        )
 
-        db.session.commit()
-        return jsonify({'message': 'Units successfully assigned'}), 201
-
-    except Exception as e:
-        return jsonify({'error': str(e), 'success': True}), 500
+    db.session.commit()
+    return jsonify({'message': 'Units successfully assigned'}), 201
 
 
 @user_bp.route('/all-roles', methods=['GET'])
@@ -195,11 +178,9 @@ def check_user_by_email():
     """
     data = request.get_json()
     email = data.get('email')
-    try:
-        data = db.session.execute(select(Users).where(Users.email == email))
-        return jsonify({'data': data, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
+    data = db.session.execute(select(Users).where(Users.email == email))
+    return jsonify({'data': data, 'success': True})
 
 
 @user_bp.route('/all-viewers', methods=['GET'])

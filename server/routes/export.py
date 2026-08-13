@@ -21,334 +21,327 @@ def make_export():
     Build an sql query to export selected data.
     """
     export_config = request.get_json()
-    try:
-        if export_config.get('selected_data_type') == 'ltc':
-            return Response(
-                stream_with_context(generate_ltc_json(export_config)),
-                content_type='application/json',
-                headers={'Content-Disposition': 'attachment; filename=data.json'},
-            )
-        else:
-            # Initilise query parts
-            selects_query = """
-                    SELECT  cu.collection_unit_id,	cu.unit_name, cu.public_unit_name,
-                    cu.section_id, s.section_name, d.division_id, d.division_name,
-                    d2.department_id AS discipline_id,
-                    d2.department_name AS discipline_name, cu.type_collection_flag,
-                    cu.publish_flag,	cu.informal_taxon, cu.named_collection,
-                    cu.es_recent_specimen_flag,	cu.archives_fond_ref,
-                    cu.count_curatorial_units_flag,	cu.sort_order,
-                    cud.curatorial_unit_definition_id, cud.description,
-                    bl.bibliographic_level,	it.item_type, pm.preservation_method,
-                    sr.storage_room_id,	sr.room_code, sr.room_name,	f.floor_name,
-                    b.building_name,	st.site_name, sc.storage_container_id,
-                    sc.container_name,	sc.temperature,	sc.relative_humidity,
-                    go.geographic_origin_id,	go.geographic_origin_name,
-                    go.region_type,	laaf.library_and_archives_function_id,
-                    laaf.function_name,
-                    gtpf.geological_time_period_id as geological_time_period_from_id,
-                    gtpf.period_name as period_name_from,	gtpf.rank as rank_from,
-                    gtpt.geological_time_period_id as geological_time_period_to_id,
-                    gtpt.period_name as period_name_to,	gtpt.rank as rank_to,
-                    t.taxon_id,	t.taxon_name,	t.taxon_rank,	t.external_ref_name,
-                    t.external_ref_id,
-                    COALESCE(
-                        CONCAT(p.first_name, ' ', p.last_name), u.display_name
-                    ) AS responsible_curator,
-                    uc.unit_comment, DATE(uc.date_added) AS date_comment_added
-                    """
-            metrics_selects_query = """
-                    , (
-                        SELECT JSON_ARRAYAGG(
-                            JSON_OBJECT(
-                                'collection_unit_metric_id',
-                                cum.collection_unit_metric_id,
-                                'metric_value', cum.metric_value,
-                                'confidence_level', cum.confidence_level,
-                                'metric_name', cumd.metric_name
-                            )
-                        ) AS metric_json
-                        FROM {database_name}.collection_unit_metric_definition cumd
-                        LEFT JOIN {database_name}.collection_unit_metric cum
-                            ON cum.collection_unit_metric_definition_id =
-                            cumd.collection_unit_metric_definition_id
-                        AND cum.collection_unit_id = cu.collection_unit_id
-                        AND cum.current = 'yes'
+    if export_config.get('selected_data_type') == 'ltc':
+        return Response(
+            stream_with_context(generate_ltc_json(export_config)),
+            content_type='application/json',
+            headers={'Content-Disposition': 'attachment; filename=data.json'},
+        )
+    else:
+        # Initilise query parts
+        selects_query = """
+                SELECT  cu.collection_unit_id,	cu.unit_name, cu.public_unit_name,
+                cu.section_id, s.section_name, d.division_id, d.division_name,
+                d2.department_id AS discipline_id,
+                d2.department_name AS discipline_name, cu.type_collection_flag,
+                cu.publish_flag,	cu.informal_taxon, cu.named_collection,
+                cu.es_recent_specimen_flag,	cu.archives_fond_ref,
+                cu.count_curatorial_units_flag,	cu.sort_order,
+                cud.curatorial_unit_definition_id, cud.description,
+                bl.bibliographic_level,	it.item_type, pm.preservation_method,
+                sr.storage_room_id,	sr.room_code, sr.room_name,	f.floor_name,
+                b.building_name,	st.site_name, sc.storage_container_id,
+                sc.container_name,	sc.temperature,	sc.relative_humidity,
+                go.geographic_origin_id,	go.geographic_origin_name,
+                go.region_type,	laaf.library_and_archives_function_id,
+                laaf.function_name,
+                gtpf.geological_time_period_id as geological_time_period_from_id,
+                gtpf.period_name as period_name_from,	gtpf.rank as rank_from,
+                gtpt.geological_time_period_id as geological_time_period_to_id,
+                gtpt.period_name as period_name_to,	gtpt.rank as rank_to,
+                t.taxon_id,	t.taxon_name,	t.taxon_rank,	t.external_ref_name,
+                t.external_ref_id,
+                COALESCE(
+                    CONCAT(p.first_name, ' ', p.last_name), u.display_name
+                ) AS responsible_curator,
+                uc.unit_comment, DATE(uc.date_added) AS date_comment_added
+                """
+        metrics_selects_query = """
+                , (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'collection_unit_metric_id',
+                            cum.collection_unit_metric_id,
+                            'metric_value', cum.metric_value,
+                            'confidence_level', cum.confidence_level,
+                            'metric_name', cumd.metric_name
+                        )
                     ) AS metric_json
-                    """
-            score_selects_query = """
-                    ,
-                    (
-                        SELECT JSON_ARRAYAGG(
-                            JSON_OBJECT(
-                                'percentage',
-                                IF(uar.percentage = 0, NULL, uar.percentage),
-                                'rank_id', uar.rank_id, 'rank_value', r.rank_value,
-                                'comment', uar.comment,
-                                'criterion_id', r.criterion_id,
-                                'criterion_code', c.criterion_code
-                            )
-                        ) AS percentages_json
-                        FROM {database_name}.unit_assessment_criterion uac
-                        JOIN {database_name}.unit_assessment_rank uar
+                    FROM {database_name}.collection_unit_metric_definition cumd
+                    LEFT JOIN {database_name}.collection_unit_metric cum
+                        ON cum.collection_unit_metric_definition_id =
+                        cumd.collection_unit_metric_definition_id
+                    AND cum.collection_unit_id = cu.collection_unit_id
+                    AND cum.current = 'yes'
+                ) AS metric_json
+                """
+        score_selects_query = """
+                ,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'percentage',
+                            IF(uar.percentage = 0, NULL, uar.percentage),
+                            'rank_id', uar.rank_id, 'rank_value', r.rank_value,
+                            'comment', uar.comment,
+                            'criterion_id', r.criterion_id,
+                            'criterion_code', c.criterion_code
+                        )
+                    ) AS percentages_json
+                    FROM {database_name}.unit_assessment_criterion uac
+                    JOIN {database_name}.unit_assessment_rank uar
+                        ON uac.unit_assessment_criterion_id =
+                        uar.unit_assessment_criterion_id
+                    JOIN {database_name}.rank r
+                        ON r.rank_id = uar.rank_id
+                    JOIN {database_name}.criterion c
+                        ON c.criterion_id = r.criterion_id
+                    WHERE
+                        uac.collection_unit_id = cu.collection_unit_id
+                        AND uar.unit_assessment_criterion_id IN (
+                            SELECT uac.unit_assessment_criterion_id
+                            FROM {database_name}.unit_assessment_criterion uac
+                            JOIN {database_name}.collection_unit cu
+                            ON cu.collection_unit_id = uac.collection_unit_id
+                            WHERE uac.current = 'yes'
+                        )
+                        AND uar.rank_id IN (
+                            SELECT r.rank_id
+                            FROM {database_name}.rank r
+                        )
+                        AND c.criterion_id <> 3
+                    ORDER BY r.rank_id
+                ) AS ranks_json"""
+        average_score_query = """
+                , (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'criterion_id', criterion_id,
+                            'criterion_code', criterion_code,
+                            'average_rank_value', avg_rank_value
+                        )
+                    )
+                    FROM (
+                        SELECT r.criterion_id, c.criterion_code,
+                        SUM(r.rank_value * uar.percentage) /
+                            NULLIF(SUM(uar.percentage), 0) AS avg_rank_value
+                        FROM {database_name}.unit_assessment_rank uar
+                        JOIN {database_name}.unit_assessment_criterion uac
                             ON uac.unit_assessment_criterion_id =
                             uar.unit_assessment_criterion_id
                         JOIN {database_name}.rank r
                             ON r.rank_id = uar.rank_id
                         JOIN {database_name}.criterion c
                             ON c.criterion_id = r.criterion_id
-                        WHERE
-                            uac.collection_unit_id = cu.collection_unit_id
-                            AND uar.unit_assessment_criterion_id IN (
-                                SELECT uac.unit_assessment_criterion_id
-                                FROM {database_name}.unit_assessment_criterion uac
-                                JOIN {database_name}.collection_unit cu
-                                ON cu.collection_unit_id = uac.collection_unit_id
-                                WHERE uac.current = 'yes'
-                            )
-                            AND uar.rank_id IN (
-                                SELECT r.rank_id
-                                FROM {database_name}.rank r
-                            )
+                        WHERE uac.collection_unit_id = cu.collection_unit_id
+                            AND uac.current = 'yes'
+                            AND uar.percentage IS NOT NULL
+                            AND uar.percentage > 0
                             AND c.criterion_id <> 3
-                        ORDER BY r.rank_id
-                    ) AS ranks_json"""
-            average_score_query = """
-                    , (
-                        SELECT JSON_ARRAYAGG(
-                            JSON_OBJECT(
-                                'criterion_id', criterion_id,
-                                'criterion_code', criterion_code,
-                                'average_rank_value', avg_rank_value
-                            )
-                        )
-                        FROM (
-                            SELECT r.criterion_id, c.criterion_code,
-                            SUM(r.rank_value * uar.percentage) /
-                                NULLIF(SUM(uar.percentage), 0) AS avg_rank_value
-                            FROM {database_name}.unit_assessment_rank uar
-                            JOIN {database_name}.unit_assessment_criterion uac
-                                ON uac.unit_assessment_criterion_id =
-                                uar.unit_assessment_criterion_id
-                            JOIN {database_name}.rank r
-                                ON r.rank_id = uar.rank_id
-                            JOIN {database_name}.criterion c
-                                ON c.criterion_id = r.criterion_id
-                            WHERE uac.collection_unit_id = cu.collection_unit_id
-                                AND uac.current = 'yes'
-                                AND uar.percentage IS NOT NULL
-                                AND uar.percentage > 0
-                                AND c.criterion_id <> 3
-                            GROUP BY r.criterion_id, c.criterion_code
-                            ORDER BY r.criterion_id
-                        ) t
-                    ) AS ranks_averages_json"""
-            origins_query = """
-                    FROM {database_name}.collection_unit cu
-                    LEFT JOIN {database_name}.users u
-                        ON u.user_id = cu.responsible_curator_id
-                    LEFT JOIN {database_name}.person p
-                        ON p.person_id = u.person_id
-                    LEFT JOIN {database_name}.unit_comment uc ON uc.unit_comment_id = (
-                        SELECT MAX(uc2.unit_comment_id)
-                        FROM {database_name}.unit_comment uc2
-                        WHERE uc2.collection_unit_id = cu.collection_unit_id
-                    )
-                    LEFT JOIN {database_name}.geological_time_period gtpf
-                        ON gtpf.geological_time_period_id =
-                        cu.geological_time_period_from_id
-                    LEFT JOIN {database_name}.geological_time_period gtpt
-                        ON gtpt.geological_time_period_id =
-                        cu.geological_time_period_to_id
-                    LEFT JOIN {database_name}.geographic_origin go
-                        ON go.geographic_origin_id = cu.geographic_origin_id
-                    LEFT JOIN {database_name}.library_and_archives_function laaf
-                        ON laaf.library_and_archives_function_id =
-                        cu.library_and_archives_function_id
-                    LEFT JOIN {database_name}.storage_container sc
-                        ON sc.storage_container_id = cu.storage_container_id
-                    LEFT JOIN {database_name}.curatorial_unit_definition cud
-                        ON cud.curatorial_unit_definition_id =
-                        cu.curatorial_unit_definition_id
-                    LEFT JOIN {database_name}.bibliographic_level bl
-                        ON bl.bibliographic_level_id = cud.bibliographic_level_id
-                    LEFT JOIN {database_name}.item_type it
-                        ON it.item_type_id = cud.item_type_id
-                    LEFT JOIN {database_name}.preservation_method pm
-                        ON pm.preservation_method_id = cud.preservation_method_id
-                    LEFT JOIN {database_name}.taxon t
-                        ON t.taxon_id = cu.taxon_id
-                    LEFT JOIN {database_name}.storage_room sr
-                        ON sr.storage_room_id = cu.storage_room_id
-                    LEFT JOIN {database_name}.floor f
-                        ON f.floor_id = sr.floor_id
-                    LEFT JOIN {database_name}.building b
-                        ON b.building_id = f.building_id
-                    LEFT JOIN {database_name}.site st
-                        ON st.site_id = b.site_id
-                    LEFT JOIN {database_name}.`section` s
-                        ON s.section_id = cu.section_id
-                    LEFT JOIN {database_name}.division d
-                        ON d.division_id = s.division_id
-                    LEFT JOIN {database_name}.department d2
-                        ON d2.department_id = d.department_id
-                    WHERE cu.unit_active = 'yes' AND cu.draft_unit = 0
-                            """
-
-            # Build full query
-            query = selects_query
-            # Add metrics if requested
-            if export_config.get('include_metrics'):
-                query += metrics_selects_query
-            # Add score if requested
-            if export_config.get('include_scores'):
-                query += score_selects_query
-            # Add average scores if requested
-            if export_config.get('include_score_averages'):
-                query += average_score_query
-            # Add origins and joins
-            query += origins_query
-            # Add to where clause to query if there are filters
-            if where_claused(export_config):
-                query += ' AND ' + ' AND '.join(where_claused(export_config))
-            # End query
-            query += ' ;'
-            # Format the query with the database name
-            formatted_query = query.format(database_name=database_name)
-            # Execute query
-            result = db.session.execute(text(formatted_query))
-            col_names = list(result.keys())
-            rows = result.all()
-            data = [dict(zip(col_names, row)) for row in rows]
-
-            if export_config.get('include_metrics'):
-                if export_config.get('selected_data_type') == 'json':
-                    # Parse the JSON fields for scores and ranks
-                    for row in data:
-                        row['metric_json'] = (
-                            json.loads(row['metric_json']) if row['metric_json'] else []
-                        )
-                elif export_config.get('selected_data_type') == 'csv':
-                    # Flatten the JSON fields for CSV export
-                    for row in data:
-                        # Handle metric_json
-                        metrics = (
-                            json.loads(row['metric_json']) if row['metric_json'] else []
-                        )
-                        for i, metric in enumerate(metrics):
-                            # Set the new column name
-                            new_col_name = f'{metric["metric_name"]}_value'
-                            # Add new column to row
-                            row[new_col_name] = metric['metric_value'] or ''
-                            # Add to list of columns
-                            if new_col_name not in col_names:
-                                col_names.append(new_col_name)
-                            # Set the new column name
-                            new_col_name_conf = (
-                                f'{metric["metric_name"]}_confidence_level'
-                            )
-                            # Add new column to row
-                            row[new_col_name_conf] = metric['confidence_level'] or ''
-                            # Add to list of columns
-                            if new_col_name_conf not in col_names:
-                                col_names.append(new_col_name_conf)
-                        # Remove original metric_json field
-                        del row['metric_json']
-                    # Finally, remove the original JSON columns from col_names
-                    col_names.remove('metric_json')
-
-            if export_config.get('include_scores'):
-                if export_config.get('selected_data_type') == 'json':
-                    # Parse the JSON fields for scores and ranks
-                    for row in data:
-                        row['ranks_json'] = (
-                            json.loads(row['ranks_json']) if row['ranks_json'] else []
-                        )
-                elif export_config.get('selected_data_type') == 'csv':
-                    # Flatten the JSON fields for CSV export
-                    for row in data:
-                        # Handle ranks_json
-                        ranks = (
-                            json.loads(row['ranks_json']) if row['ranks_json'] else []
-                        )
-                        # Iterate over all fields in ranks
-                        for rank in ranks:
-                            # Set the new percentage column name
-                            new_col_name = (
-                                f'{rank["criterion_code"]}_rank_{rank["rank_value"]}'
-                            )
-                            # Add new column to row
-                            row[new_col_name] = rank['percentage']
-                            # Add to list of columns
-                            if new_col_name not in col_names:
-                                col_names.append(new_col_name)
-                            # Set the new comment column name
-                            comment_col_name = f"""
-                                {rank['criterion_code']}_rank_{rank['rank_value']}_comment
-                            """
-                            # Add new column to row
-                            row[comment_col_name] = rank['comment']
-                            # Add to list of columns
-                            if comment_col_name not in col_names:
-                                col_names.append(comment_col_name)
-                        # Remove original ranks_json field
-                        del row['ranks_json']
-
-                    # Finally, remove the original JSON columns from
-                    col_names.remove('ranks_json')
-
-            if export_config.get('include_score_averages'):
-                if export_config.get('selected_data_type') == 'json':
-                    # Parse the JSON fields for scores and ranks
-                    for row in data:
-                        row['ranks_averages_json'] = (
-                            json.loads(row['ranks_averages_json'])
-                            if row['ranks_averages_json']
-                            else []
-                        )
-                elif export_config.get('selected_data_type') == 'csv':
-                    # Flatten the JSON fields for CSV export
-                    for row in data:
-                        # Handle ranks_averages_json
-                        average_criterions = (
-                            json.loads(row['ranks_averages_json'])
-                            if row['ranks_averages_json']
-                            else []
-                        )
-                        # Iterate over all fields in ranks
-                        for average_criterion in average_criterions:
-                            # Set the new column name
-                            new_col_name = (
-                                f'{average_criterion["criterion_code"]}_average_score'
-                            )
-                            # Add new column to row
-                            row[new_col_name] = average_criterion['average_rank_value']
-                            # Add to list of columns
-                            if new_col_name not in col_names:
-                                col_names.append(new_col_name)
-                        # Remove original ranks_averages_json field
-                        del row['ranks_averages_json']
-
-                    # Finally, remove the original JSON columns from
-                    col_names.remove('ranks_averages_json')
-
-            # Return response based on selected data type
-            if export_config.get('selected_data_type') == 'json':
-                response = jsonify(data)
-            elif export_config.get('selected_data_type') == 'csv':
-                return_data = generate_csv(col_names, data)
-                # Create Response with CSV MIME type
-                response = Response(return_data, mimetype='text/csv; charset=utf-8')
-                response.headers['Content-Disposition'] = (
-                    'attachment; filename=test-export.csv'
+                        GROUP BY r.criterion_id, c.criterion_code
+                        ORDER BY r.criterion_id
+                    ) t
+                ) AS ranks_averages_json"""
+        origins_query = """
+                FROM {database_name}.collection_unit cu
+                LEFT JOIN {database_name}.users u
+                    ON u.user_id = cu.responsible_curator_id
+                LEFT JOIN {database_name}.person p
+                    ON p.person_id = u.person_id
+                LEFT JOIN {database_name}.unit_comment uc ON uc.unit_comment_id = (
+                    SELECT MAX(uc2.unit_comment_id)
+                    FROM {database_name}.unit_comment uc2
+                    WHERE uc2.collection_unit_id = cu.collection_unit_id
                 )
-                response.set_data('\ufeff' + return_data)
-            else:
-                response = jsonify(data)
+                LEFT JOIN {database_name}.geological_time_period gtpf
+                    ON gtpf.geological_time_period_id =
+                    cu.geological_time_period_from_id
+                LEFT JOIN {database_name}.geological_time_period gtpt
+                    ON gtpt.geological_time_period_id =
+                    cu.geological_time_period_to_id
+                LEFT JOIN {database_name}.geographic_origin go
+                    ON go.geographic_origin_id = cu.geographic_origin_id
+                LEFT JOIN {database_name}.library_and_archives_function laaf
+                    ON laaf.library_and_archives_function_id =
+                    cu.library_and_archives_function_id
+                LEFT JOIN {database_name}.storage_container sc
+                    ON sc.storage_container_id = cu.storage_container_id
+                LEFT JOIN {database_name}.curatorial_unit_definition cud
+                    ON cud.curatorial_unit_definition_id =
+                    cu.curatorial_unit_definition_id
+                LEFT JOIN {database_name}.bibliographic_level bl
+                    ON bl.bibliographic_level_id = cud.bibliographic_level_id
+                LEFT JOIN {database_name}.item_type it
+                    ON it.item_type_id = cud.item_type_id
+                LEFT JOIN {database_name}.preservation_method pm
+                    ON pm.preservation_method_id = cud.preservation_method_id
+                LEFT JOIN {database_name}.taxon t
+                    ON t.taxon_id = cu.taxon_id
+                LEFT JOIN {database_name}.storage_room sr
+                    ON sr.storage_room_id = cu.storage_room_id
+                LEFT JOIN {database_name}.floor f
+                    ON f.floor_id = sr.floor_id
+                LEFT JOIN {database_name}.building b
+                    ON b.building_id = f.building_id
+                LEFT JOIN {database_name}.site st
+                    ON st.site_id = b.site_id
+                LEFT JOIN {database_name}.`section` s
+                    ON s.section_id = cu.section_id
+                LEFT JOIN {database_name}.division d
+                    ON d.division_id = s.division_id
+                LEFT JOIN {database_name}.department d2
+                    ON d2.department_id = d.department_id
+                WHERE cu.unit_active = 'yes' AND cu.draft_unit = 0
+                        """
 
-            return response
-    except Exception as e:
-        return str(e)
+        # Build full query
+        query = selects_query
+        # Add metrics if requested
+        if export_config.get('include_metrics'):
+            query += metrics_selects_query
+        # Add score if requested
+        if export_config.get('include_scores'):
+            query += score_selects_query
+        # Add average scores if requested
+        if export_config.get('include_score_averages'):
+            query += average_score_query
+        # Add origins and joins
+        query += origins_query
+        # Add to where clause to query if there are filters
+        if where_claused(export_config):
+            query += ' AND ' + ' AND '.join(where_claused(export_config))
+        # End query
+        query += ' ;'
+        # Format the query with the database name
+        formatted_query = query.format(database_name=database_name)
+        # Execute query
+        result = db.session.execute(text(formatted_query))
+        col_names = list(result.keys())
+        rows = result.all()
+        data = [dict(zip(col_names, row)) for row in rows]
+
+        if export_config.get('include_metrics'):
+            if export_config.get('selected_data_type') == 'json':
+                # Parse the JSON fields for scores and ranks
+                for row in data:
+                    row['metric_json'] = (
+                        json.loads(row['metric_json']) if row['metric_json'] else []
+                    )
+            elif export_config.get('selected_data_type') == 'csv':
+                # Flatten the JSON fields for CSV export
+                for row in data:
+                    # Handle metric_json
+                    metrics = (
+                        json.loads(row['metric_json']) if row['metric_json'] else []
+                    )
+                    for i, metric in enumerate(metrics):
+                        # Set the new column name
+                        new_col_name = f'{metric["metric_name"]}_value'
+                        # Add new column to row
+                        row[new_col_name] = metric['metric_value'] or ''
+                        # Add to list of columns
+                        if new_col_name not in col_names:
+                            col_names.append(new_col_name)
+                        # Set the new column name
+                        new_col_name_conf = f'{metric["metric_name"]}_confidence_level'
+                        # Add new column to row
+                        row[new_col_name_conf] = metric['confidence_level'] or ''
+                        # Add to list of columns
+                        if new_col_name_conf not in col_names:
+                            col_names.append(new_col_name_conf)
+                    # Remove original metric_json field
+                    del row['metric_json']
+                # Finally, remove the original JSON columns from col_names
+                col_names.remove('metric_json')
+
+        if export_config.get('include_scores'):
+            if export_config.get('selected_data_type') == 'json':
+                # Parse the JSON fields for scores and ranks
+                for row in data:
+                    row['ranks_json'] = (
+                        json.loads(row['ranks_json']) if row['ranks_json'] else []
+                    )
+            elif export_config.get('selected_data_type') == 'csv':
+                # Flatten the JSON fields for CSV export
+                for row in data:
+                    # Handle ranks_json
+                    ranks = json.loads(row['ranks_json']) if row['ranks_json'] else []
+                    # Iterate over all fields in ranks
+                    for rank in ranks:
+                        # Set the new percentage column name
+                        new_col_name = (
+                            f'{rank["criterion_code"]}_rank_{rank["rank_value"]}'
+                        )
+                        # Add new column to row
+                        row[new_col_name] = rank['percentage']
+                        # Add to list of columns
+                        if new_col_name not in col_names:
+                            col_names.append(new_col_name)
+                        # Set the new comment column name
+                        comment_col_name = f"""
+                            {rank['criterion_code']}_rank_{rank['rank_value']}_comment
+                        """
+                        # Add new column to row
+                        row[comment_col_name] = rank['comment']
+                        # Add to list of columns
+                        if comment_col_name not in col_names:
+                            col_names.append(comment_col_name)
+                    # Remove original ranks_json field
+                    del row['ranks_json']
+
+                # Finally, remove the original JSON columns from
+                col_names.remove('ranks_json')
+
+        if export_config.get('include_score_averages'):
+            if export_config.get('selected_data_type') == 'json':
+                # Parse the JSON fields for scores and ranks
+                for row in data:
+                    row['ranks_averages_json'] = (
+                        json.loads(row['ranks_averages_json'])
+                        if row['ranks_averages_json']
+                        else []
+                    )
+            elif export_config.get('selected_data_type') == 'csv':
+                # Flatten the JSON fields for CSV export
+                for row in data:
+                    # Handle ranks_averages_json
+                    average_criterions = (
+                        json.loads(row['ranks_averages_json'])
+                        if row['ranks_averages_json']
+                        else []
+                    )
+                    # Iterate over all fields in ranks
+                    for average_criterion in average_criterions:
+                        # Set the new column name
+                        new_col_name = (
+                            f'{average_criterion["criterion_code"]}_average_score'
+                        )
+                        # Add new column to row
+                        row[new_col_name] = average_criterion['average_rank_value']
+                        # Add to list of columns
+                        if new_col_name not in col_names:
+                            col_names.append(new_col_name)
+                    # Remove original ranks_averages_json field
+                    del row['ranks_averages_json']
+
+                # Finally, remove the original JSON columns from
+                col_names.remove('ranks_averages_json')
+
+        # Return response based on selected data type
+        if export_config.get('selected_data_type') == 'json':
+            response = jsonify(data)
+        elif export_config.get('selected_data_type') == 'csv':
+            return_data = generate_csv(col_names, data)
+            # Create Response with CSV MIME type
+            response = Response(return_data, mimetype='text/csv; charset=utf-8')
+            response.headers['Content-Disposition'] = (
+                'attachment; filename=test-export.csv'
+            )
+            response.set_data('\ufeff' + return_data)
+        else:
+            response = jsonify(data)
+
+        return response
 
 
 # Create CSV response

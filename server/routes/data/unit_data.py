@@ -352,63 +352,58 @@ def get_units_assigned():
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
-    try:
-        # Fetch user level
-        user = get_user_by_id(user_id)
+    # Fetch user level
+    user = get_user_by_id(user_id)
 
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
 
-        au_subquery = (
-            select(func.JSON_ARRAYAGG(AssignedUnits.user_id))
-            .where(
-                AssignedUnits.collection_unit_id == CollectionUnit.collection_unit_id
-            )
-            .correlate(CollectionUnit)
-            .scalar_subquery()
+    au_subquery = (
+        select(func.JSON_ARRAYAGG(AssignedUnits.user_id))
+        .where(AssignedUnits.collection_unit_id == CollectionUnit.collection_unit_id)
+        .correlate(CollectionUnit)
+        .scalar_subquery()
+    )
+
+    where_query = [
+        CollectionUnit.unit_active == 'yes',
+        CollectionUnit.draft_unit == 0,
+    ]
+    if user['role_id'] == 3:
+        where_query.append(Division.division_id == user['role_id'])
+
+    if user['role_id'] == 2:
+        where_query.append(AssignedUnits.user_id == user_id)
+
+    query = (
+        select(
+            CollectionUnit,
+            au_subquery.label('assigned_editors'),
+            Section,
+            Division,
+            Users,
         )
+        .join(Section, Section.section_id == CollectionUnit.section_id)
+        .join(Division, Division.division_id == Section.division_id)
+        .join(Users, Users.user_id == CollectionUnit.responsible_curator_id)
+        .where(and_(*where_query))
+    )
 
-        where_query = [
-            CollectionUnit.unit_active == 'yes',
-            CollectionUnit.draft_unit == 0,
-        ]
-        if user['role_id'] == 3:
-            where_query.append(Division.division_id == user['role_id'])
+    data = db.session.execute(query).all()
 
-        if user['role_id'] == 2:
-            where_query.append(AssignedUnits.user_id == user_id)
-
-        query = (
-            select(
-                CollectionUnit,
-                au_subquery.label('assigned_editors'),
-                Section,
-                Division,
-                Users,
-            )
-            .join(Section, Section.section_id == CollectionUnit.section_id)
-            .join(Division, Division.division_id == Section.division_id)
-            .join(Users, Users.user_id == CollectionUnit.responsible_curator_id)
-            .where(and_(*where_query))
-        )
-
-        data = db.session.execute(query).all()
-
-        return [
-            {
-                **{
-                    c.name: getattr(row.CollectionUnit, c.name)
-                    for c in CollectionUnit.__table__.columns
-                },
-                'display_name': row.Users.display_name,
-                'section_name': row.Section.section_name,
-                'division_name': row.Division.division_name,
-                'assigned_editors': row.assigned_editors,
-            }
-            for row in data
-        ]
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return [
+        {
+            **{
+                c.name: getattr(row.CollectionUnit, c.name)
+                for c in CollectionUnit.__table__.columns
+            },
+            'display_name': row.Users.display_name,
+            'section_name': row.Section.section_name,
+            'division_name': row.Division.division_name,
+            'assigned_editors': row.assigned_editors,
+        }
+        for row in data
+    ]
 
 
 @data_bp.route('/units-by-division/<division_id>', methods=['GET'])
@@ -417,17 +412,14 @@ def get_units_by_division(division_id):
     """
     Gets units for a specific division.
     """
-    try:
-        query = select(CollectionUnit).where(
-            CollectionUnit.unit_active == 'yes',
-            CollectionUnit.draft_unit == 0,
-            Section.division_id == division_id,
-        )
-        data = db.session.execute(query).scalars().all()
+    query = select(CollectionUnit).where(
+        CollectionUnit.unit_active == 'yes',
+        CollectionUnit.draft_unit == 0,
+        Section.division_id == division_id,
+    )
+    data = db.session.execute(query).scalars().all()
 
-        return jsonify(data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify(data)
 
 
 @data_bp.route('/division-users', methods=['GET'])
@@ -438,76 +430,70 @@ def get_division_users():
     """
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
-    try:
-        # Fetch user level
-        user = get_user_by_id(user_id)
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-        role_id = user['role_id']
-        if role_id >= 3:
-            au_subquery = (
-                select(func.JSON_ARRAYAGG(AssignedUnits.collection_unit_id))
-                .join(
-                    CollectionUnit,
-                    CollectionUnit.collection_unit_id
-                    == AssignedUnits.collection_unit_id,
-                )
-                .where(
-                    AssignedUnits.user_id == Users.user_id,
-                    CollectionUnit.unit_active == 'yes',
-                    CollectionUnit.draft_unit == 0,
-                )
-                .correlate(Users)
-                .scalar_subquery()
-            )
 
-            ru_subquery = (
-                select(func.JSON_ARRAYAGG(CollectionUnit.collection_unit_id))
-                .where(
-                    CollectionUnit.responsible_curator_id == Users.user_id,
-                    CollectionUnit.unit_active == 'yes',
-                    CollectionUnit.draft_unit == 0,
-                )
-                .correlate(Users)
-                .scalar_subquery()
+    # Fetch user level
+    user = get_user_by_id(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    role_id = user['role_id']
+    if role_id >= 3:
+        au_subquery = (
+            select(func.JSON_ARRAYAGG(AssignedUnits.collection_unit_id))
+            .join(
+                CollectionUnit,
+                CollectionUnit.collection_unit_id == AssignedUnits.collection_unit_id,
             )
-
-            where_query = [Users.role_id > 1]
-            # Only return one divisions for managers
-            if role_id < 4:
-                where_query.append(Users.division_id == user['division_id'])
-
-            query = (
-                select(
-                    Users,
-                    Roles,
-                    Division,
-                    au_subquery.label('assigned_units'),
-                    ru_subquery.label('responsible_units'),
-                )
-                .join(Roles, Roles.role_id == Users.role_id)
-                .join(Division, Division.division_id == Users.division_id)
-                .where(and_(*where_query))
-                .order_by(Users.display_name)
+            .where(
+                AssignedUnits.user_id == Users.user_id,
+                CollectionUnit.unit_active == 'yes',
+                CollectionUnit.draft_unit == 0,
             )
-            data = db.session.execute(query).all()
-            return [
-                {
-                    **{
-                        c.name: getattr(row.Users, c.name)
-                        for c in Users.__table__.columns
-                    },
-                    'name': row.Users.display_name,
-                    'role': row.Roles.role,
-                    'assigned_units': row.assigned_units,
-                    'responsible_units': row.responsible_units,
-                }
-                for row in data
-            ]
-        else:
-            return jsonify({'error': 'You are not autorised.'}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            .correlate(Users)
+            .scalar_subquery()
+        )
+
+        ru_subquery = (
+            select(func.JSON_ARRAYAGG(CollectionUnit.collection_unit_id))
+            .where(
+                CollectionUnit.responsible_curator_id == Users.user_id,
+                CollectionUnit.unit_active == 'yes',
+                CollectionUnit.draft_unit == 0,
+            )
+            .correlate(Users)
+            .scalar_subquery()
+        )
+
+        where_query = [Users.role_id > 1]
+        # Only return one divisions for managers
+        if role_id < 4:
+            where_query.append(Users.division_id == user['division_id'])
+
+        query = (
+            select(
+                Users,
+                Roles,
+                Division,
+                au_subquery.label('assigned_units'),
+                ru_subquery.label('responsible_units'),
+            )
+            .join(Roles, Roles.role_id == Users.role_id)
+            .join(Division, Division.division_id == Users.division_id)
+            .where(and_(*where_query))
+            .order_by(Users.display_name)
+        )
+        data = db.session.execute(query).all()
+        return [
+            {
+                **{c.name: getattr(row.Users, c.name) for c in Users.__table__.columns},
+                'name': row.Users.display_name,
+                'role': row.Roles.role,
+                'assigned_units': row.assigned_units,
+                'responsible_units': row.responsible_units,
+            }
+            for row in data
+        ]
+    else:
+        return jsonify({'error': 'You are not autorised.'}), 500
 
 
 @data_bp.route('/reassign-responsible-curator', methods=['POST'])
@@ -520,36 +506,33 @@ def reassign_responsible_curator():
     old_user_id = data.get('old_user_id')
     new_user_id = data.get('new_user_id')
 
-    try:
-        # Transfer units the old user was responsible for to the new user
-        owned_units = db.session.execute(
-            select(CollectionUnit.collection_unit_id).where(
-                CollectionUnit.responsible_curator_id == old_user_id
-            )
-        ).all()
-
-        for unit in owned_units:
-            db.session.execute(
-                insert(AssignedUnits).values(
-                    user_id=new_user_id, collection_unit_id=unit.collection_unit_id
-                )
-            )
-
-        # Remove all units assigned to old user
-        db.session.execute(
-            delete(AssignedUnits).where(AssignedUnits.user_id == old_user_id)
+    # Transfer units the old user was responsible for to the new user
+    owned_units = db.session.execute(
+        select(CollectionUnit.collection_unit_id).where(
+            CollectionUnit.responsible_curator_id == old_user_id
         )
-        # Change the responsible_curator_id from the old user, to the new
+    ).all()
+
+    for unit in owned_units:
         db.session.execute(
-            update(CollectionUnit)
-            .where(CollectionUnit.responsible_curator_id == old_user_id)
-            .values(responsible_curator_id=new_user_id)
+            insert(AssignedUnits).values(
+                user_id=new_user_id, collection_unit_id=unit.collection_unit_id
+            )
         )
 
-        db.session.commit()
-        return jsonify({'message': 'Units successfully reassigned', 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    # Remove all units assigned to old user
+    db.session.execute(
+        delete(AssignedUnits).where(AssignedUnits.user_id == old_user_id)
+    )
+    # Change the responsible_curator_id from the old user, to the new
+    db.session.execute(
+        update(CollectionUnit)
+        .where(CollectionUnit.responsible_curator_id == old_user_id)
+        .values(responsible_curator_id=new_user_id)
+    )
+
+    db.session.commit()
+    return jsonify({'message': 'Units successfully reassigned', 'success': True})
 
 
 @data_bp.route('/submit-unit-assigned', methods=['POST'])
@@ -568,16 +551,13 @@ def set_unit_assigned():
     if not assigned_users:
         return jsonify({'error': 'assigned_users is required'}), 400
 
-    try:
-        update_unit_assigned(unit_id, assigned_users)
+    update_unit_assigned(unit_id, assigned_users)
 
-        # Close the cursor and connection
-        db.session.commit()
-        return jsonify(
-            {'message': 'Unit assigned users updated successfully', 'success': True}
-        )
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    # Close the cursor and connection
+    db.session.commit()
+    return jsonify(
+        {'message': 'Unit assigned users updated successfully', 'success': True}
+    )
 
 
 @data_bp.route('/bulk-submit-unit-permissions', methods=['POST'])
@@ -598,25 +578,22 @@ def set_bulk_unit_permissions():
             {'error': 'assigned_users or responsible_curator_id is required'}
         ), 400
 
-    try:
-        # add assinged users per unit
-        if assigned_users:
-            for unit_id in unit_ids:
-                update_unit_assigned(unit_id, assigned_users)
-        # add respsonsible curator
-        if responsible_curator_id:
-            db.session.execute(
-                update(CollectionUnit)
-                .where(CollectionUnit.collection_unit_id.in_(unit_ids))
-                .values(responsible_curator_id=responsible_curator_id)
-            )
-
-        db.session.commit()
-        return jsonify(
-            {'message': 'Units permissions updated successfully', 'success': True}
+    # add assinged users per unit
+    if assigned_users:
+        for unit_id in unit_ids:
+            update_unit_assigned(unit_id, assigned_users)
+    # add respsonsible curator
+    if responsible_curator_id:
+        db.session.execute(
+            update(CollectionUnit)
+            .where(CollectionUnit.collection_unit_id.in_(unit_ids))
+            .values(responsible_curator_id=responsible_curator_id)
         )
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
+    db.session.commit()
+    return jsonify(
+        {'message': 'Units permissions updated successfully', 'success': True}
+    )
 
 
 @data_bp.route('/submit-user-assigned', methods=['POST'])
@@ -635,48 +612,42 @@ def set_user_assigned():
     if not assigned_units:
         return jsonify({'error': 'assigned_units is required'}), 400
 
-    try:
-        # Fetch current assigned units for this user
-        current_assigned = (
-            db.session.execute(
-                select(AssignedUnits).where(AssignedUnits.user_id == user_id)
-            )
-            .scalars()
-            .all()
+    # Fetch current assigned units for this user
+    current_assigned = (
+        db.session.execute(
+            select(AssignedUnits).where(AssignedUnits.user_id == user_id)
         )
-        # Normalize both sets to integers
-        current_assigned = set(int(row.collection_unit_id) for row in current_assigned)
-        assigned_units = set(int(unit_id) for unit_id in assigned_units)
+        .scalars()
+        .all()
+    )
+    # Normalize both sets to integers
+    current_assigned = set(int(row.collection_unit_id) for row in current_assigned)
+    assigned_units = set(int(unit_id) for unit_id in assigned_units)
 
-        # Determine diffs
-        units_to_add = assigned_units - current_assigned
-        units_to_remove = current_assigned - assigned_units
+    # Determine diffs
+    units_to_add = assigned_units - current_assigned
+    units_to_remove = current_assigned - assigned_units
 
-        # Insert new assignments
-        for unit_id in units_to_add:
-            db.session.execute(
-                insert(AssignedUnits).values(
-                    user_id=user_id, collection_unit_id=unit_id
-                )
-            )
-
-        # Remove old assignments
-        for unit_id in units_to_remove:
-            db.session.execute(
-                delete(AssignedUnits).where(
-                    AssignedUnits.user_id == user_id,
-                    AssignedUnits.collection_unit_id == unit_id,
-                )
-            )
-
-        db.session.commit()
-
-        return jsonify(
-            {'message': 'User assigned units updated successfully', 'success': True}
+    # Insert new assignments
+    for unit_id in units_to_add:
+        db.session.execute(
+            insert(AssignedUnits).values(user_id=user_id, collection_unit_id=unit_id)
         )
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    # Remove old assignments
+    for unit_id in units_to_remove:
+        db.session.execute(
+            delete(AssignedUnits).where(
+                AssignedUnits.user_id == user_id,
+                AssignedUnits.collection_unit_id == unit_id,
+            )
+        )
+
+    db.session.commit()
+
+    return jsonify(
+        {'message': 'User assigned units updated successfully', 'success': True}
+    )
 
 
 @data_bp.route('/criterion', methods=['GET'])

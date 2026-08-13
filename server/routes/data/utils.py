@@ -581,67 +581,61 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
 
     It will insert a new row if none exists or update if it does.
     """
-    try:
-        data = None
-        # Only check if it exists if we dont know if we need to insert - saves time
-        if not insert_only:
-            data = (
-                db.session.execute(
-                    select(UnitRankDraft).filter(
-                        UnitRankDraft.criterion_id == criterion_id,
-                        UnitRankDraft.category_draft_id == category_draft_id,
-                    )
+    data = None
+    # Only check if it exists if we dont know if we need to insert - saves time
+    if not insert_only:
+        data = (
+            db.session.execute(
+                select(UnitRankDraft).filter(
+                    UnitRankDraft.criterion_id == criterion_id,
+                    UnitRankDraft.category_draft_id == category_draft_id,
                 )
-                .scalars()
-                .all()
             )
-
-        # Loop through the ranks and update or insert them
-        for sumbit_rank in ranks:
-            in_db = False
-            rank_id = sumbit_rank['rank_id']
-            percentage = sumbit_rank['percentage']
-            comment = sumbit_rank['comment']
-            if not insert_only and data is not None:
-                # Check if the rank already exists in the
-                # database and update it if it does
-                for db_rank in data:
-                    if db_rank.rank_id == sumbit_rank['rank_id']:
-                        updated_at = datetime.now()
-
-                        db.session.execute(
-                            update(UnitRankDraft)
-                            .where(
-                                UnitRankDraft.category_draft_id == category_draft_id,
-                                UnitRankDraft.criterion_id == criterion_id,
-                                UnitRankDraft.rank_id == rank_id,
-                            )
-                            .values(
-                                percentage=percentage,
-                                comment=comment,
-                                updated_at=updated_at,
-                            )
-                        )
-                        in_db = True
-
-            # If the rank does not exist, insert it
-            if not in_db:
-                db.session.execute(
-                    insert(UnitRankDraft).values(
-                        category_draft_id=category_draft_id,
-                        criterion_id=criterion_id,
-                        rank_id=rank_id,
-                        percentage=percentage,
-                        comment=comment,
-                    )
-                )
-        db.session.flush()
-        return jsonify(
-            {'message': 'Draft rank submitted successfully', 'success': True}
+            .scalars()
+            .all()
         )
 
-    except Exception:
-        raise
+    # Loop through the ranks and update or insert them
+    for sumbit_rank in ranks:
+        in_db = False
+        rank_id = sumbit_rank['rank_id']
+        percentage = sumbit_rank['percentage']
+        comment = sumbit_rank['comment']
+        if not insert_only and data is not None:
+            # Check if the rank already exists in the
+            # database and update it if it does
+            for db_rank in data:
+                if db_rank.rank_id == sumbit_rank['rank_id']:
+                    updated_at = datetime.now()
+
+                    db.session.execute(
+                        update(UnitRankDraft)
+                        .where(
+                            UnitRankDraft.category_draft_id == category_draft_id,
+                            UnitRankDraft.criterion_id == criterion_id,
+                            UnitRankDraft.rank_id == rank_id,
+                        )
+                        .values(
+                            percentage=percentage,
+                            comment=comment,
+                            updated_at=updated_at,
+                        )
+                    )
+                    in_db = True
+
+        # If the rank does not exist, insert it
+        if not in_db:
+            db.session.execute(
+                insert(UnitRankDraft).values(
+                    category_draft_id=category_draft_id,
+                    criterion_id=criterion_id,
+                    rank_id=rank_id,
+                    percentage=percentage,
+                    comment=comment,
+                )
+            )
+    db.session.flush()
+    return jsonify({'message': 'Draft rank submitted successfully', 'success': True})
 
 
 def handle_draft_metrics(rescore_session_units_id, metric_json):
@@ -650,46 +644,42 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
 
     It will insert a new row if none exists or update if it does.
     """
-    try:
-        # Loop through the metrics and update or insert them
-        for metric in metric_json:
-            collection_unit_metric_definition_id = metric[
-                'collection_unit_metric_definition_id'
-            ]
-            metric_value = metric['metric_value']
-            confidence_level = metric['confidence_level']
-            if metric_value is not None or confidence_level is not None:
-                # Check if the metric already exists in the database and update it if it does
-                existing_metric = db.session.execute(
-                    select(UnitMetricDraft).filter(
-                        UnitMetricDraft.rescore_session_units_id
-                        == rescore_session_units_id,
-                        UnitMetricDraft.collection_unit_metric_definition_id
-                        == collection_unit_metric_definition_id,
+    # Loop through the metrics and update or insert them
+    for metric in metric_json:
+        collection_unit_metric_definition_id = metric[
+            'collection_unit_metric_definition_id'
+        ]
+        metric_value = metric['metric_value']
+        confidence_level = metric['confidence_level']
+        if metric_value is not None or confidence_level is not None:
+            # Check if the metric already exists in the database and update it if it does
+            existing_metric = db.session.execute(
+                select(UnitMetricDraft).filter(
+                    UnitMetricDraft.rescore_session_units_id
+                    == rescore_session_units_id,
+                    UnitMetricDraft.collection_unit_metric_definition_id
+                    == collection_unit_metric_definition_id,
+                )
+            ).scalar()
+            if existing_metric:
+                updated_at = datetime.now()
+                if metric_value is not None:
+                    existing_metric.metric_value = metric_value
+                if confidence_level is not None:
+                    existing_metric.confidence_level = confidence_level
+                existing_metric.updated_at = updated_at
+                db.session.flush()
+            else:
+                db.session.execute(
+                    insert(UnitMetricDraft).values(
+                        rescore_session_units_id=rescore_session_units_id,
+                        collection_unit_metric_definition_id=collection_unit_metric_definition_id,
+                        metric_value=metric_value,
+                        confidence_level=confidence_level,
                     )
-                ).scalar()
-                if existing_metric:
-                    updated_at = datetime.now()
-                    if metric_value is not None:
-                        existing_metric.metric_value = metric_value
-                    if confidence_level is not None:
-                        existing_metric.confidence_level = confidence_level
-                    existing_metric.updated_at = updated_at
-                    db.session.flush()
-                else:
-                    db.session.execute(
-                        insert(UnitMetricDraft).values(
-                            rescore_session_units_id=rescore_session_units_id,
-                            collection_unit_metric_definition_id=collection_unit_metric_definition_id,
-                            metric_value=metric_value,
-                            confidence_level=confidence_level,
-                        )
-                    )
-                    db.session.flush()
-        return jsonify({'message': 'Draft metrics submitted successfully'})
-
-    except Exception:
-        raise
+                )
+                db.session.flush()
+    return jsonify({'message': 'Draft metrics submitted successfully'})
 
 
 def handle_draft_comment(rescore_session_units_id, unit_comment):

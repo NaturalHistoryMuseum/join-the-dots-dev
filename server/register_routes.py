@@ -1,6 +1,13 @@
 from flask import Flask
+from sqlalchemy.exc import (
+    IntegrityError,
+    OperationalError,
+    SQLAlchemyError,
+    TimeoutError,
+)
 
 from server.config import get_config
+from server.database import db
 from server.routes.data import data_bp
 from server.routes.export import export_bp
 from server.routes.powerbi import powerbi_bp
@@ -17,6 +24,31 @@ def register_routes(app: Flask):
     """
     # Refresh jwt token after request is made
     app.after_request(refresh_jwt_token)
+
+    # Add global error catchers
+    @app.errorhandler(OperationalError)
+    def handle_operational_error(error):
+        db.session.rollback()
+        return {
+            'error': """Database operational error.
+            Database could be temporarily unavailable."""
+        }, 503
+
+    @app.errorhandler(IntegrityError)
+    def handle_integrity_error(error):
+        db.session.rollback()
+        return {'error': 'Request voilates database constraints.'}, 409
+
+    @app.errorhandler(TimeoutError)
+    def handle_timeout_error(error):
+        db.session.rollback()
+        return {'error': 'Request timed out.'}, 408
+
+    @app.errorhandler(SQLAlchemyError)
+    def handle_sqlalchemy_error(error):
+        db.session.rollback()
+        return {'error': 'An error occured while processing this request.'}, 500
+
     # Register routes
     app.register_blueprint(data_bp, url_prefix='/api/data')
     app.register_blueprint(user_bp, url_prefix='/api/user')

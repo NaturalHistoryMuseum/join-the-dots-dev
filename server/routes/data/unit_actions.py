@@ -61,36 +61,32 @@ def delete_units():
     if not isinstance(unit_ids, list):
         return jsonify({'error': 'unit_ids should be a list'}), 400
 
-    try:
-        for unit_id in unit_ids:
-            db.session.execute(
-                update(CollectionUnit)
-                .where(
-                    CollectionUnit.collection_unit_id == unit_id,
-                    CollectionUnit.assigned_units.any(
-                        AssignedUnits.user_id == user_id,
-                    ),
-                )
-                .values(
-                    unit_active='no',
-                )
+    for unit_id in unit_ids:
+        db.session.execute(
+            update(CollectionUnit)
+            .where(
+                CollectionUnit.collection_unit_id == unit_id,
+                CollectionUnit.assigned_units.any(
+                    AssignedUnits.user_id == user_id,
+                ),
             )
-            # Add the change to the structural changes log
-            add_structural_change(
-                person_id=person_id,
-                higher_operation=HigherOperationEnum.delete,
-                operation=OperationEnum.delete,
-                collection_unit_id=unit_id,
-                comment=justification,
-                date=date_now,
+            .values(
+                unit_active='no',
             )
-        # Commit the transaction queries
-        db.session.commit()
+        )
+        # Add the change to the structural changes log
+        add_structural_change(
+            person_id=person_id,
+            higher_operation=HigherOperationEnum.delete,
+            operation=OperationEnum.delete,
+            collection_unit_id=unit_id,
+            comment=justification,
+            date=date_now,
+        )
+    # Commit the transaction queries
+    db.session.commit()
 
-        return jsonify({'message': 'Units deleted successfully'}), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'message': 'Units deleted successfully'}), 200
 
 
 @data_bp.route('/update-assessed-date', methods=['POST'])
@@ -102,21 +98,19 @@ def update_assessed_date():
     data = request.get_json()
     unit_ids = data.get('unit_ids')
     date_now = datetime.now()
-    try:
-        # Update the assessed date
-        db.session.execute(
-            update(UnitAssessmentCriterion)
-            .where(UnitAssessmentCriterion.collection_unit_id.in_(unit_ids))
-            .values(
-                date_assessed=date_now,
-            )
+
+    # Update the assessed date
+    db.session.execute(
+        update(UnitAssessmentCriterion)
+        .where(UnitAssessmentCriterion.collection_unit_id.in_(unit_ids))
+        .values(
+            date_assessed=date_now,
         )
-        db.session.commit()
-        return jsonify(
-            {'message': 'Assessed date updated successfully', 'success': True}
-        ), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    )
+    db.session.commit()
+    return jsonify(
+        {'message': 'Assessed date updated successfully', 'success': True}
+    ), 200
 
 
 @data_bp.route('/submit-unit', methods=['POST'])
@@ -141,81 +135,78 @@ def submit_unit():
         if value is not None and key != 'collection_unit_id'
     }
 
-    try:
-        result = db.session.execute(insert(CollectionUnit).values(**filter_unit_data))
-        new_unit_id = result.lastrowid
-        db.session.flush()
+    result = db.session.execute(insert(CollectionUnit).values(**filter_unit_data))
+    new_unit_id = result.lastrowid
+    db.session.flush()
 
-        if new_unit_id is None:
-            return jsonify({'error': 'Failed to create new unit'}), 500
+    if new_unit_id is None:
+        return jsonify({'error': 'Failed to create new unit'}), 500
 
-        # Handle metrics
-        if metric_json:
-            for metric in metric_json:
-                collection_unit_metric_definition_id = metric.get(
-                    'collection_unit_metric_definition_id'
-                )
-                metric_value = metric.get('metric_value')
-                confidence_level = metric.get('confidence_level')
-                if metric_value is not None or confidence_level is not None:
-                    db.session.execute(
-                        insert(CollectionUnitMetric).values(
-                            collection_unit_id=new_unit_id,
-                            collection_unit_metric_definition_id=collection_unit_metric_definition_id,
-                            metric_value=metric_value,
-                            confidence_level=confidence_level,
-                            date_from=date_now,
-                            current='yes',
-                        )
-                    )
-                    db.session.flush()
-        # Handle ranks
-        if ranks_json:
-            for criterion in ranks_json:
-                criterion_id = criterion[0]['criterion_id']
-                # Add the criterion to the unit_assessment_criterion table
-                # and get the new id
-                result = db.session.execute(
-                    insert(UnitAssessmentCriterion).values(
+    # Handle metrics
+    if metric_json:
+        for metric in metric_json:
+            collection_unit_metric_definition_id = metric.get(
+                'collection_unit_metric_definition_id'
+            )
+            metric_value = metric.get('metric_value')
+            confidence_level = metric.get('confidence_level')
+            if metric_value is not None or confidence_level is not None:
+                db.session.execute(
+                    insert(CollectionUnitMetric).values(
                         collection_unit_id=new_unit_id,
-                        criterion_id=criterion_id,
-                        assessor_id=person_id,
-                        date_assessed=date_now,
+                        collection_unit_metric_definition_id=collection_unit_metric_definition_id,
+                        metric_value=metric_value,
+                        confidence_level=confidence_level,
                         date_from=date_now,
                         current='yes',
-                        criteria_assessment=CriteriaAssessmentEnum.known,
                     )
                 )
                 db.session.flush()
-                unit_assessment_criterion_id = result.lastrowid
+    # Handle ranks
+    if ranks_json:
+        for criterion in ranks_json:
+            criterion_id = criterion[0]['criterion_id']
+            # Add the criterion to the unit_assessment_criterion table
+            # and get the new id
+            result = db.session.execute(
+                insert(UnitAssessmentCriterion).values(
+                    collection_unit_id=new_unit_id,
+                    criterion_id=criterion_id,
+                    assessor_id=person_id,
+                    date_assessed=date_now,
+                    date_from=date_now,
+                    current='yes',
+                    criteria_assessment=CriteriaAssessmentEnum.known,
+                )
+            )
+            db.session.flush()
+            unit_assessment_criterion_id = result.lastrowid
 
-                for rank in criterion:
-                    rank_id = rank['rank_id']
-                    percentage = rank['percentage']
-                    comment = rank['comment']
-                    db.session.execute(
-                        insert(UnitAssessmentRank).values(
-                            unit_assessment_criterion_id=unit_assessment_criterion_id,
-                            rank_id=rank_id,
-                            percentage=percentage,
-                            comment=comment,
-                        )
+            for rank in criterion:
+                rank_id = rank['rank_id']
+                percentage = rank['percentage']
+                comment = rank['comment']
+                db.session.execute(
+                    insert(UnitAssessmentRank).values(
+                        unit_assessment_criterion_id=unit_assessment_criterion_id,
+                        rank_id=rank_id,
+                        percentage=percentage,
+                        comment=comment,
                     )
-        # Add the change to the structural changes log
-        add_structural_change(
-            person_id=person_id,
-            higher_operation=HigherOperationEnum.create,
-            operation=OperationEnum.create,
-            collection_unit_id=new_unit_id,
-            date=date_now,
-        )
+                )
+    # Add the change to the structural changes log
+    add_structural_change(
+        person_id=person_id,
+        higher_operation=HigherOperationEnum.create,
+        operation=OperationEnum.create,
+        collection_unit_id=new_unit_id,
+        date=date_now,
+    )
 
-        # Commit the transaction queries
-        db.session.commit()
+    # Commit the transaction queries
+    db.session.commit()
 
-        return jsonify({'collection_unit_id': new_unit_id, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'collection_unit_id': new_unit_id, 'success': True})
 
 
 @data_bp.route('/submit-draft-unit', methods=['POST'])
@@ -241,98 +232,102 @@ def submit_draft_unit():
     else:
         insert_mode = False
 
-    try:
-        # Check if the draft is being insered or updated
-        if insert_mode:
-            # Filter the data to remove None values and the collection_unit_id
-            filter_unit_data = {
-                key: value
-                for key, value in unit_data.items()
-                if value is not None and key != 'collection_unit_id'
-            }
-            result = db.session.execute(
-                insert(CollectionUnit).values(**filter_unit_data)
+    # Check if the draft is being insered or updated
+    if insert_mode:
+        # Filter the data to remove None values and the collection_unit_id
+        filter_unit_data = {
+            key: value
+            for key, value in unit_data.items()
+            if value is not None and key != 'collection_unit_id'
+        }
+        result = db.session.execute(insert(CollectionUnit).values(**filter_unit_data))
+        unit_id = result.lastrowid
+        db.session.flush()
+        if unit_id is None:
+            return jsonify({'error': 'Failed to create new unit'}), 500
+        # Create the rescore session if we are adding the draft
+        rescore_session_id, category_draft_ids = create_rescore_session(
+            [unit_id], user_id
+        )
+        print(category_draft_ids)
+        rescore_session_units_id = category_draft_ids[0]['rescore_session_units_id']
+    else:
+        # Filter the data to remove None values and the collection_unit_id
+        filtered = {
+            key: value
+            for key, value in unit_data.items()
+            if value is not None
+            and key != 'collection_unit_id'
+            and column_exists(table_name='collection_unit', column_name=key)
+        }
+
+        db.session.execute(
+            update(CollectionUnit)
+            .where(CollectionUnit.collection_unit_id == unit_id)
+            .values(**filtered)
+        )
+        db.session.flush()
+        # Create the rescore session if we are adding the draft
+        category_draft_ids = None
+        rescore_session_units_id = score_data.get('rescore_session_units_id')
+
+    # Handle ranks
+    if ranks_json:
+        # Loop through all of the score changes
+        for criterion_ranks in ranks_json:
+            print(criterion_ranks)
+            # Get the criterion_id for this score change
+            criterion_id = criterion_ranks[0]['criterion_id']
+            category_id = criterion_ranks[0]['category_id']
+            print(criterion_id)
+            print(category_id)
+            # If rescore was just added
+            if category_draft_ids is not None and len(category_draft_ids) > 0:
+                # Find category_draft_id
+                current_category = [
+                    category
+                    for category in category_draft_ids
+                    if category.get('category_id') == category_id
+                ]
+                print('current_category')
+                print(len(current_category))
+                print((current_category))
+                category_draft_id = current_category[0]['category_draft_id']
+            elif category_tracking is not None and len(category_tracking) > 0:
+                # Find category_draft_id
+                current_category = [
+                    category
+                    for category in category_tracking
+                    if category.get('category_id') == category_id
+                ]
+                print('category_tracking')
+                print(len(category_tracking))
+                print((category_tracking))
+                category_draft_id = current_category[0]['category_draft_id']
+            else:
+                raise
+            # Make the score change
+            handle_draft_rank(
+                criterion_id,
+                criterion_ranks,
+                category_draft_id,
+                insert_only=insert_mode,
             )
-            unit_id = result.lastrowid
-            db.session.flush()
-            if unit_id is None:
-                return jsonify({'error': 'Failed to create new unit'}), 500
-            # Create the rescore session if we are adding the draft
-            rescore_session_id, category_draft_ids = create_rescore_session(
-                [unit_id], user_id
-            )
-            rescore_session_units_id = category_draft_ids[0]['rescore_session_units_id']
-        else:
-            # Filter the data to remove None values and the collection_unit_id
-            filtered = {
-                key: value
-                for key, value in unit_data.items()
-                if value is not None
-                and key != 'collection_unit_id'
-                and column_exists(table_name='collection_unit', column_name=key)
-            }
 
-            db.session.execute(
-                update(CollectionUnit)
-                .where(CollectionUnit.collection_unit_id == unit_id)
-                .values(**filtered)
-            )
-            db.session.flush()
-            # Create the rescore session if we are adding the draft
-            category_draft_ids = None
-            rescore_session_units_id = score_data.get('rescore_session_units_id')
+    # Handle metrics
+    if metric_json is not None:
+        handle_draft_metrics(rescore_session_units_id, metric_json)
+    # Handle comment
+    if unit_comment is not None:
+        handle_draft_comment(rescore_session_units_id, unit_comment)
+    # If no longer draft, upgrade to full unit
+    if draft_unit == 0:
+        complete_draft_unit(unit_id, person_id)
 
-        # Handle ranks
-        if ranks_json:
-            # Loop through all of the score changes
-            for criterion_ranks in ranks_json:
-                # Get the criterion_id for this score change
-                criterion_id = criterion_ranks[0]['criterion_id']
-                category_id = criterion_ranks[0]['category_id']
-                # If rescore was just added
-                if category_draft_ids is not None:
-                    # Find category_draft_id
-                    current_category = [
-                        category
-                        for category in category_draft_ids
-                        if category.get('category_id') == category_id
-                    ]
-                    category_draft_id = current_category[0]['category_draft_id']
-                elif category_tracking is not None:
-                    # Find category_draft_id
-                    category_tracking = score_data['category_tracking']
-                    current_category = [
-                        category
-                        for category in category_tracking
-                        if category.get('category_id') == category_id
-                    ]
-                    category_draft_id = current_category[0]['category_draft_id']
-                else:
-                    raise
-                # Make the score change
-                handle_draft_rank(
-                    criterion_id,
-                    criterion_ranks,
-                    category_draft_id,
-                    insert_only=insert_mode,
-                )
+    # Commit the transaction queries
+    db.session.commit()
 
-        # Handle metrics
-        if metric_json is not None:
-            handle_draft_metrics(rescore_session_units_id, metric_json)
-        # Handle comment
-        if unit_comment is not None:
-            handle_draft_comment(rescore_session_units_id, unit_comment)
-        # If no longer draft, upgrade to full unit
-        if draft_unit == 0:
-            complete_draft_unit(unit_id, person_id)
-
-        # Commit the transaction queries
-        db.session.commit()
-
-        return jsonify({'collection_unit_id': unit_id, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({'collection_unit_id': unit_id, 'success': True})
 
 
 @data_bp.route('/draft-scores/<unit_id>', methods=['GET'])
@@ -349,11 +344,12 @@ def get_draft_scores(unit_id):
             ),
         )
     ).scalar()
-    rescore_session_id = rescore_session.lastrowid
+    if rescore_session is None:
+        return jsonify({'error': 'No draft scores found for this unit'})
+    rescore_session_id = rescore_session.rescore_session_id
 
     query = rescore_units_query(rescore_session_id)
-    data = db.session.execute(query).scalars().all()
-    return jsonify(data)
+    data = db.session.execute(query).all()
     return [
         {
             'rescore_session_id': row.RescoreSession.rescore_session_id,
@@ -394,20 +390,16 @@ def submit_field():
     if not collection_unit_id:
         return jsonify({'error': 'collection_unit_id is required'}), 400
 
-    try:
-        if column_exists(column_name=field_name, table_name='collection_unit'):
-            db.session.execute(
-                update(CollectionUnit)
-                .where(CollectionUnit.collection_unit_id == collection_unit_id)
-                .values(**{field_name: new_value})
-            )
-            db.session.commit()
-            return jsonify({'success': True})
-        else:
-            return jsonify({'error: column does not exist'}), 500
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    if column_exists(column_name=field_name, table_name='collection_unit'):
+        db.session.execute(
+            update(CollectionUnit)
+            .where(CollectionUnit.collection_unit_id == collection_unit_id)
+            .values(**{field_name: new_value})
+        )
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error: column does not exist'}), 500
 
 
 @data_bp.route('/split-unit', methods=['POST'])
@@ -430,59 +422,56 @@ def split_unit():
 
     new_units = []
 
-    try:
-        # Add structural change entry
-        result = db.session.execute(
-            insert(StructuralChangesHigher).values(
-                higher_operation=HigherOperationEnum.split,
-                effective_date=date_now,
-                change_agent_id=person_id,
-                cause='Requested by curator',
-            )
+    # Add structural change entry
+    result = db.session.execute(
+        insert(StructuralChangesHigher).values(
+            higher_operation=HigherOperationEnum.split,
+            effective_date=date_now,
+            change_agent_id=person_id,
+            cause='Requested by curator',
         )
-        structural_changes_higher_id = result.lastrowid
-        db.session.flush()
+    )
+    structural_changes_higher_id = result.lastrowid
+    db.session.flush()
 
-        # Create new units
-        for i in range(new_count):
-            # Copy the original primary unit
-            new_unit_id = copy_unit(
-                unit_id_to_copy=unit_id,
-                user_id=user_id,
-                unit_name_addition=(' ' + str(i + 1)),
-            )
-            new_units.append(new_unit_id)
-
-            # Basic structural change
-            db.session.execute(
-                insert(StructuralChangesBasic).values(
-                    structural_changes_higher_id=structural_changes_higher_id,
-                    collection_unit_id=new_unit_id,
-                    operation=OperationEnum.create,
-                )
-            )
-            db.session.flush()
-
-        db.session.execute(
-            update(CollectionUnit)
-            .where(CollectionUnit.collection_unit_id == unit_id)
-            .values(
-                unit_active='no',
-            )
+    # Create new units
+    for i in range(new_count):
+        # Copy the original primary unit
+        new_unit_id = copy_unit(
+            unit_id_to_copy=unit_id,
+            user_id=user_id,
+            unit_name_addition=(' ' + str(i + 1)),
         )
+        new_units.append(new_unit_id)
+
         # Basic structural change
         db.session.execute(
             insert(StructuralChangesBasic).values(
                 structural_changes_higher_id=structural_changes_higher_id,
-                collection_unit_id=unit_id,
-                operation=OperationEnum.delete,
+                collection_unit_id=new_unit_id,
+                operation=OperationEnum.create,
             )
         )
-        # Commit the transaction queries
-        db.session.commit()
-        return jsonify({'new_units': new_units, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        db.session.flush()
+
+    db.session.execute(
+        update(CollectionUnit)
+        .where(CollectionUnit.collection_unit_id == unit_id)
+        .values(
+            unit_active='no',
+        )
+    )
+    # Basic structural change
+    db.session.execute(
+        insert(StructuralChangesBasic).values(
+            structural_changes_higher_id=structural_changes_higher_id,
+            collection_unit_id=unit_id,
+            operation=OperationEnum.delete,
+        )
+    )
+    # Commit the transaction queries
+    db.session.commit()
+    return jsonify({'new_units': new_units, 'success': True})
 
 
 @data_bp.route('/combine-unit', methods=['POST'])
@@ -502,49 +491,46 @@ def combine_unit():
     if not primary_unit_id:
         return jsonify({'error': 'primary_unit_id is required'}), 400
 
-    try:
-        # Add structural change entry
-        result = db.session.execute(
-            insert(StructuralChangesHigher).values(
-                higher_operation=HigherOperationEnum.merge,
-                effective_date=date_now,
-                change_agent_id=person_id,
-                cause='Requested by curator',
+    # Add structural change entry
+    result = db.session.execute(
+        insert(StructuralChangesHigher).values(
+            higher_operation=HigherOperationEnum.merge,
+            effective_date=date_now,
+            change_agent_id=person_id,
+            cause='Requested by curator',
+        )
+    )
+    db.session.flush()
+    structural_changes_higher_id = result.lastrowid
+
+    # Copy the original primary unit
+    new_unit_id = copy_unit(unit_id_to_copy=primary_unit_id, user_id=user_id)
+    db.session.execute(
+        insert(StructuralChangesBasic).values(
+            structural_changes_higher_id=structural_changes_higher_id,
+            collection_unit_id=new_unit_id,
+            operation=OperationEnum.create,
+        )
+    )
+    db.session.flush()
+    # Mark old units as not active
+    for unit_id in unit_id_list:
+        db.session.execute(
+            update(CollectionUnit)
+            .where(CollectionUnit.collection_unit_id == unit_id)
+            .values(
+                unit_active='no',
             )
         )
-        db.session.flush()
-        structural_changes_higher_id = result.lastrowid
-
-        # Copy the original primary unit
-        new_unit_id = copy_unit(unit_id_to_copy=primary_unit_id, user_id=user_id)
+        # Basic structural change
         db.session.execute(
             insert(StructuralChangesBasic).values(
                 structural_changes_higher_id=structural_changes_higher_id,
-                collection_unit_id=new_unit_id,
-                operation=OperationEnum.create,
+                collection_unit_id=unit_id,
+                operation=OperationEnum.delete,
             )
         )
-        db.session.flush()
-        # Mark old units as not active
-        for unit_id in unit_id_list:
-            db.session.execute(
-                update(CollectionUnit)
-                .where(CollectionUnit.collection_unit_id == unit_id)
-                .values(
-                    unit_active='no',
-                )
-            )
-            # Basic structural change
-            db.session.execute(
-                insert(StructuralChangesBasic).values(
-                    structural_changes_higher_id=structural_changes_higher_id,
-                    collection_unit_id=unit_id,
-                    operation=OperationEnum.delete,
-                )
-            )
 
-        # Commit the transaction queries
-        db.session.commit()
-        return jsonify({'new_unit_id': new_unit_id, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    # Commit the transaction queries
+    db.session.commit()
+    return jsonify({'new_unit_id': new_unit_id, 'success': True})
