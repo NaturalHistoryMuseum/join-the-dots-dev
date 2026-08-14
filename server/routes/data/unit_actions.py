@@ -249,7 +249,6 @@ def submit_draft_unit():
         rescore_session_id, category_draft_ids = create_rescore_session(
             [unit_id], user_id
         )
-        print(category_draft_ids)
         rescore_session_units_id = category_draft_ids[0]['rescore_session_units_id']
     else:
         # Filter the data to remove None values and the collection_unit_id
@@ -275,12 +274,9 @@ def submit_draft_unit():
     if ranks_json:
         # Loop through all of the score changes
         for criterion_ranks in ranks_json:
-            print(criterion_ranks)
             # Get the criterion_id for this score change
             criterion_id = criterion_ranks[0]['criterion_id']
             category_id = criterion_ranks[0]['category_id']
-            print(criterion_id)
-            print(category_id)
             # If rescore was just added
             if category_draft_ids is not None and len(category_draft_ids) > 0:
                 # Find category_draft_id
@@ -289,9 +285,6 @@ def submit_draft_unit():
                     for category in category_draft_ids
                     if category.get('category_id') == category_id
                 ]
-                print('current_category')
-                print(len(current_category))
-                print((current_category))
                 category_draft_id = current_category[0]['category_draft_id']
             elif category_tracking is not None and len(category_tracking) > 0:
                 # Find category_draft_id
@@ -300,9 +293,6 @@ def submit_draft_unit():
                     for category in category_tracking
                     if category.get('category_id') == category_id
                 ]
-                print('category_tracking')
-                print(len(category_tracking))
-                print((category_tracking))
                 category_draft_id = current_category[0]['category_draft_id']
             else:
                 raise
