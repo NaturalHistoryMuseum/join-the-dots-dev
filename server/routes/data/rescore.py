@@ -160,7 +160,6 @@ def get_rescore_units(rescore_session_id):
 
     query = rescore_units_query(rescore_session_id)
     data = db.session.execute(query).all()
-
     return [
         {
             'rescore_session_id': row.RescoreSession.rescore_session_id,

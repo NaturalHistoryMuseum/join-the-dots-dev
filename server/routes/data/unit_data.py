@@ -485,6 +485,10 @@ def get_division_users():
         return [
             {
                 **{c.name: getattr(row.Users, c.name) for c in Users.__table__.columns},
+                **{
+                    c.name: getattr(row.Division, c.name)
+                    for c in Division.__table__.columns
+                },
                 'name': row.Users.display_name,
                 'role': row.Roles.role,
                 'assigned_units': row.assigned_units,

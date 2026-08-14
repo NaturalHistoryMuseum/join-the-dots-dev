@@ -374,8 +374,8 @@ def upgrade_draft_comments(rescore_session_id):
 
     # Remove draft comments
     db.session.execute(
-        delete(UnitCategoryDraft).where(
-            UnitCategoryDraft.rescore_session_units.has(
+        delete(UnitCommentDraft).where(
+            UnitCommentDraft.rescore_session_units.has(
                 RescoreSessionUnits.rescore_session.has(
                     and_(
                         RescoreSession.rescore_session_id == rescore_session_id,
@@ -745,36 +745,48 @@ def rescore_units_query(rescore_session_id):
     session.
     """
     # metrics subquery
-    draft_metrics_query = select(
-        null().label('collection_unit_metric_id'),
-        UnitMetricDraft.metric_value,
-        UnitMetricDraft.confidence_level,
-        null().label('date_from'),
-        UnitMetricDraft.collection_unit_metric_definition_id,
-        literal(True).label('is_draft'),
-    ).where(
-        UnitMetricDraft.rescore_session_units_id
-        == RescoreSessionUnits.rescore_session_units_id
+    draft_metrics_query = (
+        select(
+            null().label('collection_unit_metric_id'),
+            UnitMetricDraft.metric_value,
+            UnitMetricDraft.confidence_level,
+            null().label('date_from'),
+            UnitMetricDraft.collection_unit_metric_definition_id,
+            literal(True).label('is_draft'),
+        )
+        .where(
+            UnitMetricDraft.rescore_session_units_id
+            == RescoreSessionUnits.rescore_session_units_id
+        )
+        .correlate(RescoreSessionUnits)
     )
 
-    real_metrics_query = select(
-        CollectionUnitMetric.collection_unit_metric_id,
-        CollectionUnitMetric.metric_value,
-        CollectionUnitMetric.confidence_level,
-        func.date(CollectionUnitMetric.date_from).label('date_from'),
-        CollectionUnitMetric.collection_unit_metric_definition_id,
-        literal(False).label('is_draft'),
-    ).where(
-        CollectionUnitMetric.collection_unit_id == CollectionUnit.collection_unit_id,
-        CollectionUnitMetric.current == 'yes',
-        ~exists(
-            select(1).where(
-                UnitMetricDraft.rescore_session_units_id
-                == RescoreSessionUnits.rescore_session_units_id,
-                UnitMetricDraft.collection_unit_metric_definition_id
-                == CollectionUnitMetric.collection_unit_metric_definition_id,
-            )
-        ),
+    real_metrics_query = (
+        select(
+            CollectionUnitMetric.collection_unit_metric_id,
+            CollectionUnitMetric.metric_value,
+            CollectionUnitMetric.confidence_level,
+            func.date(CollectionUnitMetric.date_from).label('date_from'),
+            CollectionUnitMetric.collection_unit_metric_definition_id,
+            literal(False).label('is_draft'),
+        )
+        .where(
+            CollectionUnitMetric.collection_unit_id
+            == CollectionUnit.collection_unit_id,
+            CollectionUnitMetric.current == 'yes',
+            ~exists(
+                select(1)
+                .select_from(UnitMetricDraft)
+                .where(
+                    UnitMetricDraft.rescore_session_units_id
+                    == RescoreSessionUnits.rescore_session_units_id,
+                    UnitMetricDraft.collection_unit_metric_definition_id
+                    == CollectionUnitMetric.collection_unit_metric_definition_id,
+                )
+                .correlate(RescoreSessionUnits, CollectionUnitMetric)
+            ),
+        )
+        .correlate(CollectionUnit, RescoreSessionUnits)
     )
 
     metrics = draft_metrics_query.union(real_metrics_query).subquery('metrics')
@@ -801,6 +813,8 @@ def rescore_units_query(rescore_session_id):
                     CollectionUnitMetricDefinition.metric_datatype,
                     'collection_unit_metric_definition_id',
                     metrics.c.collection_unit_metric_definition_id,
+                    'is_draft',
+                    metrics.c.is_draft,
                 )
             )
         )

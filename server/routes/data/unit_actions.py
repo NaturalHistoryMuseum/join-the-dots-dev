@@ -399,7 +399,7 @@ def submit_field():
         db.session.commit()
         return jsonify({'success': True})
     else:
-        return jsonify({'error: column does not exist'}), 500
+        return jsonify({'error': 'column does not exist'}), 500
 
 
 @data_bp.route('/split-unit', methods=['POST'])
