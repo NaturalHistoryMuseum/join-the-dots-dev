@@ -35,9 +35,11 @@ repos:
         entry: npm
         args: [ 'run', 'format' ]
         types_or: [ javascript, vue, less, sass, scss, css ]
+        additional_dependencies: ['prettier']
       - id: eslint
         name: eslint
         language: node
         entry: npm
         args: ['run', 'lint']
         types: [file]
+        additional_dependencies: ['eslint']
