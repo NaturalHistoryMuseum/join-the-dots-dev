@@ -909,13 +909,15 @@ def get_all_curators():
     """
     Get all curators in dropdown format.
     """
-    query = select(
-        Users,
-    ).join(
-        Roles, Roles.role_id == Users.role_id
-    ).where(
-        Roles.level >= 2,
-        Users.display_name != None,
+    query = (
+        select(
+            Users,
+        )
+        .join(Roles, Roles.role_id == Users.role_id)
+        .where(
+            Roles.level >= 2,
+            Users.display_name.is_not(None),
+        )
     )
     data = db.session.execute(query).scalars().all()
     schema = UsersDDSchema(many=True)
