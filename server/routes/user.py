@@ -192,7 +192,7 @@ def all_viewers():
     query = (
         select(*Users.__table__.columns, Roles.role, literal(False).label('selected'))
         .join(Roles, Roles.role_id == Users.role_id)
-        .where(Users.role_id == 1)
+        .where(Roles.level == 1)
     )
 
     data = db.session.execute(query).mappings().all()

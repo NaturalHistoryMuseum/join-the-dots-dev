@@ -93,7 +93,7 @@ def auth_redirect():
             ).scalar()
         else:
             # Check if the user has a person_id
-            if user.roles.role_id > 1 and not user.person_id:
+            if user.roles.level > 1 and not user.person_id:
                 # Add a new person record
                 insert_person_to_existing_user(
                     user.user_id,

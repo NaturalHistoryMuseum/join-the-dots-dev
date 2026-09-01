@@ -369,10 +369,10 @@ def get_units_assigned():
         CollectionUnit.unit_active == 'yes',
         CollectionUnit.draft_unit == 0,
     ]
-    if user['role_id'] == 3:
-        where_query.append(Division.division_id == user['role_id'])
+    if user['level'] == 3:
+        where_query.append(Division.division_id == user['division_id'])
 
-    if user['role_id'] == 2:
+    if user['level'] == 2:
         where_query.append(AssignedUnits.user_id == user_id)
 
     query = (
@@ -435,8 +435,8 @@ def get_division_users():
     user = get_user_by_id(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
-    role_id = user['role_id']
-    if role_id >= 3:
+    role_level = user['level']
+    if role_level >= 3:
         au_subquery = (
             select(func.JSON_ARRAYAGG(AssignedUnits.collection_unit_id))
             .join(
@@ -463,9 +463,9 @@ def get_division_users():
             .scalar_subquery()
         )
 
-        where_query = [Users.role_id > 1]
+        where_query = [Roles.level > 1]
         # Only return one divisions for managers
-        if role_id < 4:
+        if role_level < 4:
             where_query.append(Users.division_id == user['division_id'])
 
         query = (
@@ -911,8 +911,10 @@ def get_all_curators():
     """
     query = select(
         Users,
+    ).join(
+        Roles, Roles.role_id == Users.role_id
     ).where(
-        Users.role_id >= 2,
+        Roles.level >= 2,
         Users.display_name != None,
     )
     data = db.session.execute(query).scalars().all()
@@ -934,7 +936,7 @@ def get_units_by_user():
     user = get_user_by_id(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 404
-    role_id = user['role_id']
+    role_level = user['level']
 
     # make subquery for the last time units where rescored
     last_rescored_union = union_all(
@@ -1016,7 +1018,7 @@ def get_units_by_user():
     )
 
     # return all units if admin
-    if role_id == 4:
+    if role_level == 4:
         # make the query
         query = (
             select(
