@@ -1,5 +1,3 @@
-import secrets
-
 import msal
 from flask import Blueprint, jsonify, make_response, request, session
 from flask import current_app as app
@@ -136,16 +134,14 @@ def auth_redirect():
                 additional_claims=user_data,
             )
             # Create refresh token
-            refresh_token = create_refresh_token(identity=str(user.user_id))
+            new_refresh_token = create_refresh_token(identity=str(user.user_id))
             # Store in session for later retrieval
             session['jwt_token'] = jwt_token
 
-            # Generate CSRF token
-            csrf_access_token = secrets.token_urlsafe(32)
             response = make_response(jsonify({'message': 'Login successful'}))
             # Set jwt token as access token in cookies
             set_access_cookies(response, jwt_token)
-            set_refresh_cookies(response, refresh_token)
+            set_refresh_cookies(response, new_refresh_token)
 
             return response
 

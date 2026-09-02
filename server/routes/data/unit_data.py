@@ -170,7 +170,7 @@ def get_unit_scores(unit_id):
                     'date_assessed',
                     case(
                         (
-                            UnitAssessmentCriterion.date_assessed == None,
+                            UnitAssessmentCriterion.date_assessed.is_(None),
                             func.date(UnitAssessmentCriterion.date_from),
                         ),
                         else_=func.date(UnitAssessmentCriterion.date_assessed),

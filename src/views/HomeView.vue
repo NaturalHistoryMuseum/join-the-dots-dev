@@ -5,7 +5,6 @@
       <div v-if="currentUser">
         <p v-if="currentUser.name">Welcome, {{ currentUser.name }}</p>
       </div>
-      <!-- <HomeStats /> -->
     </div>
     <div class="boader-header">
       <h2 class="h2-style boader-header-title">Actions</h2>
@@ -56,24 +55,19 @@
       </div>
     </b-row>
   </div>
-
-  <!-- <LoadingChart /> -->
 </template>
 
 <script>
-// import HomeStats from '@/components/HomeStats.vue';
 import { currentUser } from '../services/authService';
 
 export default {
   setup() {
     return { currentUser };
   },
-  // components: { HomeStats },
   data() {
     return {};
   },
   mounted() {},
-
   methods: {
     // Navigate to path
     navigate(path) {
