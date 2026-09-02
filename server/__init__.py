@@ -5,7 +5,8 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 
 from server.config import get_config
-from server.extensions import cors
+from server.database import db
+from server.extensions import cors, ma
 
 
 def create_app():
@@ -13,6 +14,9 @@ def create_app():
 
     config_class = get_config()
     app.config.from_object(get_config())
+
+    db.init_app(app)
+    ma.init_app(app)
 
     if config_class.VITE_APP_ENV == 'dev':
         # Allow insecure transport for testing purposes (for SSO) - DO NOT USE IN PRODUCTION!!

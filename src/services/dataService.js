@@ -55,10 +55,9 @@ export async function downloadLtCjson() {
 
 export async function markRescoreComplete(rescore_session_id) {
   try {
-    const response = await api.post(`data/end-rescore/${rescore_session_id}`, {
+    await api.post(`data/end-rescore/${rescore_session_id}`, {
       withCredentials: true,
     });
-    return response.data;
   } catch (error) {
     console.error('Error completing rescore:', error);
     throw error;

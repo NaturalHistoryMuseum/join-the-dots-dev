@@ -3,11 +3,13 @@ import requests
 from flask import Blueprint, jsonify, request
 from flask import current_app as app
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from sqlalchemy import delete, insert, literal, select, update
 
-from server.config import Config
-from server.utils import execute_query, fetch_data
+from server.database import db
+from server.models import AssignedUnits, Roles, Users
 
 user_bp = Blueprint('user', __name__)
+GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
 
 
 def get_msal_app():
@@ -18,25 +20,24 @@ def get_msal_app():
         # Don't use Azure in CI mode
         raise RuntimeError('MSAL should not be used in CI mode')
 
-    authority = f'https://login.microsoftonline.com/{Config.TENANT_ID}'
+    authority = f'https://login.microsoftonline.com/{app.config["TENANT_ID"]}'
 
     return msal.ConfidentialClientApplication(
-        Config.CLIENT_ID,
+        app.config['CLIENT_ID'],
         authority=authority,
-        client_credential=Config.CLIENT_SECRET,
+        client_credential=app.config['CLIENT_SECRET'],
     )
 
 
 @user_bp.route('/user/<azure_id>', methods=['GET'])
 @jwt_required()
 def get_user(azure_id):
-    data = fetch_data(
-        """SELECT *
-            FROM {database_name}.users
-            WHERE azure_id = %s
-                   """
-        % str(azure_id)
-    )
+    """
+    Get a user by their Azure ID.
+    """
+    data = db.session.execute(
+        select(Users).where(Users.azure_id == str(azure_id))
+    ).all()
     if data == []:
         return jsonify({'message': 'no user found'})
     return jsonify(data)
@@ -45,6 +46,9 @@ def get_user(azure_id):
 @user_bp.route('/add-user', methods=['POST'])
 @jwt_required()
 def add_user():
+    """
+    Add a new user.
+    """
     data = request.get_json()
 
     # Extract user details from request JSON
@@ -57,24 +61,24 @@ def add_user():
     if not azure_id or not display_name or not email or not division_id or not role_id:
         return jsonify({'error': 'Missing required fields'}), 400
 
-    try:
-        execute_query(
-            """
-            INSERT INTO {database_name}.users (azure_id, display_name, email, division_id, role_id)
-            VALUES (%s, %s, %s, %s, %s)
-        """,
-            (azure_id, display_name, email, division_id, role_id),
+    db.session.execute(
+        insert(Users).values(
+            azure_id=azure_id,
+            display_name=display_name,
+            email=email,
+            division_id=division_id,
+            role_id=role_id,
         )
-
-        return jsonify({'message': 'User added successfully', 'success': True}), 201
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    )
+    return jsonify({'message': 'User added successfully', 'success': True}), 201
 
 
 @user_bp.route('/edit-user-role', methods=['POST'])
 @jwt_required()
 def edit_user_role():
+    """
+    Amend a users role.
+    """
     data = request.get_json()
     role_id = data.get('role_id')
     user_id = data.get('user_id')
@@ -83,28 +87,19 @@ def edit_user_role():
         return jsonify({'error': 'Role is required'}), 400
 
     # Update role and commit changes
-    try:
-        execute_query(
-            """
-            UPDATE {database_name}.users u
-            SET u.role_id = %s
-            WHERE u.user_id = %s
-        """,
-            (
-                role_id,
-                user_id,
-            ),
-        )
-
-        return jsonify({'message': 'Role successfully changed', 'success': True}), 201
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    db.session.execute(
+        update(Users).where(Users.user_id == user_id).values(role_id=role_id)
+    )
+    db.session.commit()
+    return jsonify({'message': 'Role successfully changed', 'success': True}), 201
 
 
 @user_bp.route('/assign-units', methods=['POST'])
 @jwt_required()
 def edit_assign_units():
+    """
+    Assign units to a user.
+    """
     data = request.get_json()
     user_id = data.get('user_id')
     units = data.get('units')
@@ -115,113 +110,93 @@ def edit_assign_units():
         return jsonify({'error': 'User is required'}), 400
 
     # Delete current user units
-    try:
-        execute_query(
-            """
-            DELETE FROM {database_name}.assigned_units
-            WHERE user_id = %s
-        """,
-            (user_id,),
-        )
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    db.session.execute(delete(AssignedUnits).where(AssignedUnits.user_id == user_id))
+    db.session.flush()
 
     # Update current user units
-    try:
-        for unit in units:
-            execute_query(
-                """
-                INSERT INTO {database_name}.assigned_units (user_id, collection_unit_id)
-                VALUES (%s, %s)
-            """,
-                (user_id, unit),
-            )
+    for unit in units:
+        db.session.execute(
+            insert(AssignedUnits).values(user_id=user_id, collection_unit_id=unit)
+        )
 
-        return jsonify({'message': 'Units successfully assigned'}), 201
-
-    except Exception as e:
-        return jsonify({'error': str(e), 'success': True}), 500
+    db.session.commit()
+    return jsonify({'message': 'Units successfully assigned'}), 201
 
 
 @user_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
 def get_all_roles():
-    data = fetch_data("""SELECT r.*
-                   FROM {database_name}.roles r
-                   """)
+    """
+    Get all roles.
+    """
+    data = db.session.execute(select(Roles))
     return jsonify(data)
 
 
 @user_bp.route('/update-division', methods=['POST'])
 @jwt_required()
 def edit_user_division():
+    """
+    Update a users assigned division.
+    """
     data = request.get_json()
     division_id = data.get('division_id')
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
-    data = execute_query(
-        """UPDATE {database_name}.users u
-            SET u.division_id = %s
-            WHERE u.user_id = %s
-                   """,
-        (division_id, user_id),
+    db.session.execute(
+        update(Users).where(Users.user_id == user_id).values(division_id=division_id)
     )
-    return jsonify({'data': data, 'success': True}), 201
+    db.session.commit()
+    return jsonify({'success': True}), 201
 
 
 @user_bp.route('/upgrade-viewer', methods=['POST'])
 @jwt_required()
 def upgrade_viewer():
+    """
+    Increase a users role from viewer to editor and assign a division.
+    """
     data = request.get_json()
     user_id = data.get('user_id')
     division_id = data.get('division_id')
 
-    data = execute_query(
-        """UPDATE {database_name}.users u
-            SET u.role_id = 2, u.division_id = %s
-            WHERE u.user_id = %s
-                   """,
-        (
-            division_id,
-            user_id,
-        ),
+    db.session.execute(
+        update(Users)
+        .where(Users.user_id == user_id)
+        .values(division_id=division_id, role_id=2)
     )
-    return jsonify({'data': data, 'success': True}), 201
+    db.session.commit()
+    return jsonify({'success': True}), 201
 
 
 @user_bp.route('/check-user-by-email', methods=['POST'])
 @jwt_required()
 def check_user_by_email():
+    """
+    Check if a user exists by their email address.
+    """
     data = request.get_json()
     email = data.get('email')
-    try:
-        data = fetch_data(
-            """SELECT *
-                FROM {database_name}.users u
-                WHERE u.email = %s
-                    """,
-            (email,),
-        )
-        return jsonify({'data': data, 'success': True})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+
+    data = db.session.execute(select(Users).where(Users.email == email))
+    return jsonify({'data': data, 'success': True})
 
 
 @user_bp.route('/all-viewers', methods=['GET'])
 @jwt_required()
 def all_viewers():
-    data = fetch_data(
-        """SELECT u.*, r.role, FALSE AS selected
-            FROM {database_name}.users u
-            JOIN {database_name}.roles r ON u.role_id = r.role_id
-            WHERE u.role_id = 1
-            """
+    """
+    Get all users with the viewer role.
+    """
+    query = (
+        select(*Users.__table__.columns, Roles.role, literal(False).label('selected'))
+        .join(Roles, Roles.role_id == Users.role_id)
+        .where(Roles.level == 1)
     )
-    return jsonify(data)
 
-
-GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
+    data = db.session.execute(query).mappings().all()
+    return jsonify([dict(row) for row in data])
 
 
 @user_bp.route('/azure/user', methods=['POST'])
@@ -242,7 +217,7 @@ def get_user_by_email():
         scopes=['https://graph.microsoft.com/.default']
     )
 
-    if 'access_token' not in token_response:
+    if not token_response or 'access_token' not in token_response:
         return jsonify(
             {'error': 'Could not acquire token', 'details': token_response}
         ), 401

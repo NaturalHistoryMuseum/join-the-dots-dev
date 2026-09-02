@@ -6,54 +6,16 @@ from flask_jwt_extended import (
     get_jwt_identity,
     set_access_cookies,
 )
+from sqlalchemy import func, select
 
-from server.database import get_db_connection
+from server.config import Config
+from server.database import db
+from server.models import AssignedUnits, CollectionUnit, Roles, Users
 
-database_name = 'jtd_live'
-
-
-def fetch_data(query, params=None):
-    """
-    Helper function to execute a database query.
-    """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    # Format the query with the database name
-    formatted_query = query.format(database_name=database_name)
-    cursor.execute(formatted_query, params or ())
-    result = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return result
+database_name = Config.MYSQL_DB
 
 
-def execute_query(query, params=None, return_lastrowid=False):
-    """
-    Helper function to execute a database query with commit.
-    """
-    connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    # Get user_id from the jwt token
-    user_id = get_jwt_identity()
-    # Get user details
-    user_details = get_user_by_id(user_id)
-    person_id = user_details['person_id'] if user_details else None
-    cursor.execute('SET @current_person_id = %s', (person_id,))
-    # Format the query with the database name
-    formatted_query = query.format(database_name=database_name)
-    cursor.execute(formatted_query, params or ())
-    connection.commit()
-    # If last row ID is requested, get it
-    last_id = cursor.lastrowid if return_lastrowid else None
-    # Close the cursor and connection
-    cursor.close()
-    connection.close()
-    # Return the last row ID if requested
-    if return_lastrowid:
-        return last_id
-
-
-def refreshJWTToken(response):
+def refresh_jwt_token(response):
     """
     Refresh the JWT token in the response if it is about to expire.
     """
@@ -78,25 +40,62 @@ def refreshJWTToken(response):
 
 
 def get_user_by_id(user_id):
-    user_details = fetch_data(
-        """SELECT u.*, r.role, r.`level`, p.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS name,
-            (
-                SELECT JSON_ARRAYAGG( au.collection_unit_id )
-                FROM {database_name}.assigned_units au
-                JOIN {database_name}.collection_unit cu ON au.collection_unit_id = cu.collection_unit_id
-                WHERE au.user_id = u.user_id AND cu.unit_active = 'yes'
-            ) AS assigned_units,
-            (
-                SELECT JSON_ARRAYAGG(
-                    cu.collection_unit_id
-                )
-                FROM {database_name}.collection_unit cu
-                WHERE cu.responsible_curator_id = u.user_id AND cu.unit_active = 'yes'
-            ) AS responsible_units
-            FROM {database_name}.users u
-            LEFT JOIN {database_name}.roles r ON u.role_id = r.role_id
-            LEFT JOIN {database_name}.person p ON u.person_id = p.person_id
-            WHERE user_id = %s;""",
-        (user_id,),
+    """
+    Return the full users details.
+    """
+    au_subquery = (
+        select(func.JSON_ARRAYAGG(AssignedUnits.collection_unit_id))
+        .join(
+            CollectionUnit,
+            CollectionUnit.collection_unit_id == AssignedUnits.collection_unit_id,
+        )
+        .where(
+            AssignedUnits.user_id == Users.user_id,
+            CollectionUnit.unit_active == 'yes',
+        )
+        .correlate(Users)
+        .scalar_subquery()
     )
-    return user_details[0] if user_details else None
+
+    ru_subquery = (
+        select(func.JSON_ARRAYAGG(CollectionUnit.collection_unit_id))
+        .where(
+            CollectionUnit.responsible_curator_id == Users.user_id,
+            CollectionUnit.unit_active == 'yes',
+        )
+        .correlate(Users)
+        .scalar_subquery()
+    )
+
+    data = db.session.execute(
+        select(
+            Users,
+            Roles,
+            au_subquery.label('assigned_units'),
+            ru_subquery.label('responsible_units'),
+        )
+        .join(Roles, Users.role_id == Roles.role_id)
+        .where(Users.user_id == user_id)
+    ).one_or_none()
+
+    if data is None:
+        return None
+
+    return {
+        **{c.name: getattr(data.Users, c.name) for c in Users.__table__.columns},
+        **{c.name: getattr(data.Roles, c.name) for c in Roles.__table__.columns},
+        'name': data.Users.display_name,
+        'assigned_units': data.assigned_units,
+        'responsible_units': data.responsible_units,
+    }
+
+
+def get_person_id(user_id):
+    """
+    Return only the person_id for a user.
+    """
+    user = db.session.execute(select(Users).where(Users.user_id == user_id)).scalar()
+    if not user:
+        return None
+    person_id = user.person_id
+    return person_id
