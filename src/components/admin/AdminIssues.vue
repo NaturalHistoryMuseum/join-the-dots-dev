@@ -86,7 +86,6 @@ export default {
       this.issues = resp.map((issue) => {
         return {
           ...issue,
-          visible: issue.visible === 1 ? true : false,
           date_resolved_formatted: issue.date_resolved
             ? new Date(issue.date_resolved).toISOString().split('T')[0]
             : null,

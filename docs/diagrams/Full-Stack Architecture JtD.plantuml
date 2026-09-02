@@ -21,7 +21,6 @@ package "Backend (Flask)" {
     [data.py]
     [auth.py]
     [user.py]
-    [stats.py]
     [report.py]
     package "Queries" {
     [data_queries.py]
@@ -44,14 +43,12 @@ EntryPoint --> [_init_.py]
 [register_routes.py] --> [user.py]
 [register_routes.py] --> [data.py]
 [register_routes.py] --> [report.py]
-[register_routes.py] --> [stats.py]
 
 
 [auth.py] --> [database.py]
 [user.py] --> [database.py]
 [data.py] --> [database.py]
 [report.py] --> [database.py]
-[stats.py] --> [database.py]
 
 [database.py] --> DB
 

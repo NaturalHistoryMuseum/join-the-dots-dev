@@ -159,7 +159,7 @@
 <script>
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
-import { assignUnits, postGenericUser } from '@/services/userService';
+import { postGenericUser } from '@/services/userService';
 import { useMessagesStore } from '@/stores/messages';
 import { currentUser } from '../services/authService';
 
@@ -198,8 +198,6 @@ export default {
     this.fetchData();
   },
   methods: {
-    // At functions from userService
-    assignUnits,
     // Page specific functions
     async fetchData() {
       // Get all roles and set them to options

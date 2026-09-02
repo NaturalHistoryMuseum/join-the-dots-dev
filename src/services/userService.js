@@ -71,3 +71,45 @@ export async function assignUnits(units) {
     }
   }
 }
+
+export async function getUserFromDir(user_email) {
+  try {
+    const response = await api.post(
+      'user/check-user-by-email',
+      { email: user_email },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      },
+    );
+    const existing_user = response.data.data;
+    if (existing_user.length > 0) {
+      return {
+        new_user: false,
+        user: existing_user[0],
+        success: response.data.success,
+      };
+    } else {
+      const new_user = await api.post(
+        `user/azure/user`,
+        { email: user_email },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        },
+      );
+      return {
+        new_user: true,
+        user: new_user.data.user,
+        success: new_user.data.success,
+      };
+    }
+  } catch (error) {
+    console.error('Error submitting data:', error);
+    throw error;
+  }
+}

@@ -32,8 +32,6 @@ package "Components (/components)" {
     [CollapsibleTabs.vue]
     [CriterionDefModal.vue]
     [EditCommentsModal.vue]
-    [HomeStats.vue]
-    [LoadingChart.vue]
     [LoadingOverlay.vue]
     [NavLinks.vue]
     [PercentageInput.vue]
@@ -77,8 +75,6 @@ package "Components (/components)" {
 
 [ManageRescoreView.vue] --> [TableCheckbox.vue]
 
-
-[HomeView.vue] --> [HomeStats.vue]
 
 [HeaderView.vue] --> [NavLinks.vue]
 
