@@ -6,10 +6,9 @@ from flask import Blueprint, Response, jsonify, request, stream_with_context
 from flask_jwt_extended import (
     jwt_required,
 )
-from sqlalchemy import text
-
 from server.database import db
 from server.utils import database_name
+from sqlalchemy import text
 
 export_bp = Blueprint('export', __name__)
 
@@ -17,9 +16,7 @@ export_bp = Blueprint('export', __name__)
 @export_bp.route('/data-export', methods=['POST'])
 @jwt_required()
 def make_export():
-    """
-    Build an sql query to export selected data.
-    """
+    """Build an sql query to export selected data."""
     export_config = request.get_json()
     if export_config.get('selected_data_type') == 'ltc':
         return Response(
@@ -346,9 +343,7 @@ def make_export():
 
 # Create CSV response
 def generate_csv(col_names, data):
-    """
-    Create CSV from the data and column names.
-    """
+    """Create CSV from the data and column names."""
     # Format column names for csv
     formatted_col_names = [col_name.replace('_', ' ').title() for col_name in col_names]
     output = io.StringIO()
@@ -364,9 +359,7 @@ def generate_csv(col_names, data):
 
 
 def generate_ltc_json(export_config):
-    """
-    Create the LtC JSON export.
-    """
+    """Create the LtC JSON export."""
     res = db.session.execute(text(generate_ltc_query(export_config))).fetchall()
     data = [dict(row._mapping) for row in res]
     if data:
@@ -385,9 +378,7 @@ def generate_ltc_json(export_config):
 
 
 def generate_ltc_query(export_config):
-    """
-    Generate the LtC qery.
-    """
+    """Generate the LtC qery."""
 
     ltc_query_start = f"""
     WITH item_count_data AS (
@@ -696,9 +687,7 @@ def generate_ltc_query(export_config):
 
 
 def where_claused(export_config):
-    """
-    Build the where clause of the query.
-    """
+    """Build the where clause of the query."""
     # Init array
     where_clauses = []
     # Check filters and add if present

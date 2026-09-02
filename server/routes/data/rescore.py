@@ -5,8 +5,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import func, select, update
-
 from server.database import db
 from server.models import (
     CollectionUnit,
@@ -28,6 +26,7 @@ from server.routes.data.utils import (
     upgrade_draft_ranks,
 )
 from server.utils import get_person_id
+from sqlalchemy import func, select, update
 
 from . import data_bp
 
@@ -35,9 +34,7 @@ from . import data_bp
 @data_bp.route('/mark-rescore-open', methods=['POST'])
 @jwt_required()
 def get_mark_rescore_open():
-    """
-    Create a new rescore session with provided units.
-    """
+    """Create a new rescore session with provided units."""
     data = request.get_json()
     units = data.get('units')
     # Get user_id from the jwt token
@@ -56,9 +53,8 @@ def get_mark_rescore_open():
 @data_bp.route('/rescore-complete', methods=['POST'])
 @jwt_required()
 def submit_rescore_complete():
-    """
-    Mark the rescore as completed and upgrade all ranks/metrics from drafts.
-    """
+    """Mark the rescore as completed and upgrade all ranks/metrics from
+    drafts."""
     data = request.get_json()
     rescore_session_id = data.get('rescore_session_id')
     if not rescore_session_id:
@@ -87,9 +83,7 @@ def submit_rescore_complete():
 @data_bp.route('/open-rescore', methods=['GET'])
 @jwt_required()
 def get_open_rescore():
-    """
-    Find if a user has a rescore session currently open.
-    """
+    """Find if a user has a rescore session currently open."""
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -116,9 +110,7 @@ def get_open_rescore():
 @data_bp.route('/all-open-rescores', methods=['GET'])
 @jwt_required()
 def get_all_open_rescores():
-    """
-    Retrieve all current open rescores.
-    """
+    """Retrieve all current open rescores."""
     query = (
         select(
             RescoreSession.rescore_session_id,
@@ -151,11 +143,11 @@ def get_all_open_rescores():
 @data_bp.route('/rescore-units/<rescore_session_id>', methods=['GET'])
 @jwt_required()
 def get_rescore_units(rescore_session_id):
-    """
-    Get all units in the rescores scores and metrics data, as well as the category
-    tracking.
+    """Get all units in the rescores scores and metrics data, as well as the
+    category tracking.
 
-    These provide all the data needed to display and edit units on the rescore page.
+    These provide all the data needed to display and edit units on the
+    rescore page.
     """
 
     query = rescore_units_query(rescore_session_id)
@@ -187,9 +179,7 @@ def get_rescore_units(rescore_session_id):
 @data_bp.route('/submit-draft-rank', methods=['POST'])
 @jwt_required()
 def submit_draft_rank():
-    """
-    Save a rank change as a draft.
-    """
+    """Save a rank change as a draft."""
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     criterion_id = data.get('criterion_id')
@@ -213,9 +203,7 @@ def submit_draft_rank():
 @data_bp.route('/submit-draft-metrics', methods=['POST'])
 @jwt_required()
 def submit_draft_metrics():
-    """
-    Save a metric change as a draft.
-    """
+    """Save a metric change as a draft."""
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     collection_unit_id = data.get('collection_unit_id')
@@ -237,9 +225,7 @@ def submit_draft_metrics():
 @data_bp.route('/submit-draft-comment', methods=['POST'])
 @jwt_required()
 def submit_draft_comment():
-    """
-    Save a comment change as a draft.
-    """
+    """Save a comment change as a draft."""
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     unit_comment = data.get('unit_comment')
@@ -259,9 +245,7 @@ def submit_draft_comment():
 @data_bp.route('/bulk-upload-rescore', methods=['POST'])
 @jwt_required()
 def bulk_upload_rescore():
-    """
-    Make bulk draft changes to multiple units.
-    """
+    """Make bulk draft changes to multiple units."""
     data = request.get_json()
     units = data.get('units')
     rescore_data = data.get('rescore_data')
@@ -320,9 +304,7 @@ def bulk_upload_rescore():
 @data_bp.route('/end-rescore/<rescore_session_id>', methods=['POST'])
 @jwt_required()
 def update_end_rescore(rescore_session_id):
-    """
-    Mark the rescore session as complete and mark the date.
-    """
+    """Mark the rescore session as complete and mark the date."""
     date = datetime.now()
     db.session.execute(
         update(RescoreSession)
@@ -340,9 +322,7 @@ def update_end_rescore(rescore_session_id):
 @data_bp.route('/complete-category', methods=['POST'])
 @jwt_required()
 def update_complete_category():
-    """
-    Make bulk draft changes to multiple units.
-    """
+    """Make bulk draft changes to multiple units."""
     data = request.get_json()
     rescore_session_units_id = data.get('rescore_session_units_id')
     category_ids_arr = data.get('category_ids_arr')

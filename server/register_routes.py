@@ -16,11 +16,11 @@ from server.utils import refresh_jwt_token
 
 
 def register_routes(app: Flask):
-    """
-    Register all route blueprints to the Flask app.
+    """Register all route blueprints to the Flask app.
 
-    This helps in keeping the main app configuration clean and modular. Register the JWT
-    token refresh and global error handlers for db errors.
+    This helps in keeping the main app configuration clean and modular.
+    Register the JWT token refresh and global error handlers for db
+    errors.
     """
     # Refresh jwt token after request is made
     app.after_request(refresh_jwt_token)

@@ -16,9 +16,7 @@ database_name = Config.MYSQL_DB
 
 
 def refresh_jwt_token(response):
-    """
-    Refresh the JWT token in the response if it is about to expire.
-    """
+    """Refresh the JWT token in the response if it is about to expire."""
     try:
         exp_timestamp = get_jwt()['exp']
         now = datetime.now(timezone.utc)
@@ -40,9 +38,7 @@ def refresh_jwt_token(response):
 
 
 def get_user_by_id(user_id):
-    """
-    Return the full users details.
-    """
+    """Return the full users details."""
     au_subquery = (
         select(func.JSON_ARRAYAGG(AssignedUnits.collection_unit_id))
         .join(
@@ -91,9 +87,7 @@ def get_user_by_id(user_id):
 
 
 def get_person_id(user_id):
-    """
-    Return only the person_id for a user.
-    """
+    """Return only the person_id for a user."""
     user = db.session.execute(select(Users).where(Users.user_id == user_id)).scalar()
     if not user:
         return None

@@ -3,19 +3,16 @@ import requests
 from flask import Blueprint, jsonify, request
 from flask import current_app as app
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from sqlalchemy import delete, insert, literal, select, update
-
 from server.database import db
 from server.models import AssignedUnits, Roles, Users
+from sqlalchemy import delete, insert, literal, select, update
 
 user_bp = Blueprint('user', __name__)
 GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
 
 
 def get_msal_app():
-    """
-    Lazily create the MSAL app only when Azure auth is actually used.
-    """
+    """Lazily create the MSAL app only when Azure auth is actually used."""
     if app.config.get('TEST_AUTH_ENABLED'):
         # Don't use Azure in CI mode
         raise RuntimeError('MSAL should not be used in CI mode')
@@ -32,9 +29,7 @@ def get_msal_app():
 @user_bp.route('/user/<azure_id>', methods=['GET'])
 @jwt_required()
 def get_user(azure_id):
-    """
-    Get a user by their Azure ID.
-    """
+    """Get a user by their Azure ID."""
     data = db.session.execute(
         select(Users).where(Users.azure_id == str(azure_id))
     ).all()
@@ -46,9 +41,7 @@ def get_user(azure_id):
 @user_bp.route('/add-user', methods=['POST'])
 @jwt_required()
 def add_user():
-    """
-    Add a new user.
-    """
+    """Add a new user."""
     data = request.get_json()
 
     # Extract user details from request JSON
@@ -76,9 +69,7 @@ def add_user():
 @user_bp.route('/edit-user-role', methods=['POST'])
 @jwt_required()
 def edit_user_role():
-    """
-    Amend a users role.
-    """
+    """Amend a users role."""
     data = request.get_json()
     role_id = data.get('role_id')
     user_id = data.get('user_id')
@@ -97,9 +88,7 @@ def edit_user_role():
 @user_bp.route('/assign-units', methods=['POST'])
 @jwt_required()
 def edit_assign_units():
-    """
-    Assign units to a user.
-    """
+    """Assign units to a user."""
     data = request.get_json()
     user_id = data.get('user_id')
     units = data.get('units')
@@ -126,9 +115,7 @@ def edit_assign_units():
 @user_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
 def get_all_roles():
-    """
-    Get all roles.
-    """
+    """Get all roles."""
     data = db.session.execute(select(Roles))
     return jsonify(data)
 
@@ -136,9 +123,7 @@ def get_all_roles():
 @user_bp.route('/update-division', methods=['POST'])
 @jwt_required()
 def edit_user_division():
-    """
-    Update a users assigned division.
-    """
+    """Update a users assigned division."""
     data = request.get_json()
     division_id = data.get('division_id')
     # Get user_id from the jwt token
@@ -154,9 +139,7 @@ def edit_user_division():
 @user_bp.route('/upgrade-viewer', methods=['POST'])
 @jwt_required()
 def upgrade_viewer():
-    """
-    Increase a users role from viewer to editor and assign a division.
-    """
+    """Increase a users role from viewer to editor and assign a division."""
     data = request.get_json()
     user_id = data.get('user_id')
     division_id = data.get('division_id')
@@ -173,9 +156,7 @@ def upgrade_viewer():
 @user_bp.route('/check-user-by-email', methods=['POST'])
 @jwt_required()
 def check_user_by_email():
-    """
-    Check if a user exists by their email address.
-    """
+    """Check if a user exists by their email address."""
     data = request.get_json()
     email = data.get('email')
 
@@ -186,9 +167,7 @@ def check_user_by_email():
 @user_bp.route('/all-viewers', methods=['GET'])
 @jwt_required()
 def all_viewers():
-    """
-    Get all users with the viewer role.
-    """
+    """Get all users with the viewer role."""
     query = (
         select(*Users.__table__.columns, Roles.role, literal(False).label('selected'))
         .join(Roles, Roles.role_id == Users.role_id)
@@ -202,9 +181,7 @@ def all_viewers():
 @user_bp.route('/azure/user', methods=['POST'])
 @jwt_required()  # Require login
 def get_user_by_email():
-    """
-    Look up a user in Azure AD by email address.
-    """
+    """Look up a user in Azure AD by email address."""
     msal_app = get_msal_app()
     data = request.get_json()
     email = data.get('email')

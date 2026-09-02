@@ -2,20 +2,6 @@ from collections import defaultdict
 from datetime import datetime
 
 from flask import jsonify
-from sqlalchemy import (
-    and_,
-    delete,
-    desc,
-    exists,
-    func,
-    insert,
-    literal,
-    null,
-    select,
-    text,
-    update,
-)
-
 from server.config import Config
 from server.database import db
 
@@ -44,15 +30,29 @@ from server.models import (
     Users,
 )
 from server.models.utils import StatusEnum
+from sqlalchemy import (
+    and_,
+    delete,
+    desc,
+    exists,
+    func,
+    insert,
+    literal,
+    null,
+    select,
+    text,
+    update,
+)
 
 database_name = Config.MYSQL_DB
 
 
 def create_rescore_session(units, user_id):
-    """
-    Create a rescore session by adding the session and adding the units to the session.
+    """Create a rescore session by adding the session and adding the units to
+    the session.
 
-    It will then add category drafts for each of the units in the rescore.
+    It will then add category drafts for each of the units in the
+    rescore.
     """
     # Insert session
     new_rescore_session = db.session.execute(
@@ -103,9 +103,8 @@ def create_rescore_session(units, user_id):
 
 
 def complete_draft_unit(unit_id, person_id):
-    """
-    Remove draft tag and upgrade the data points (scores, metrics, comment) from drafts.
-    """
+    """Remove draft tag and upgrade the data points (scores, metrics, comment)
+    from drafts."""
     # Get the rescore_session_id
     rescore_session = db.session.execute(
         select(RescoreSession).filter(
@@ -142,9 +141,7 @@ def complete_draft_unit(unit_id, person_id):
 
 
 def column_exists(table_name, column_name):
-    """
-    Check if a column exists in a table in the database.
-    """
+    """Check if a column exists in a table in the database."""
     data = db.session.execute(
         text(f"""
         SELECT COUNT(*) as count
@@ -161,9 +158,7 @@ def column_exists(table_name, column_name):
 
 
 def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
-    """
-    Duplicate all aspects of a unit.
-    """
+    """Duplicate all aspects of a unit."""
     # Create a new unit
     original_unit = db.session.execute(
         select(CollectionUnit).filter(
@@ -308,9 +303,7 @@ def copy_unit(unit_id_to_copy, user_id, unit_name_addition=''):
 
 
 def close_rescore(rescore_session_id):
-    """
-    Mark a rescore session as completed.
-    """
+    """Mark a rescore session as completed."""
     # Remove draft categories
     db.session.execute(
         delete(UnitCategoryDraft).where(
@@ -339,8 +332,7 @@ def close_rescore(rescore_session_id):
 
 
 def upgrade_draft_comments(rescore_session_id):
-    """
-    Duplicate comments from the draft table to the main table.
+    """Duplicate comments from the draft table to the main table.
 
     Remove draft comment.
     """
@@ -388,8 +380,7 @@ def upgrade_draft_comments(rescore_session_id):
 
 
 def upgrade_draft_metrics(rescore_session_id):
-    """
-    Duplicate metrics from the draft table to the main table.
+    """Duplicate metrics from the draft table to the main table.
 
     Remove draft metrics.
     """
@@ -445,8 +436,7 @@ def upgrade_draft_metrics(rescore_session_id):
 
 
 def upgrade_draft_ranks(rescore_session_id, person_id):
-    """
-    Duplicate ranks from the draft table to the main table.
+    """Duplicate ranks from the draft table to the main table.
 
     Remove draft ranks.
     """
@@ -540,9 +530,7 @@ def upgrade_draft_ranks(rescore_session_id, person_id):
 def add_structural_change(
     person_id, higher_operation, operation, collection_unit_id, date, comment=None
 ):
-    """
-    Insert new structural change to the relevant tables.
-    """
+    """Insert new structural change to the relevant tables."""
     # Add structural change entry
     result = db.session.execute(
         insert(StructuralChangesHigher).values(
@@ -576,8 +564,7 @@ def add_structural_change(
 
 
 def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False):
-    """
-    Save draft rank changes.
+    """Save draft rank changes.
 
     It will insert a new row if none exists or update if it does.
     """
@@ -639,8 +626,7 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
 
 
 def handle_draft_metrics(rescore_session_units_id, metric_json):
-    """
-    Save draft metrics changes.
+    """Save draft metrics changes.
 
     It will insert a new row if none exists or update if it does.
     """
@@ -683,8 +669,7 @@ def handle_draft_metrics(rescore_session_units_id, metric_json):
 
 
 def handle_draft_comment(rescore_session_units_id, unit_comment):
-    """
-    Save draft comment changes.
+    """Save draft comment changes.
 
     It will insert a new row if none exists or update if it does.
     """
@@ -710,9 +695,7 @@ def handle_draft_comment(rescore_session_units_id, unit_comment):
 
 
 def update_unit_assigned(unit_id, assigned_users):
-    """
-    Update the user assigned to a unit.
-    """
+    """Update the user assigned to a unit."""
     # Get the current assigned users
     query = select(AssignedUnits).where(AssignedUnits.collection_unit_id == unit_id)
     current_assigned = db.session.execute(query).scalars().all()
@@ -740,10 +723,8 @@ def update_unit_assigned(unit_id, assigned_users):
 
 
 def rescore_units_query(rescore_session_id):
-    """
-    Get rescore units with their metrics, comments and ranks for a given rescore
-    session.
-    """
+    """Get rescore units with their metrics, comments and ranks for a given
+    rescore session."""
     # metrics subquery
     draft_metrics_query = (
         select(

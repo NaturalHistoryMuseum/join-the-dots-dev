@@ -11,9 +11,7 @@ auth_test_bp = Blueprint('auth_test', __name__)
 
 @auth_test_bp.route('/__test/login', methods=['POST'])
 def test_login():
-    """
-    Mocks login process and sets necessary tokens.
-    """
+    """Mocks login process and sets necessary tokens."""
     if not current_app.config.get('TEST_AUTH_ENABLED'):
         return jsonify({'error': 'Not available'}), 404
 

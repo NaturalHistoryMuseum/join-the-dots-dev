@@ -9,11 +9,10 @@ from flask_jwt_extended import (
     set_access_cookies,
     set_refresh_cookies,
 )
-from sqlalchemy import insert, select, update
-
 from server.database import db
 from server.models import Person, Users
 from server.utils import get_user_by_id
+from sqlalchemy import insert, select, update
 
 GRAPH_API_URL = 'https://graph.microsoft.com/v1.0'
 auth_bp = Blueprint('auth', __name__)
@@ -22,9 +21,7 @@ SCOPES = []
 
 
 def get_msal_app():
-    """
-    Lazily create the MSAL app only when Azure auth is actually used.
-    """
+    """Lazily create the MSAL app only when Azure auth is actually used."""
     if app.config.get('TEST_AUTH_ENABLED'):
         # Don't use Azure in CI mode
         raise RuntimeError('MSAL should not be used in CI mode')
@@ -40,9 +37,7 @@ def get_msal_app():
 
 @auth_bp.route('/login')
 def login():
-    """
-    Redirects user to Microsoft Login page.
-    """
+    """Redirects user to Microsoft Login page."""
     msal_app = get_msal_app()
     auth_url = msal_app.get_authorization_request_url(
         SCOPES, redirect_uri=app.config.get('REDIRECT_URI')
@@ -52,9 +47,7 @@ def login():
 
 @auth_bp.route('/login/azure/authorized')
 def auth_redirect():
-    """
-    Handles Azure AD login redirect.
-    """
+    """Handles Azure AD login redirect."""
     msal_app = get_msal_app()
     code = request.args.get('code')
     if not code:
@@ -151,9 +144,7 @@ def auth_redirect():
 @auth_bp.route('/status')
 @jwt_required()
 def auth_status():
-    """
-    Check if the user has logged in and return their user details.
-    """
+    """Check if the user has logged in and return their user details."""
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
     # Get current user details
@@ -167,9 +158,7 @@ def auth_status():
 
 @auth_bp.route('/logout')
 def logout():
-    """
-    Logs the user out by clearing the session.
-    """
+    """Logs the user out by clearing the session."""
     session.clear()
     response = jsonify({'msg': 'Logout successful'})
     # Remove the access tokens from the cookies
@@ -182,9 +171,7 @@ def logout():
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh_token():
-    """
-    Create a new access token.
-    """
+    """Create a new access token."""
     user_id = get_jwt_identity()
     new_access_token = create_access_token(identity=user_id)
     response = jsonify({'msg': 'Token refreshed'})
@@ -195,9 +182,7 @@ def refresh_token():
 
 
 def insert_person_to_existing_user(user_id, first_name, last_name, job_title=None):
-    """
-    Insert a new person into the database.
-    """
+    """Insert a new person into the database."""
     result = db.session.execute(
         insert(Person).values(
             first_name=first_name, last_name=last_name, job_title=job_title

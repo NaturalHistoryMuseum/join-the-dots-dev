@@ -72,9 +72,7 @@ class TestingConfig(Config):
 
 
 def get_config():
-    """
-    Decide config based on environment.
-    """
+    """Decide config based on environment."""
     if os.getenv('CI') == 'true':
         return TestingConfig
     return Config
