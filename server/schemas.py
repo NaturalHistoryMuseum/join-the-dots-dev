@@ -15,9 +15,7 @@ from server.models import (
 
 
 class GeographicOriginDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = GeographicOrigin
@@ -28,9 +26,7 @@ class GeographicOriginDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class GeologicalTimePeriodDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = GeologicalTimePeriod
@@ -41,9 +37,7 @@ class GeologicalTimePeriodDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class DivisionDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = Division
@@ -61,9 +55,7 @@ class DivisionDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class StorageContainerDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = StorageContainer
@@ -74,9 +66,7 @@ class StorageContainerDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class StorageRoomDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = StorageRoom
@@ -87,18 +77,14 @@ class StorageRoomDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class TaxonDDSchema(ma.Schema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     label = fields.String()
     value = fields.String()
 
 
 class CuratorialUnitDefinitionDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = CuratorialUnitDefinition
@@ -109,9 +95,7 @@ class CuratorialUnitDefinitionDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class LibraryAndArchivesFunctionDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = LibraryAndArchivesFunction
@@ -122,9 +106,7 @@ class LibraryAndArchivesFunctionDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class UsersDDSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema to be used in dropdown fields.
-    """
+    """Creates a schema to be used in dropdown fields."""
 
     class Meta:
         model = Users
@@ -142,9 +124,7 @@ class UsersDDSchema(ma.SQLAlchemyAutoSchema):
 
 
 class UnitByUsersSchema(ma.SQLAlchemyAutoSchema):
-    """
-    Creates a schema for the units by users endpoint.
-    """
+    """Creates a schema for the units by users endpoint."""
 
     class Meta:
         model = CollectionUnit

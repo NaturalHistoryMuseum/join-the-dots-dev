@@ -5,8 +5,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import insert, select, update
-
 from server.database import db
 from server.models import (
     AssignedUnits,
@@ -38,6 +36,7 @@ from server.routes.data.utils import (
 from server.utils import (
     get_person_id,
 )
+from sqlalchemy import insert, select, update
 
 from . import data_bp
 
@@ -45,9 +44,7 @@ from . import data_bp
 @data_bp.route('/delete-units', methods=['POST'])
 @jwt_required()
 def delete_units():
-    """
-    Mark presented units as no longer being active.
-    """
+    """Mark presented units as no longer being active."""
     data = request.get_json()
     unit_ids = data.get('unit_ids')
     justification = data.get('justification')
@@ -92,9 +89,7 @@ def delete_units():
 @data_bp.route('/update-assessed-date', methods=['POST'])
 @jwt_required()
 def update_assessed_date():
-    """
-    Update the date the unit was last assessed to today.
-    """
+    """Update the date the unit was last assessed to today."""
     data = request.get_json()
     unit_ids = data.get('unit_ids')
     date_now = datetime.now()
@@ -116,9 +111,7 @@ def update_assessed_date():
 @data_bp.route('/submit-unit', methods=['POST'])
 @jwt_required()
 def submit_unit():
-    """
-    Submit new unit to the database.
-    """
+    """Submit new unit to the database."""
     data = request.get_json()
     unit_data = data.get('unit_data')
     score_data = data.get('score_data')
@@ -212,9 +205,7 @@ def submit_unit():
 @data_bp.route('/submit-draft-unit', methods=['POST'])
 @jwt_required()
 def submit_draft_unit():
-    """
-    Save new unit as a draft.
-    """
+    """Save new unit as a draft."""
     data = request.get_json()
     unit_data = data.get('unit_data')
     unit_id = unit_data.get('collection_unit_id')
@@ -323,9 +314,7 @@ def submit_draft_unit():
 @data_bp.route('/draft-scores/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_draft_scores(unit_id):
-    """
-    Get the scores of a draft unit that can be edited.
-    """
+    """Get the scores of a draft unit that can be edited."""
     rescore_session = db.session.execute(
         select(RescoreSession).where(
             RescoreSession.status == 'in_progress',
@@ -367,9 +356,8 @@ def get_draft_scores(unit_id):
 @data_bp.route('/submit-field', methods=['POST'])
 @jwt_required()
 def submit_field():
-    """
-    Submit a unit metadata change dymanically with the field name and value.
-    """
+    """Submit a unit metadata change dymanically with the field name and
+    value."""
     data = request.get_json()
     field_name = data.get('field_name')
     new_value = data.get('new_value')
@@ -395,9 +383,8 @@ def submit_field():
 @data_bp.route('/split-unit', methods=['POST'])
 @jwt_required()
 def split_unit():
-    """
-    Split a unit into multiple new units and mark the original as not active.
-    """
+    """Split a unit into multiple new units and mark the original as not
+    active."""
     data = request.get_json()
     unit_id = data.get('unit_id')
     new_count = data.get('new_count')
@@ -467,10 +454,8 @@ def split_unit():
 @data_bp.route('/combine-unit', methods=['POST'])
 @jwt_required()
 def combine_unit():
-    """
-    Combine multiple units into one single unit, it will only retain the data of the
-    primary unit.
-    """
+    """Combine multiple units into one single unit, it will only retain the
+    data of the primary unit."""
     data = request.get_json()
     primary_unit_id = data.get('primary_unit_id')
     unit_id_list = data.get('unit_id_list')

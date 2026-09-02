@@ -3,9 +3,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
 )
-from sqlalchemy import and_, case, delete, desc, func, insert, select, union_all, update
-from sqlalchemy.orm import joinedload
-
 from server.database import db
 from server.models import (
     AssignedUnits,
@@ -54,6 +51,8 @@ from server.schemas import (
 from server.utils import (
     get_user_by_id,
 )
+from sqlalchemy import and_, case, delete, desc, func, insert, select, union_all, update
+from sqlalchemy.orm import joinedload
 
 from . import data_bp
 
@@ -61,9 +60,7 @@ from . import data_bp
 @data_bp.route('/unit-scores/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_unit_scores(unit_id):
-    """
-    Get all unit data, including scores and metrics.
-    """
+    """Get all unit data, including scores and metrics."""
     find_assessor_subquery = (
         select(UnitAssessmentCriterion.assessor_id.distinct())
         .where(
@@ -248,9 +245,7 @@ def get_unit_scores(unit_id):
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
 def get_units_and_departments():
-    """
-    Get a unit and its department data.
-    """
+    """Get a unit and its department data."""
     query = (
         select(CollectionUnit, Users)
         .join(Section, Section.section_id == CollectionUnit.section_id)
@@ -285,9 +280,7 @@ def get_units_and_departments():
 @data_bp.route('/full-unit/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_full_unit(unit_id):
-    """
-    Get the full unit metadata.
-    """
+    """Get the full unit metadata."""
     max_comment = (
         select(func.max(UnitComment.unit_comment_id))
         .where(UnitComment.collection_unit_id == CollectionUnit.collection_unit_id)
@@ -322,9 +315,7 @@ def get_full_unit(unit_id):
 @data_bp.route('/all-assigned-users/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_assigned_users(unit_id):
-    """
-    Gets all users that are assigned to a specific unit.
-    """
+    """Gets all users that are assigned to a specific unit."""
     query = (
         select(AssignedUnits, Users)
         .join(Users, Users.user_id == AssignedUnits.user_id)
@@ -346,9 +337,7 @@ def get_assigned_users(unit_id):
 @data_bp.route('/units-assigned', methods=['GET'])
 @jwt_required()
 def get_units_assigned():
-    """
-    Gets all units that are assigned to the current user.
-    """
+    """Gets all units that are assigned to the current user."""
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -409,9 +398,7 @@ def get_units_assigned():
 @data_bp.route('/units-by-division/<division_id>', methods=['GET'])
 @jwt_required()
 def get_units_by_division(division_id):
-    """
-    Gets units for a specific division.
-    """
+    """Gets units for a specific division."""
     query = select(CollectionUnit).where(
         CollectionUnit.unit_active == 'yes',
         CollectionUnit.draft_unit == 0,
@@ -425,9 +412,7 @@ def get_units_by_division(division_id):
 @data_bp.route('/division-users', methods=['GET'])
 @jwt_required()
 def get_division_users():
-    """
-    Gets all the users assigned to a division.
-    """
+    """Gets all the users assigned to a division."""
     # Get user_id from the jwt token
     user_id = get_jwt_identity()
 
@@ -503,9 +488,7 @@ def get_division_users():
 @data_bp.route('/reassign-responsible-curator', methods=['POST'])
 @jwt_required()
 def reassign_responsible_curator():
-    """
-    Reassign units responsiblility from one user to another.
-    """
+    """Reassign units responsiblility from one user to another."""
     data = request.get_json()
     old_user_id = data.get('old_user_id')
     new_user_id = data.get('new_user_id')
@@ -542,9 +525,7 @@ def reassign_responsible_curator():
 @data_bp.route('/submit-unit-assigned', methods=['POST'])
 @jwt_required()
 def set_unit_assigned():
-    """
-    Set the users that are assigned to edit a specific unit.
-    """
+    """Set the users that are assigned to edit a specific unit."""
     data = request.get_json()
     unit_id = data.get('unit_id')
     assigned_users = data.get('assigned_users')
@@ -567,9 +548,7 @@ def set_unit_assigned():
 @data_bp.route('/bulk-submit-unit-permissions', methods=['POST'])
 @jwt_required()
 def set_bulk_unit_permissions():
-    """
-    Edit muliple units permissions.
-    """
+    """Edit muliple units permissions."""
     data = request.get_json()
     unit_ids = data.get('unit_ids')
     assigned_users = data.get('assigned_users')
@@ -603,9 +582,7 @@ def set_bulk_unit_permissions():
 @data_bp.route('/submit-user-assigned', methods=['POST'])
 @jwt_required()
 def set_user_assigned():
-    """
-    Edit the units a user is assigned.
-    """
+    """Edit the units a user is assigned."""
     data = request.get_json()
     user_id = data.get('user_id')
     assigned_units = data.get('assigned_units')
@@ -657,8 +634,7 @@ def set_user_assigned():
 @data_bp.route('/criterion', methods=['GET'])
 @jwt_required()
 def get_criterion():
-    """
-    Get the full criterion definitions.
+    """Get the full criterion definitions.
 
     Filters out criterion_id: 3 as it is no longer used.
     """
@@ -686,9 +662,7 @@ def get_criterion():
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
 def get_category():
-    """
-    Get all category data.
-    """
+    """Get all category data."""
     data = db.session.execute(select(Category)).scalars().all()
     return jsonify(data)
 
@@ -696,9 +670,7 @@ def get_category():
 @data_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
 def get_roles():
-    """
-    Get all roles data.
-    """
+    """Get all roles data."""
     data = db.session.execute(select(Roles)).scalars().all()
     return jsonify(data)
 
@@ -706,9 +678,7 @@ def get_roles():
 @data_bp.route('/metric-definitions', methods=['GET'])
 @jwt_required()
 def get_metric_definitions():
-    """
-    Get all metrics definitions data.
-    """
+    """Get all metrics definitions data."""
     data = db.session.execute(select(CollectionUnitMetricDefinition)).scalars().all()
     return jsonify(data)
 
@@ -716,9 +686,7 @@ def get_metric_definitions():
 @data_bp.route('/all-sections', methods=['GET'])
 @jwt_required()
 def get_all_sections():
-    """
-    Get all sections data in dropdown format.
-    """
+    """Get all sections data in dropdown format."""
     sections = (
         db.session.execute(
             select(Section).options(
@@ -752,9 +720,7 @@ def get_all_sections():
 @data_bp.route('/all-geographic-origin', methods=['GET'])
 @jwt_required()
 def get_all_geographic_origin():
-    """
-    Get all geographic origin data in dropdown format.
-    """
+    """Get all geographic origin data in dropdown format."""
     data = db.session.execute(select(GeographicOrigin)).scalars().all()
     schema = GeographicOriginDDSchema(many=True)
     return jsonify(schema.dump(data))
@@ -763,9 +729,7 @@ def get_all_geographic_origin():
 @data_bp.route('/all-geological-time-period', methods=['GET'])
 @jwt_required()
 def get_all_geological_time_period():
-    """
-    Get all geological-time-period data in dropdown format.
-    """
+    """Get all geological-time-period data in dropdown format."""
     data = db.session.execute(select(GeologicalTimePeriod)).scalars().all()
     schema = GeologicalTimePeriodDDSchema(many=True)
     return jsonify(schema.dump(data))
@@ -774,9 +738,7 @@ def get_all_geological_time_period():
 @data_bp.route('/all-divisions', methods=['GET'])
 @jwt_required()
 def get_all_divisions():
-    """
-    Get all division data in dropdown format.
-    """
+    """Get all division data in dropdown format."""
     data = db.session.execute(select(Division)).scalars().all()
     schema = DivisionDDSchema(many=True)
     return jsonify(schema.dump(data))
@@ -785,9 +747,7 @@ def get_all_divisions():
 @data_bp.route('/container-data', methods=['GET'])
 @jwt_required()
 def get_all_containers():
-    """
-    Get all container data in dropdown format.
-    """
+    """Get all container data in dropdown format."""
     data = db.session.execute(select(StorageContainer)).scalars().all()
     schema = StorageContainerDDSchema(many=True)
     return jsonify(schema.dump(data))
@@ -796,8 +756,7 @@ def get_all_containers():
 @data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
 def get_all_taxon():
-    """
-    Get all taxon data in dropdown format.
+    """Get all taxon data in dropdown format.
 
     Also adds the department tag to the label name.
     """
@@ -819,9 +778,7 @@ def get_all_taxon():
 @data_bp.route('/all-curatorial-definition', methods=['GET'])
 @jwt_required()
 def get_all_curatorial_definition():
-    """
-    Get all curatorial definitions in dropdown format.
-    """
+    """Get all curatorial definitions in dropdown format."""
     curatorial_unit_dd_schema = CuratorialUnitDefinitionDDSchema(many=True)
 
     query = (
@@ -850,9 +807,7 @@ def get_all_curatorial_definition():
 @data_bp.route('/all-room-data', methods=['GET'])
 @jwt_required()
 def get_all_rooms():
-    """
-    Get all room data in dropdown format.
-    """
+    """Get all room data in dropdown format."""
     query = (
         select(
             StorageRoom,
@@ -872,9 +827,8 @@ def get_all_rooms():
 @data_bp.route('/public-room-data', methods=['GET'])
 @jwt_required()
 def get_all_public_rooms():
-    """
-    Get all room data (that is not considered sensitive) in dropdown format.
-    """
+    """Get all room data (that is not considered sensitive) in dropdown
+    format."""
     query = (
         select(
             StorageRoom,
@@ -895,9 +849,7 @@ def get_all_public_rooms():
 @data_bp.route('/all-lib-function', methods=['GET'])
 @jwt_required()
 def get_all_lib_function():
-    """
-    Get all lib functions in dropdown format.
-    """
+    """Get all lib functions in dropdown format."""
     data = db.session.execute(select(LibraryAndArchivesFunction)).scalars().all()
     schema = LibraryAndArchivesFunctionDDSchema(many=True)
     return jsonify(schema.dump(data))
@@ -906,9 +858,7 @@ def get_all_lib_function():
 @data_bp.route('/all-curators', methods=['GET'])
 @jwt_required()
 def get_all_curators():
-    """
-    Get all curators in dropdown format.
-    """
+    """Get all curators in dropdown format."""
     query = (
         select(
             Users,
@@ -927,8 +877,7 @@ def get_all_curators():
 @data_bp.route('/units-by-user', methods=['GET'])
 @jwt_required()
 def get_units_by_user():
-    """
-    Get all units assigned to a user.
+    """Get all units assigned to a user.
 
     Additionally return when the unit was last rescored and assessed.
     """
