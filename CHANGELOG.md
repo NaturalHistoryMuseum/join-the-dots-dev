@@ -1,3 +1,71 @@
+## v1.9.0 (2026-09-03)
+
+### Feature
+
+- **user-management**: adds ability for managers to add users from nhm directory
+- **sqlalchemy**: move to sqlalchemy and marshmallow from mysql connector
+
+### Fix
+
+- ensure role_id is not used instead of role level
+- remove redundant stats page and minor backend fixes
+- run ruff on all files and change query to not error
+- resolve prettier running error
+- **role-ids**: ensure role_id and role level are used correctly
+- data bug fixes and minor formatting changes
+- **error-handling**: improved error handling by catching at a global level instead of returing each error in endpoint
+- use enum class values for operations instead of string
+- remove duplicate dependancy
+- dependancies fix, update pyjwt
+- change flask version
+- change flask version
+- resolve dependancies conflict
+- various flask fixes and code quality improvements
+- various code fixes and major clean up
+- full merge from dev to resolve test failures
+
+### Refactor
+
+- formatting
+- remove print statements
+- convert util function into sqlalchemy
+- update select queries to modern approach
+- update insert sqlalchemy methods
+- replace rescore units sql with sqlalchemy query
+- change query from sql to sqlalchemy orm approach
+- update delete queries to orm approach
+- change sqlalchemy updates to orm method
+- **models**: split models into relevant files and add mapping datatype to models
+
+### Docs
+
+- add more info to project readme
+
+### Tests
+
+- reset test files
+- change pyjwt version
+- change pyjwt version
+- readd pymysql import
+- add logs to test
+- change py version on accessibility test
+- add pymysql dependency
+- add log to see where failing
+- change test python version to match dev
+
+### Build System(s)
+
+- revert py dependencies change
+- add logging to accessibility check
+
+### CI System(s)
+
+- centralise pyproject to server folder and change root toml to cz specific
+
+### Chores/Misc
+
+- add docstring to all python functions
+
 ## v1.8.2 (2026-05-28)
 
 ### Fix
