@@ -158,11 +158,17 @@ export default {
     async saveGuidance(guidance) {
       this.edit_guidance = false;
       let resp = null;
+      const edited_guidance = {
+        guidance_id: guidance.guidance_id,
+        header: guidance.header,
+        guidance: guidance.guidance,
+        recording_url: guidance.recording_url,
+      };
       // Add new guidance if it is temp - Edit otherwise
       if (guidance.guidance_id === 0) {
-        resp = await submitDataGeneric('add-guidance', guidance);
+        resp = await submitDataGeneric('add-guidance', edited_guidance);
       } else {
-        resp = await submitDataGeneric('update-guidance', guidance);
+        resp = await submitDataGeneric('update-guidance', edited_guidance);
       }
       // Add save message if successful
       if (resp) {

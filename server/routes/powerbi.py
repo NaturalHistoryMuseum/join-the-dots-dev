@@ -1,13 +1,14 @@
 from flask import Blueprint, abort, jsonify, request
-
-from server.config import Config
-from server.database import get_db_connection
+from flask import current_app as app
+from server.database import db
 from server.utils import database_name
+from sqlalchemy import text
 
 powerbi_bp = Blueprint('powerbi', __name__)
 
 
 def require_api_key(f):
+    """Check allowed api keys are present in request."""
     from functools import wraps
 
     @wraps(f)
@@ -15,7 +16,8 @@ def require_api_key(f):
         # Check for API key in headers
         provided_key = request.headers.get('x-api-key')
         if provided_key and (
-            provided_key == Config.POWERBI_API_KEY or provided_key == Config.IMT_API_KEY
+            provided_key == app.config['POWERBI_API_KEY']
+            or provided_key == app.config['IMT_API_KEY']
         ):
             return f(*args, **kwargs)
         # Abort if unauthorised
@@ -27,6 +29,7 @@ def require_api_key(f):
 @powerbi_bp.route('/data/<table>')
 @require_api_key
 def return_data(table):
+    """Return requested table to facilitate power bi dashboard."""
     allowed_tables = [
         'unit_assessment_criterion',
         'unit_assessment_rank',
@@ -62,7 +65,11 @@ def return_data(table):
         return jsonify({'error': 'Table is not allowed'}), 400
     if table == 'collection_unit':
         # Special case for collection_unit to exclude sensitive fields
-        query_template = f"""SELECT cu.*, COALESCE(CONCAT(p.first_name, ' ', p.last_name), u.display_name) AS responsible_curator
+        query_template = f"""
+        SELECT cu.*,
+        COALESCE(
+            CONCAT(p.first_name, ' ', p.last_name), u.display_name
+        ) AS responsible_curator
         FROM {database_name}.collection_unit cu
         LEFT JOIN {database_name}.users u ON u.user_id = cu.responsible_curator_id
         LEFT JOIN {database_name}.person p ON p.person_id = u.person_id"""
@@ -70,12 +77,6 @@ def return_data(table):
         # Fetch the data
         query_template = f'SELECT * FROM {database_name}.{{table}}'
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(query_template.format(table=table))
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
+    data = db.session.execute(text(query_template.format(table=table))).fetchall()
     # Return the data as JSON
-    return jsonify(data)
+    return jsonify([dict(row._mapping) for row in data])

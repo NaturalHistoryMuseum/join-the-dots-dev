@@ -55,7 +55,7 @@
           </div>
           <div class="account-field" v-if="currentUser.level > 1">
             <zoa-input
-              v-if="role_id >= 4"
+              v-if="currentUser.level >= 4"
               zoa-type="dropdown"
               label="Division"
               :config="{ options: division_options }"
@@ -135,7 +135,7 @@
           </div>
         </div>
       </div>
-      <div v-if="role_id >= 3" class="account-section">
+      <div v-if="currentUser.level >= 3" class="account-section">
         <h2 class="h2-style">Manager Actions</h2>
         <div class="manager-actions">
           <zoa-button
@@ -159,7 +159,7 @@
 <script>
 import OverlayMessage from '@/components/OverlayMessage.vue';
 import { getGeneric, submitDataGeneric } from '@/services/dataService';
-import { assignUnits, postGenericUser } from '@/services/userService';
+import { postGenericUser } from '@/services/userService';
 import { useMessagesStore } from '@/stores/messages';
 import { currentUser } from '../services/authService';
 
@@ -198,8 +198,6 @@ export default {
     this.fetchData();
   },
   methods: {
-    // At functions from userService
-    assignUnits,
     // Page specific functions
     async fetchData() {
       // Get all roles and set them to options

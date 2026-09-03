@@ -107,7 +107,7 @@ export default {
   methods: {
     async getData() {
       // If user is admin and has requested a specific rescore - fetch that
-      if (this.currentUser.role_id === 4 && this.rescore_session_id) {
+      if (this.currentUser.level === 4 && this.rescore_session_id) {
         await this.fetchRescoreUnits();
       } else {
         // Else see if there is an open rescore

@@ -11,6 +11,7 @@ auth_test_bp = Blueprint('auth_test', __name__)
 
 @auth_test_bp.route('/__test/login', methods=['POST'])
 def test_login():
+    """Mocks login process and sets necessary tokens."""
     if not current_app.config.get('TEST_AUTH_ENABLED'):
         return jsonify({'error': 'Not available'}), 404
 
@@ -37,17 +38,14 @@ def test_login():
         },
     )
 
-    # response = jsonify({"msg": "ok"})
-    # set_access_cookies(response, jwt_token)
-
     # Create refresh token
-    refresh_token = create_refresh_token(identity=str(user['user_id']))
+    new_refresh_token = create_refresh_token(identity=str(user['user_id']))
     # Store in session for later retrieval
     session['jwt_token'] = jwt_token
 
     response = make_response(jsonify({'message': 'Login successful'}))
     # Set jwt token as access token in cookies
     set_access_cookies(response, jwt_token)
-    set_refresh_cookies(response, refresh_token)
+    set_refresh_cookies(response, new_refresh_token)
 
     return response

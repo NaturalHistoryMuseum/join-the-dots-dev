@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 
 from dotenv import load_dotenv
+from sqlalchemy.engine import URL
 
 
 class Config:
@@ -11,10 +12,21 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
 
     # Database Configuration
-    MYSQL_HOST = os.environ.get('MYSQL_HOST')
-    MYSQL_USER = os.environ.get('MYSQL_USER')
-    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
     MYSQL_DB = os.environ.get('MYSQL_DATABASE')
+
+    # SQLAlchemy Connection
+    connection_url = URL.create(
+        drivername='mysql+pymysql',
+        username=os.environ.get('MYSQL_USER'),
+        password=os.environ.get('MYSQL_PASSWORD'),
+        host=os.environ.get('MYSQL_HOST'),
+        # port=5000,
+        database=os.environ.get('MYSQL_DATABASE'),
+    )
+    SQLALCHEMY_DATABASE_URI = connection_url
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    PROPAGATE_EXCEPTIONS = True
 
     # Azure Configuration
     CLIENT_ID = os.environ.get('AZURE_CLIENT_ID')
@@ -60,9 +72,7 @@ class TestingConfig(Config):
 
 
 def get_config():
-    """
-    Decide config based on environment.
-    """
+    """Decide config based on environment."""
     if os.getenv('CI') == 'true':
         return TestingConfig
     return Config
