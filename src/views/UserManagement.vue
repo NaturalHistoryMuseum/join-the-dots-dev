@@ -133,7 +133,7 @@ export default {
     },
     async fetchAllUnits() {
       let url = `units-by-division/${this.currentUser.division_id}`;
-      if (this.currentUser.role_id == 4) {
+      if (this.currentUser.level == 4) {
         url = 'unit-department';
       } else {
         url = `units-by-division/${this.currentUser.division_id}`;

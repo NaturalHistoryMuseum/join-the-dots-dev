@@ -159,8 +159,7 @@ def check_user_by_email():
     """Check if a user exists by their email address."""
     data = request.get_json()
     email = data.get('email')
-
-    data = db.session.execute(select(Users).where(Users.email == email))
+    data = db.session.execute(select(Users).where(Users.email == email)).scalars().all()
     return jsonify({'data': data, 'success': True})
 
 

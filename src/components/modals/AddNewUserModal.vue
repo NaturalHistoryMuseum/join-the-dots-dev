@@ -141,7 +141,7 @@ export default {
           this.error_msg = '';
         } else {
           let user = data['user'] || {};
-          this.error_msg = `This user already exists ${user.role_id == 1 ? '- their current role is Viewer, you can upgrade them to an Editor.' : ''}`;
+          this.error_msg = `This user already exists ${user.level == 1 ? '- their current role is Viewer, you can upgrade them to an Editor.' : ''}`;
         }
       } else {
         this.error_msg = 'No user found with that email address';

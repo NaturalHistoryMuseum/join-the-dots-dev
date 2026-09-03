@@ -63,7 +63,7 @@
               JSON.parse(this.currentUser.assigned_units).includes(
                 row.item.collection_unit_id,
               )) ||
-            currentUser.role_id === 4
+            currentUser.level === 4
           "
           class="check"
           zoa-type="checkbox"
@@ -127,7 +127,7 @@ export default {
     toggleSelectAll(newValue) {
       const on_page = this.paginatedUnits
         .filter((unit) => {
-          if (this.currentUser.role_id === 4) return true;
+          if (this.currentUser.level === 4) return true;
 
           const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);
           return assignedUnitIds.includes(unit.collection_unit_id);
@@ -198,7 +198,7 @@ export default {
         const ids_on_page = this.paginatedUnits
           .filter(
             (unit) =>
-              this.currentUser.role_id === 4 ||
+              this.currentUser.level === 4 ||
               JSON.parse(this.currentUser.assigned_units).includes(
                 unit.collection_unit_id,
               ),
@@ -227,9 +227,9 @@ export default {
       return this.units.length;
     },
     hasAssignedUnitsOnPage() {
-      if (!this.currentUser.assigned_units && this.currentUser.role_id < 4) {
+      if (!this.currentUser.assigned_units && this.currentUser.level < 4) {
         return false;
-      } else if (this.currentUser.role_id === 4) {
+      } else if (this.currentUser.level === 4) {
         return true;
       }
       const assignedUnitIds = JSON.parse(this.currentUser.assigned_units);

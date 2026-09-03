@@ -33,7 +33,7 @@
         'unit_id',
         'unit_name',
         'section',
-        currentUser.role_id === 4 ? 'show_own' : '',
+        currentUser.level === 4 ? 'show_own' : '',
       ]"
       :column_direction="false"
       :minimal="true"
