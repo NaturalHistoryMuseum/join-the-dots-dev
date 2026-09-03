@@ -27,7 +27,7 @@
           <h1 class="h1-style">View{{ allow_edit ? ' / Edit' : '' }} Unit</h1>
           <p>{{ unit_id }} - {{ unit.unit_name }}</p>
         </div>
-        <div class="col-md-8" v-if="allow_edit && currentUser.role_id > 1">
+        <div class="col-md-8" v-if="allow_edit && currentUser.level > 1">
           <ActionsBtnGroup>
             <DeleteModal :selected_units="[unit]" :navigate_on_success="true" />
             <SplitModal :selected_unit="unit" :navigate_on_success="true" />
@@ -324,7 +324,7 @@ export default {
         this.handleEditorChange(false);
         // Check if the unit is assigned to the current user
         if (
-          this.currentUser.role_id === 4 ||
+          this.currentUser.level === 4 ||
           (this.currentUser.assigned_units &&
             JSON.parse(this.currentUser.assigned_units).includes(
               this.unit.collection_unit_id,

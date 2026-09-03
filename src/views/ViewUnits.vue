@@ -1,7 +1,7 @@
 <template>
   <div class="main-page">
     <div class="units-content">
-      <div class="actions-bar" v-show="currentUser && currentUser.role_id > 1">
+      <div class="actions-bar" v-show="currentUser && currentUser.level > 1">
         <ActionsBtnGroup :force_show="selected_unit_ids.length > 0">
           <DeleteModal
             :selected_units="
@@ -49,7 +49,7 @@
           />
           <zoa-button label="Add Unit" @click="navAddUnit" />
           <zoa-button
-            v-if="currentUser.role_id >= 3"
+            v-if="currentUser.level >= 3"
             kind="alt"
             label="Manage User Permissions"
             @click="$router.push('/user-management')"
