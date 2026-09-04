@@ -1,3 +1,9 @@
+## v1.10.0 (2026-09-04)
+
+### CI System(s)
+
+- adds logging to flask sqlalchemy exception errors
+
 ## v1.9.0 (2026-09-03)
 
 ### Feature
