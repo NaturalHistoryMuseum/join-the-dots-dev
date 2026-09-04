@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, current_app
 from sqlalchemy.exc import (
     IntegrityError,
     OperationalError,
@@ -29,6 +29,9 @@ def register_routes(app: Flask):
     @app.errorhandler(OperationalError)
     def handle_operational_error(error):
         db.session.rollback()
+        current_app.logger.error(
+            'Database operational error: %s', str(error), exc_info=True
+        )
         return {
             'error': """Database operational error.
             Database could be temporarily unavailable."""
@@ -37,16 +40,21 @@ def register_routes(app: Flask):
     @app.errorhandler(IntegrityError)
     def handle_integrity_error(error):
         db.session.rollback()
+        current_app.logger.error(
+            'Database integrity error: %s', str(error), exc_info=True
+        )
         return {'error': 'Request voilates database constraints.'}, 409
 
     @app.errorhandler(TimeoutError)
     def handle_timeout_error(error):
         db.session.rollback()
+        current_app.logger.error('Request timeout: %s', str(error), exc_info=True)
         return {'error': 'Request timed out.'}, 408
 
     @app.errorhandler(SQLAlchemyError)
     def handle_sqlalchemy_error(error):
         db.session.rollback()
+        current_app.logger.error('SQLAlchemy error: %s', str(error), exc_info=True)
         return {'error': 'An error occured while processing this request.'}, 500
 
     # Register routes
