@@ -121,7 +121,7 @@ def get_all_open_rescores():
             func.COUNT(RescoreSessionUnits.rescore_session_units_id).label(
                 'unit_count'
             ),
-            Users.display_name.label('curator_name'),
+            Users.display_name.label('display_name'),
         )
         .join(
             RescoreSessionUnits,
