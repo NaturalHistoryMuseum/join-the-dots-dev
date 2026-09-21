@@ -271,7 +271,7 @@ def get_units_and_departments():
             'division_name': row.CollectionUnit.section.division.division_name,
             'department_id': row.CollectionUnit.section.division.department.department_id,
             'department_name': row.CollectionUnit.section.division.department.department_name,
-            'curator_name': row.Users.display_name,
+            'display_name': row.Users.display_name,
         }
         for row in data
     ]

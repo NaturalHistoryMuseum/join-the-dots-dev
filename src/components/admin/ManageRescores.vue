@@ -33,7 +33,7 @@ export default {
           thStyle: { width: '20%' },
         },
         {
-          key: 'curator_name',
+          key: 'display_name',
           label: 'Curator',
           thStyle: { width: '20%' },
         },
