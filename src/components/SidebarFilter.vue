@@ -295,14 +295,14 @@ export default {
       this.units.forEach((unit) => {
         if (
           !uniqueCurators.has(unit.responsible_curator_id) &&
-          unit.curator_name
+          unit.display_name
         ) {
           uniqueCurators.set(unit.responsible_curator_id, {
             label:
-              unit.curator_name.length > this.dropdown_char_limit
-                ? unit.curator_name.substring(0, this.dropdown_char_limit) +
+              unit.display_name.length > this.dropdown_char_limit
+                ? unit.display_name.substring(0, this.dropdown_char_limit) +
                   '...'
-                : unit.curator_name,
+                : unit.display_name,
             value: unit.responsible_curator_id.toString(),
           });
         }
