@@ -671,6 +671,14 @@ export default {
       );
       if (!edited_metric) return;
       if (this.non_rescore_mode) {
+        // Check if metric should have 0 default
+        if (
+          edited_metric.metric_value == null &&
+          edited_metric.metric_units == '%' &&
+          edited_metric.confidence_level !== null
+        ) {
+          edited_metric.metric_value = 0;
+        }
         const return_draft = !(
           edited_metric.metric_value == null ||
           edited_metric.metric_value < 0 ||
