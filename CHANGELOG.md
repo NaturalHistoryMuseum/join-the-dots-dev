@@ -1,3 +1,9 @@
+## v1.10.2 (2026-09-23)
+
+### Fix
+
+- adds default value for barcode percent if confidence is added
+
 ## v1.10.1 (2026-09-22)
 
 ### Fix
