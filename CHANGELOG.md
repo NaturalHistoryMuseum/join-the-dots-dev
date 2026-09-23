@@ -1,3 +1,10 @@
+## v1.10.1 (2026-09-22)
+
+### Fix
+
+- resolve all instances of curator filter
+- curator filter on manage units page will now show curators
+
 ## v1.10.0 (2026-09-04)
 
 ### CI System(s)
