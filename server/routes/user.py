@@ -63,6 +63,7 @@ def add_user():
             role_id=role_id,
         )
     )
+    db.session.commit()
     return jsonify({'message': 'User added successfully', 'success': True}), 201
 
 
