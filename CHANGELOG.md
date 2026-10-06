@@ -1,3 +1,15 @@
+## v1.10.3 (2026-10-06)
+
+### Fix
+
+- adds commit to add user endpoint
+
+### CI System(s)
+
+- change how sqlalchemy version is set
+- ci logs in accessibility test
+- increase wait time on start for accessibility tests
+
 ## v1.10.2 (2026-09-23)
 
 ### Fix
