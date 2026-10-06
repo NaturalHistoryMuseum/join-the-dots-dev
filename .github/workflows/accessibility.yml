@@ -40,12 +40,12 @@ jobs:
           FLASK_ENV: testing
         run: |
           python -m server.run &
-          sleep 5
+          sleep 15
 
       - name: Start frontend
         run: |
           npm run preview &
-          sleep 5
+          sleep 15
         env:
           FRONTEND_PORT: 4173
 
