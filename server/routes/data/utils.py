@@ -122,7 +122,7 @@ def complete_draft_unit(unit_id, person_id):
             update(CollectionUnit)
             .where(CollectionUnit.collection_unit_id == unit_id)
             .values(
-                draft_unit='no',
+                draft_unit=0,
             )
         )
         db.session.flush()
