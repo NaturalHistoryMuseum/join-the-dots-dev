@@ -1,3 +1,9 @@
+## v1.10.4 (2026-10-08)
+
+### Fix
+
+- fix submit unit draft type mismatch
+
 ## v1.10.3 (2026-10-06)
 
 ### Fix
