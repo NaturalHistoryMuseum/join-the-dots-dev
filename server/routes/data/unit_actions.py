@@ -223,7 +223,7 @@ def submit_draft_unit():
     else:
         insert_mode = False
 
-    # Check if the draft is being insered or updated
+    # Check if the draft is being inserted or updated
     if insert_mode:
         # Filter the data to remove None values and the collection_unit_id
         filter_unit_data = {
@@ -302,6 +302,7 @@ def submit_draft_unit():
     if unit_comment is not None:
         handle_draft_comment(rescore_session_units_id, unit_comment)
     # If no longer draft, upgrade to full unit
+    print(draft_unit)
     if draft_unit == 0:
         complete_draft_unit(unit_id, person_id)
 
