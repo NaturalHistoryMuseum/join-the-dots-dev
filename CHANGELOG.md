@@ -1,3 +1,13 @@
+## v1.11.0 (2026-10-13)
+
+### Feature
+
+- add caching to flask and to the largest endpoint
+
+### Fix
+
+- update flask and add redis to requirements
+
 ## v1.10.4 (2026-10-08)
 
 ### Fix
