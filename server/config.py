@@ -66,6 +66,11 @@ class Config:
     # Environment Variable for Frontend
     VITE_APP_ENV = os.environ.get('VITE_APP_ENV')
 
+    # Flask-Caching Config
+    CACHE_TYPE = os.environ.get('CACHE_TYPE', 'SimpleCache')
+    CACHE_DEFAULT_TIMEOUT = 300
+    CACHE_REDIS_URL = os.environ.get('CACHE_REDIS_URL', 'redis://127.0.0.1:6379')
+
 
 class TestingConfig(Config):
     TEST_AUTH_ENABLED = True

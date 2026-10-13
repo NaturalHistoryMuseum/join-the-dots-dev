@@ -7,7 +7,7 @@ from flask_jwt_extended import JWTManager
 
 from server.config import get_config
 from server.database import db
-from server.extensions import cors, ma
+from server.extensions import cache, cors, ma
 
 
 def create_app():
@@ -18,6 +18,9 @@ def create_app():
 
     db.init_app(app)
     ma.init_app(app)
+
+    # Initialise flask-caching
+    cache.init_app(app)
 
     if config_class.VITE_APP_ENV == 'dev':
         # Allow insecure transport for testing purposes (for SSO)

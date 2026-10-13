@@ -6,6 +6,7 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from server.database import db
+from server.extensions import cache
 from server.models import (
     AssignedUnits,
     CollectionUnit,
@@ -82,7 +83,7 @@ def delete_units():
         )
     # Commit the transaction queries
     db.session.commit()
-
+    cache.clear()
     return jsonify({'message': 'Units deleted successfully'}), 200
 
 
@@ -103,6 +104,7 @@ def update_assessed_date():
         )
     )
     db.session.commit()
+    cache.clear()
     return jsonify(
         {'message': 'Assessed date updated successfully', 'success': True}
     ), 200
@@ -198,7 +200,7 @@ def submit_unit():
 
     # Commit the transaction queries
     db.session.commit()
-
+    cache.clear()
     return jsonify({'collection_unit_id': new_unit_id, 'success': True})
 
 
@@ -308,7 +310,7 @@ def submit_draft_unit():
 
     # Commit the transaction queries
     db.session.commit()
-
+    cache.clear()
     return jsonify({'collection_unit_id': unit_id, 'success': True})
 
 
@@ -357,7 +359,7 @@ def get_draft_scores(unit_id):
 @data_bp.route('/submit-field', methods=['POST'])
 @jwt_required()
 def submit_field():
-    """Submit a unit metadata change dymanically with the field name and
+    """Submit a unit metadata change dynamically with the field name and
     value."""
     data = request.get_json()
     field_name = data.get('field_name')
@@ -376,6 +378,7 @@ def submit_field():
             .values(**{field_name: new_value})
         )
         db.session.commit()
+        cache.clear()
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'column does not exist'}), 500
@@ -449,6 +452,7 @@ def split_unit():
     )
     # Commit the transaction queries
     db.session.commit()
+    cache.clear()
     return jsonify({'new_units': new_units, 'success': True})
 
 
@@ -509,4 +513,5 @@ def combine_unit():
 
     # Commit the transaction queries
     db.session.commit()
+    cache.clear()
     return jsonify({'new_unit_id': new_unit_id, 'success': True})
