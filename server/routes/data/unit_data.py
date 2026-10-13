@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from server.database import db
+from server.extensions import cache
 from server.models import (
     AssignedUnits,
     BibliographicLevel,
@@ -244,6 +245,7 @@ def get_unit_scores(unit_id):
 
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=600)
 def get_units_and_departments():
     """Get a unit and its department data."""
     query = (
