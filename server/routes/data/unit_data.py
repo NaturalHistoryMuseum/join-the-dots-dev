@@ -245,7 +245,7 @@ def get_unit_scores(unit_id):
 
 @data_bp.route('/unit-department', methods=['GET'])
 @jwt_required()
-@cache.cached(timeout=600)
+@cache.cached(timeout=600, key_prefix='unit_department')
 def get_units_and_departments():
     """Get a unit and its department data."""
     query = (
@@ -635,6 +635,7 @@ def set_user_assigned():
 
 @data_bp.route('/criterion', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_criterion():
     """Get the full criterion definitions.
 
@@ -663,6 +664,7 @@ def get_criterion():
 
 @data_bp.route('/category', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_category():
     """Get all category data."""
     data = db.session.execute(select(Category)).scalars().all()
@@ -671,6 +673,7 @@ def get_category():
 
 @data_bp.route('/all-roles', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_roles():
     """Get all roles data."""
     data = db.session.execute(select(Roles)).scalars().all()
@@ -679,6 +682,7 @@ def get_roles():
 
 @data_bp.route('/metric-definitions', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_metric_definitions():
     """Get all metrics definitions data."""
     data = db.session.execute(select(CollectionUnitMetricDefinition)).scalars().all()
@@ -687,6 +691,7 @@ def get_metric_definitions():
 
 @data_bp.route('/all-sections', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_sections():
     """Get all sections data in dropdown format."""
     sections = (
@@ -721,6 +726,7 @@ def get_all_sections():
 
 @data_bp.route('/all-geographic-origin', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_geographic_origin():
     """Get all geographic origin data in dropdown format."""
     data = db.session.execute(select(GeographicOrigin)).scalars().all()
@@ -730,6 +736,7 @@ def get_all_geographic_origin():
 
 @data_bp.route('/all-geological-time-period', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_geological_time_period():
     """Get all geological-time-period data in dropdown format."""
     data = db.session.execute(select(GeologicalTimePeriod)).scalars().all()
@@ -739,6 +746,7 @@ def get_all_geological_time_period():
 
 @data_bp.route('/all-divisions', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_divisions():
     """Get all division data in dropdown format."""
     data = db.session.execute(select(Division)).scalars().all()
@@ -748,6 +756,7 @@ def get_all_divisions():
 
 @data_bp.route('/container-data', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_containers():
     """Get all container data in dropdown format."""
     data = db.session.execute(select(StorageContainer)).scalars().all()
@@ -757,6 +766,7 @@ def get_all_containers():
 
 @data_bp.route('/all-taxon', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_taxon():
     """Get all taxon data in dropdown format.
 
@@ -779,6 +789,7 @@ def get_all_taxon():
 
 @data_bp.route('/all-curatorial-definition', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_curatorial_definition():
     """Get all curatorial definitions in dropdown format."""
     curatorial_unit_dd_schema = CuratorialUnitDefinitionDDSchema(many=True)
@@ -808,6 +819,7 @@ def get_all_curatorial_definition():
 
 @data_bp.route('/all-room-data', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_rooms():
     """Get all room data in dropdown format."""
     query = (
@@ -828,6 +840,7 @@ def get_all_rooms():
 
 @data_bp.route('/public-room-data', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_public_rooms():
     """Get all room data (that is not considered sensitive) in dropdown
     format."""
@@ -850,6 +863,7 @@ def get_all_public_rooms():
 
 @data_bp.route('/all-lib-function', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=1800)
 def get_all_lib_function():
     """Get all lib functions in dropdown format."""
     data = db.session.execute(select(LibraryAndArchivesFunction)).scalars().all()

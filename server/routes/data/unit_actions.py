@@ -83,7 +83,7 @@ def delete_units():
         )
     # Commit the transaction queries
     db.session.commit()
-    cache.clear()
+    cache.delete('unit_department')
     return jsonify({'message': 'Units deleted successfully'}), 200
 
 
@@ -104,7 +104,7 @@ def update_assessed_date():
         )
     )
     db.session.commit()
-    cache.clear()
+    cache.delete('unit_department')
     return jsonify(
         {'message': 'Assessed date updated successfully', 'success': True}
     ), 200
@@ -200,7 +200,7 @@ def submit_unit():
 
     # Commit the transaction queries
     db.session.commit()
-    cache.clear()
+    cache.delete('unit_department')
     return jsonify({'collection_unit_id': new_unit_id, 'success': True})
 
 
@@ -304,13 +304,12 @@ def submit_draft_unit():
     if unit_comment is not None:
         handle_draft_comment(rescore_session_units_id, unit_comment)
     # If no longer draft, upgrade to full unit
-    print(draft_unit)
     if draft_unit == 0:
         complete_draft_unit(unit_id, person_id)
 
     # Commit the transaction queries
     db.session.commit()
-    cache.clear()
+    cache.delete('unit_department')
     return jsonify({'collection_unit_id': unit_id, 'success': True})
 
 
@@ -378,7 +377,7 @@ def submit_field():
             .values(**{field_name: new_value})
         )
         db.session.commit()
-        cache.clear()
+        cache.delete('unit_department')
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'column does not exist'}), 500
@@ -452,7 +451,7 @@ def split_unit():
     )
     # Commit the transaction queries
     db.session.commit()
-    cache.clear()
+    cache.delete('unit_department')
     return jsonify({'new_units': new_units, 'success': True})
 
 
@@ -513,5 +512,5 @@ def combine_unit():
 
     # Commit the transaction queries
     db.session.commit()
-    cache.clear()
+    cache.delete('unit_department')
     return jsonify({'new_unit_id': new_unit_id, 'success': True})
