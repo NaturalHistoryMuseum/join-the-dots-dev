@@ -1,3 +1,9 @@
+## v1.11.1 (2026-10-14)
+
+### Fix
+
+- **caching**: add caching to more endpoints and only clear unit data on change
+
 ## v1.11.0 (2026-10-13)
 
 ### Feature
