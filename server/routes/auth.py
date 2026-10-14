@@ -10,6 +10,7 @@ from flask_jwt_extended import (
     set_refresh_cookies,
 )
 from server.database import db
+from server.extensions import cache
 from server.models import Person, Users
 from server.utils import get_user_by_id
 from sqlalchemy import insert, select, update
@@ -160,6 +161,7 @@ def auth_status():
 def logout():
     """Logs the user out by clearing the session."""
     session.clear()
+    cache.clear()
     response = jsonify({'msg': 'Logout successful'})
     # Remove the access tokens from the cookies
     response.delete_cookie('access_token')
