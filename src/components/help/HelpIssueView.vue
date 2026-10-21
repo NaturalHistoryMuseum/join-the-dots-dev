@@ -31,30 +31,19 @@
       </TableCheckbox>
     </div>
   </AccordionGeneric>
-
-  <AccordionGeneric
-    :accordion_open="expanded_accordion === 2"
-    accordion_title="Upcoming Enhancements"
-    :accordion_open_function="toggleAccordion"
-    :accordion_eror="false"
-    :accordion_id="2"
-  >
-    <EnhancementsTable />
-  </AccordionGeneric>
 </template>
 
 <script>
 import AccordionGeneric from '@/components/AccordionGeneric.vue';
 import TableCheckbox from '@/components/TableCheckbox.vue';
 import { getGeneric } from '@/services/dataService';
-import EnhancementsTable from './EnhancementsTable.vue';
 
 export default {
   name: 'HelpIssuesView',
-  components: { AccordionGeneric, TableCheckbox, EnhancementsTable },
+  components: { AccordionGeneric, TableCheckbox },
   data() {
     return {
-      expanded_accordion: null,
+      expanded_accordion: 1,
       issues: [],
       issue_fields: [
         { key: 'issue_id', label: 'ID', thStyle: { width: '5%' } },
