@@ -60,13 +60,11 @@
 
 <script>
 import { getGeneric } from '@/services/dataService';
-import OverlayMessage from '../components/OverlayMessage.vue';
 import SmallMessages from '../components/SmallMessages.vue';
 import { currentUser } from '../services/authService';
 
 export default {
   components: {
-    OverlayMessage,
     SmallMessages,
   },
   setup() {
