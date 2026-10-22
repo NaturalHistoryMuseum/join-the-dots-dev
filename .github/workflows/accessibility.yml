@@ -8,9 +8,8 @@ on:
 
 jobs:
   a11y:
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.64.1-noble
+    runs-on: ubuntu-24.04
+
     steps:
       - uses: actions/checkout@v4
 
@@ -63,6 +62,9 @@ jobs:
           fi
         env:
           FRONTEND_PORT: 4173
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Run Playwright accessibility tests
         run: npx playwright test
