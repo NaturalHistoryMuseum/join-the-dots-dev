@@ -1,3 +1,21 @@
+## v1.11.2 (2026-10-23)
+
+### Fix
+
+- adds a new banner so admin can see the issues on the home page
+- move resolved date logic to backend to remove date format issue
+
+### Refactor
+
+- resolve eslint issue with unused component
+- remove upcoming enhancements from users help page
+
+### CI System(s)
+
+- specifiy python version in pr actions
+- specify the ubuntu version to fix accessibility test
+- run accessibility test on specific playwrite image
+
 ## v1.11.1 (2026-10-14)
 
 ### Fix
