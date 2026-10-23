@@ -1,4 +1,5 @@
 <template>
+  <SmallMessages :message_text="message_text" :message_type="message_type" />
   <div class="main-page">
     <div class="main-header">
       <h1 class="h1-style">Join the Dots Portal</h1>
@@ -6,8 +7,8 @@
         <p v-if="currentUser.name">Welcome, {{ currentUser.name }}</p>
       </div>
     </div>
-    <div class="boader-header">
-      <h2 class="h2-style boader-header-title">Actions</h2>
+    <div class="border-header">
+      <h2 class="h2-style border-header-title">Actions</h2>
     </div>
     <b-row class="home-cards">
       <div v-if="currentUser.level > 1" class="home-card col-md-4">
@@ -58,20 +59,42 @@
 </template>
 
 <script>
+import { getGeneric } from '@/services/dataService';
+import SmallMessages from '../components/SmallMessages.vue';
 import { currentUser } from '../services/authService';
 
 export default {
+  components: {
+    SmallMessages,
+  },
   setup() {
     return { currentUser };
   },
   data() {
-    return {};
+    return { message_text: '', message_type: '' };
   },
-  mounted() {},
+  mounted() {
+    if (this.currentUser.level == 4) {
+      this.checkIssues();
+    }
+  },
   methods: {
     // Navigate to path
     navigate(path) {
       this.$router.push({ path: path });
+    },
+    async checkIssues() {
+      const issues = await getGeneric('all-issues');
+      let num_open_issues = issues.filter(
+        (issue) => issue.status !== 'resolved',
+      ).length;
+      if (num_open_issues > 0) {
+        let num_new_issues = issues.filter(
+          (issue) => issue.status === 'raised',
+        ).length;
+        this.message_text = `There are ${num_open_issues} open issues - ${num_new_issues} are new`;
+        this.message_type = 'error';
+      }
     },
   },
 };
@@ -155,7 +178,7 @@ export default {
   height: auto;
   top: auto;
 }
-.boader-header {
+.border-header {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,14 +186,14 @@ export default {
   width: 100%;
   margin: 1rem 0;
 }
-.boader-header::after,
-.boader-header::before {
+.border-header::after,
+.border-header::before {
   content: '';
   flex: 1;
   border-top: 1px solid black;
   margin: 0 10px;
 }
-.boader-header-title {
+.border-header-title {
   margin: 0 4rem;
 }
 .h2 {
@@ -188,7 +211,7 @@ export default {
   * .home-cards > * {
     flex: 1 1 0;
   }
-  */ .boader-header-title {
+  */ .border-header-title {
     margin: 0 2rem;
   }
   .main-page {
@@ -204,7 +227,7 @@ export default {
     margin: 2rem 0.5rem;
     width: 95%;
   }
-  .boader-header-title {
+  .border-header-title {
     margin: 0 1rem;
   }
 }

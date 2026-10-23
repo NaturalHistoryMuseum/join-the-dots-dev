@@ -102,22 +102,12 @@ export default {
         visible: issue.visible ? 1 : 0,
         date_resolved: issue.date_resolved,
       });
+      this.getIssueData();
       this.store.handleChangeResponse(response);
     },
     markEdited(issue_id) {
       const issue = this.issues.find((i) => i.issue_id === issue_id);
       issue.edited = true;
-      this.checkResolved(issue);
-    },
-    checkResolved(issue) {
-      const resolved = issue.status === 'resolved';
-      if (resolved && !issue.date_resolved) {
-        issue.date_resolved = new Date().toISOString().split('T')[0];
-        issue.date_resolved_formatted = new Date().toISOString().split('T')[0];
-      } else if (!resolved) {
-        issue.date_resolved = null;
-        issue.date_resolved_formatted = null;
-      }
       this.saveChanges(issue);
     },
   },

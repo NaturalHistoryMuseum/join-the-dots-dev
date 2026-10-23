@@ -21,7 +21,11 @@ from . import data_bp
 @jwt_required()
 def get_all_issues():
     """Fetches all issues."""
-    issues = db.session.execute(select(Issues)).scalars().all()
+    issues = (
+        db.session.execute(select(Issues).order_by(desc(Issues.date_added)))
+        .scalars()
+        .all()
+    )
     return jsonify(issues)
 
 
@@ -48,12 +52,16 @@ def update_issue():
     visible = data.get('visible')
     status = data.get('status')
     date_resolved = data.get('date_resolved')
-    if date_resolved is None:
-        formatted_date_resolved = None
-    else:
+    # Check the status and set correct date
+    if status == 'resolved' and not date_resolved:
+        formatted_date_resolved = datetime.now().date()
+    elif status == 'resolved' and date_resolved:
         formatted_date_resolved = datetime.strptime(
             date_resolved, '%a, %d %b %Y %H:%M:%S %Z'
         )
+    else:
+        formatted_date_resolved = None
+
     db.session.execute(
         update(Issues)
         .where(Issues.issue_id == issue_id)
