@@ -149,7 +149,6 @@ def get_rescore_units(rescore_session_id):
     These provide all the data needed to display and edit units on the
     rescore page.
     """
-
     query = rescore_units_query(rescore_session_id)
     data = db.session.execute(query).all()
     return [
