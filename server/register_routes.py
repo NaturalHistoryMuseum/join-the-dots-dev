@@ -34,7 +34,10 @@ def register_routes(app: Flask):
         )
         return {
             'error': """Database operational error.
-            Database could be temporarily unavailable."""
+
+                     Database could be temporarily unavailable.
+                     """
+
         }, 503
 
     @app.errorhandler(IntegrityError)

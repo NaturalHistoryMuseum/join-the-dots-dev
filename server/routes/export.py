@@ -379,7 +379,6 @@ def generate_ltc_json(export_config):
 
 def generate_ltc_query(export_config):
     """Generate the LtC qery."""
-
     ltc_query_start = f"""
     WITH item_count_data AS (
         SELECT cu.collection_unit_id as collection_unit_id, (
