@@ -1,3 +1,14 @@
+## v1.11.3 (2026-10-27)
+
+### Refactor
+
+- change wording to remove ruff and docformatter formatting conflict
+- run updated pre-commit on all files
+
+### CI System(s)
+
+- update pre-commit modules
+
 ## v1.11.2 (2026-10-23)
 
 ### Fix
