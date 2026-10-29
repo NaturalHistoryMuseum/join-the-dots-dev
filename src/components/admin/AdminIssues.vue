@@ -56,6 +56,11 @@ export default {
           thStyle: { width: '10%' },
         },
         {
+          key: 'user',
+          label: 'Added by',
+          thStyle: { width: '10%' },
+        },
+        {
           key: 'date_added_formatted',
           label: 'Date Added',
           thStyle: { width: '10%' },
