@@ -8,7 +8,7 @@ from flask_jwt_extended import (
 from server.database import db
 
 # Data models
-from server.models import ChangeLog, Enhancements, HelpGuidance, Issues
+from server.models import ChangeLog, Enhancements, HelpGuidance, Issues, Users
 from server.models.utils import StatusEnum
 from sqlalchemy import delete, desc, insert, select, update
 
@@ -21,12 +21,18 @@ from . import data_bp
 @jwt_required()
 def get_all_issues():
     """Fetches all issues."""
-    issues = (
-        db.session.execute(select(Issues).order_by(desc(Issues.date_added)))
-        .scalars()
-        .all()
-    )
-    return jsonify(issues)
+    issues = db.session.execute(
+        select(Issues, Users)
+        .join(Users, Users.user_id == Issues.user_id)
+        .order_by(desc(Issues.date_added))
+    ).all()
+    return [
+        {
+            **{c.name: getattr(row.Issues, c.name) for c in Issues.__table__.columns},
+            'user': row.Users.display_name,
+        }
+        for row in issues
+    ]
 
 
 @data_bp.route('/visible-issues', methods=['GET'])
