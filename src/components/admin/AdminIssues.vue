@@ -47,7 +47,7 @@ export default {
       issues: [],
       issue_fields: [
         { key: 'issue_id', label: 'ID', thStyle: { width: '5%' } },
-        { key: 'issue', label: 'Issue', thStyle: { width: '55%' } },
+        { key: 'issue', label: 'Issue', thStyle: { width: '50%' } },
 
         { key: 'status', label: 'Status', thStyle: { width: '10%' } },
         {
@@ -63,12 +63,12 @@ export default {
         {
           key: 'date_added_formatted',
           label: 'Date Added',
-          thStyle: { width: '10%' },
+          thStyle: { width: '7.5%' },
         },
         {
           key: 'date_resolved_formatted',
           label: 'Date Resolved',
-          thStyle: { width: '10%' },
+          thStyle: { width: '7.5%' },
         },
       ],
       status_options: [
