@@ -1,9 +1,11 @@
 from collections import defaultdict
 from datetime import datetime
 
-from flask import jsonify
+from flask import jsonify, request
+from flask_jwt_extended import get_jwt_identity
 from server.config import Config
 from server.database import db
+from server.extensions import cache
 
 # Data models
 from server.models import (
@@ -45,6 +47,21 @@ from sqlalchemy import (
 )
 
 database_name = Config.MYSQL_DB
+
+
+def units_cache_key():
+    """Generate a cache key based on the user, request path and query
+    parameters."""
+    version = cache.get('units_cache_version') or 1
+    return f"""
+        units:v{version}:{get_jwt_identity()}:{request.view_args['page']}:{request.view_args['per_page']}
+    """
+
+
+def invalidate_units_cache():
+    """Invalidate the units cache by incrementing the version."""
+    version = cache.get('units_cache_version') or 1
+    cache.set('units_cache_version', version + 1)
 
 
 def create_rescore_session(units, user_id):
@@ -583,16 +600,16 @@ def handle_draft_rank(criterion_id, ranks, category_draft_id, insert_only=False)
         )
 
     # Loop through the ranks and update or insert them
-    for sumbit_rank in ranks:
+    for submit_rank in ranks:
         in_db = False
-        rank_id = sumbit_rank['rank_id']
-        percentage = sumbit_rank['percentage']
-        comment = sumbit_rank['comment']
+        rank_id = submit_rank['rank_id']
+        percentage = submit_rank['percentage']
+        comment = submit_rank['comment']
         if not insert_only and data is not None:
             # Check if the rank already exists in the
             # database and update it if it does
             for db_rank in data:
-                if db_rank.rank_id == sumbit_rank['rank_id']:
+                if db_rank.rank_id == submit_rank['rank_id']:
                     updated_at = datetime.now()
 
                     db.session.execute(

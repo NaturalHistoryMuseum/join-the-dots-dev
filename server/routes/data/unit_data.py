@@ -36,7 +36,7 @@ from server.models import (
     UnitComment,
     Users,
 )
-from server.routes.data.utils import update_unit_assigned
+from server.routes.data.utils import units_cache_key, update_unit_assigned
 from server.schemas import (
     CuratorialUnitDefinitionDDSchema,
     DivisionDDSchema,
@@ -279,6 +279,71 @@ def get_units_and_departments():
     ]
 
 
+@data_bp.route('/unit-by-page/<int:page>/<int:per_page>', methods=['GET'])
+@jwt_required()
+@cache.cached(timeout=600, key_prefix=units_cache_key)
+def get_units_by_page(page, per_page):
+    """Get a unit and its department data."""
+    user_id = get_jwt_identity()
+    # get page options for split return
+    page = int(page) if page else 1
+    per_page = min(int(per_page), 500) if per_page else 100
+    # set base query for data
+    base_query = (
+        select(CollectionUnit, Users)
+        .join(Section, Section.section_id == CollectionUnit.section_id)
+        .join(Division, Division.division_id == Section.division_id)
+        .join(Department, Department.department_id == Division.department_id)
+        .join(Users, Users.user_id == CollectionUnit.responsible_curator_id)
+        .where(CollectionUnit.unit_active == 'yes')
+    )
+    # get total count of units for progressive loading
+    count_query = select(func.count()).select_from(base_query.order_by(None).subquery())
+    total_units = db.session.execute(count_query).scalar_one()
+    #
+    assigned_units = case(
+        (CollectionUnit.responsible_curator_id == user_id, 1),
+        else_=0,
+    )
+    # offset the query and add limit
+    page_offset = (page - 1) * per_page
+    page_query = (
+        base_query.order_by(
+            assigned_units.desc(), CollectionUnit.collection_unit_id.asc()
+        )
+        .limit(per_page)
+        .offset(page_offset)
+    )
+    # get data
+    data = db.session.execute(page_query).all()
+
+    return jsonify(
+        {
+            'total_units': total_units,
+            'page': page,
+            'per_page': per_page,
+            'data': [
+                {
+                    'collection_unit_id': row.CollectionUnit.collection_unit_id,
+                    'unit_name': row.CollectionUnit.unit_name,
+                    'named_collection': row.CollectionUnit.named_collection,
+                    'unit_active': row.CollectionUnit.unit_active,
+                    'draft_unit': row.CollectionUnit.draft_unit,
+                    'responsible_curator_id': row.CollectionUnit.responsible_curator_id,
+                    'section_id': row.CollectionUnit.section.section_id,
+                    'section_name': row.CollectionUnit.section.section_name,
+                    'division_id': row.CollectionUnit.section.division.division_id,
+                    'division_name': row.CollectionUnit.section.division.division_name,
+                    'department_id': row.CollectionUnit.section.division.department.department_id,
+                    'department_name': row.CollectionUnit.section.division.department.department_name,
+                    'display_name': row.Users.display_name,
+                }
+                for row in data
+            ],
+        }
+    )
+
+
 @data_bp.route('/full-unit/<unit_id>', methods=['GET'])
 @jwt_required()
 def get_full_unit(unit_id):
@@ -484,13 +549,13 @@ def get_division_users():
             for row in data
         ]
     else:
-        return jsonify({'error': 'You are not autorised.'}), 500
+        return jsonify({'error': 'You are not authorised.'}), 500
 
 
 @data_bp.route('/reassign-responsible-curator', methods=['POST'])
 @jwt_required()
 def reassign_responsible_curator():
-    """Reassign units responsiblility from one user to another."""
+    """Reassign units responsibility from one user to another."""
     data = request.get_json()
     old_user_id = data.get('old_user_id')
     new_user_id = data.get('new_user_id')
@@ -563,11 +628,11 @@ def set_bulk_unit_permissions():
             {'error': 'assigned_users or responsible_curator_id is required'}
         ), 400
 
-    # add assinged users per unit
+    # add assigned users per unit
     if assigned_users:
         for unit_id in unit_ids:
             update_unit_assigned(unit_id, assigned_users)
-    # add respsonsible curator
+    # add responsible curator
     if responsible_curator_id:
         db.session.execute(
             update(CollectionUnit)

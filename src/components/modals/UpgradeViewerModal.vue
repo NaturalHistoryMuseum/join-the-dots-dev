@@ -144,7 +144,7 @@ export default {
       try {
         const response = await postGenericUser('upgrade-viewer', {
           user_id: this.upgrade_user.user_id,
-          division_id: this.currentUser.division_id,
+          division_id: this.currentUser.division_id || 1,
         });
         if (response.success) {
           this.success = true;
