@@ -1,3 +1,15 @@
+## v1.11.4 (2026-11-04)
+
+### Fix
+
+- adds progressive loading to view units page to reduce response time
+- change issue table column width
+- add the user to the admins issues table
+
+### Refactor
+
+- add incomplete comment
+
 ## v1.11.3 (2026-10-27)
 
 ### Refactor
