@@ -42,7 +42,7 @@ def register_routes(app: Flask):
         current_app.logger.error(
             'Database integrity error: %s', str(error), exc_info=True
         )
-        return {'error': 'Request voilates database constraints.'}, 409
+        return {'error': 'Request violates database constraints.'}, 409
 
     @app.errorhandler(TimeoutError)
     def handle_timeout_error(error):
@@ -54,7 +54,7 @@ def register_routes(app: Flask):
     def handle_sqlalchemy_error(error):
         db.session.rollback()
         current_app.logger.error('SQLAlchemy error: %s', str(error), exc_info=True)
-        return {'error': 'An error occured while processing this request.'}, 500
+        return {'error': 'An error occurred while processing this request.'}, 500
 
     # Register routes
     app.register_blueprint(data_bp, url_prefix='/api/data')
