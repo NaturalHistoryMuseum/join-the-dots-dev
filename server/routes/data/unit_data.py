@@ -300,7 +300,7 @@ def get_units_by_page(page, per_page):
     # get total count of units for progressive loading
     count_query = select(func.count()).select_from(base_query.order_by(None).subquery())
     total_units = db.session.execute(count_query).scalar_one()
-    #
+    # ensure units assigned to the current user return first
     assigned_units = case(
         (CollectionUnit.responsible_curator_id == user_id, 1),
         else_=0,
