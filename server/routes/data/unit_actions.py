@@ -6,7 +6,6 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from server.database import db
-from server.extensions import cache
 from server.models import (
     AssignedUnits,
     CollectionUnit,
@@ -32,6 +31,7 @@ from server.routes.data.utils import (
     handle_draft_comment,
     handle_draft_metrics,
     handle_draft_rank,
+    invalidate_units_cache,
     rescore_units_query,
 )
 from server.utils import (
@@ -83,7 +83,7 @@ def delete_units():
         )
     # Commit the transaction queries
     db.session.commit()
-    cache.delete('unit_department')
+    invalidate_units_cache()
     return jsonify({'message': 'Units deleted successfully'}), 200
 
 
@@ -104,7 +104,7 @@ def update_assessed_date():
         )
     )
     db.session.commit()
-    cache.delete('unit_department')
+    invalidate_units_cache()
     return jsonify(
         {'message': 'Assessed date updated successfully', 'success': True}
     ), 200
@@ -200,7 +200,7 @@ def submit_unit():
 
     # Commit the transaction queries
     db.session.commit()
-    cache.delete('unit_department')
+    invalidate_units_cache()
     return jsonify({'collection_unit_id': new_unit_id, 'success': True})
 
 
@@ -309,7 +309,7 @@ def submit_draft_unit():
 
     # Commit the transaction queries
     db.session.commit()
-    cache.delete('unit_department')
+    invalidate_units_cache()
     return jsonify({'collection_unit_id': unit_id, 'success': True})
 
 
@@ -377,7 +377,7 @@ def submit_field():
             .values(**{field_name: new_value})
         )
         db.session.commit()
-        cache.delete('unit_department')
+        invalidate_units_cache()
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'column does not exist'}), 500
@@ -451,7 +451,7 @@ def split_unit():
     )
     # Commit the transaction queries
     db.session.commit()
-    cache.delete('unit_department')
+    invalidate_units_cache()
     return jsonify({'new_units': new_units, 'success': True})
 
 
@@ -512,5 +512,5 @@ def combine_unit():
 
     # Commit the transaction queries
     db.session.commit()
-    cache.delete('unit_department')
+    invalidate_units_cache()
     return jsonify({'new_unit_id': new_unit_id, 'success': True})

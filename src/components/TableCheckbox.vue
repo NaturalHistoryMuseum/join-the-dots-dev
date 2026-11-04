@@ -40,6 +40,7 @@
       responsive
       :items="paginatedUnits"
       :fields="fields"
+      :busy="loading"
     >
       <!-- Header checkbox for selecting all rows -->
       <template #head(select)="">
@@ -97,6 +98,10 @@ export default {
   props: {
     units: Array,
     fields: Array,
+    loading: {
+      type: Boolean,
+      default: false,
+    },
   },
   setup() {
     return { currentUser };

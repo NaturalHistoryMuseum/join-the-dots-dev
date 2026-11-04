@@ -85,6 +85,7 @@
             ref="viewTable"
             :units="filteredUnits"
             :fields="fields"
+            :loading="loading"
             @update:selectedUnits="
               (selected_units) => updateSelectedUnits(selected_units)
             "
@@ -173,23 +174,52 @@ export default {
       open_rescore: {},
       rescore_units: [],
       selected_unit_ids: [],
+      loading: false,
+      total_units: 0,
     };
   },
   mounted() {
     this.fetchData();
   },
   methods: {
-    fetchData() {
+    async fetchData() {
       // Reload the user - this gets the list of assigned units
       loadUser(true);
       // Fetch units
-      getGeneric('unit-department').then((response) => {
+      this.loading = true;
+      const chunks = 500;
+      try {
+        // Fetch first chunk
+        const response = await getGeneric(`unit-by-page/1/${chunks}`);
+        this.total_units = response.total_units;
         // Add selected property to each unit
-        this.units = response.map((unit) => ({
+        this.units = response.data.map((unit) => ({
           ...unit,
           selected: false,
         }));
-      });
+      } finally {
+        this.loading = false;
+        // Sort first page
+        this.units.sort((a, b) => a.collection_unit_id - b.collection_unit_id);
+      }
+      // Calculate remaining pages
+      const total_pages = Math.ceil(this.total_units / chunks);
+      try {
+        // Fetch remaining pages
+        for (let page = 2; page <= total_pages; page++) {
+          const response = await getGeneric(`unit-by-page/${page}/${chunks}`);
+          this.units.push(
+            // Add selected property to each unit
+            ...response.data.map((unit) => ({
+              ...unit,
+              selected: false,
+            })),
+          );
+        }
+      } finally {
+        // After all pages are fetched sort by unit id
+        this.units.sort((a, b) => a.collection_unit_id - b.collection_unit_id);
+      }
       getGeneric('open-rescore').then((response) => {
         this.open_rescore = response.length > 0 ? response[0] : {};
         if (Object.keys(this.open_rescore).length > 0) {
