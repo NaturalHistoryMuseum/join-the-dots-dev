@@ -1,3 +1,5 @@
+import json
+
 from flask import jsonify, request
 from flask_jwt_extended import (
     get_jwt_identity,
@@ -285,6 +287,11 @@ def get_units_and_departments():
 def get_units_by_page(page, per_page):
     """Get a unit and its department data."""
     user_id = get_jwt_identity()
+    # get units assigned to the user
+    user = get_user_by_id(user_id)
+    assigned_units = json.loads(user['assigned_units'])
+    responsible_units = json.loads(user['responsible_units'])
+    all_assigned_units = list(set(assigned_units + responsible_units))
     # get page options for split return
     page = int(page) if page else 1
     per_page = min(int(per_page), 500) if per_page else 100
@@ -301,15 +308,15 @@ def get_units_by_page(page, per_page):
     count_query = select(func.count()).select_from(base_query.order_by(None).subquery())
     total_units = db.session.execute(count_query).scalar_one()
     # ensure units assigned to the current user return first
-    assigned_units = case(
-        (CollectionUnit.responsible_curator_id == user_id, 1),
+    assigned_units_sort = case(
+        (CollectionUnit.collection_unit_id.in_(all_assigned_units), 1),
         else_=0,
     )
     # offset the query and add limit
     page_offset = (page - 1) * per_page
     page_query = (
         base_query.order_by(
-            assigned_units.desc(), CollectionUnit.collection_unit_id.asc()
+            assigned_units_sort.desc(), CollectionUnit.collection_unit_id.asc()
         )
         .limit(per_page)
         .offset(page_offset)
