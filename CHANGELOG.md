@@ -1,3 +1,9 @@
+## v1.11.5 (2026-11-13)
+
+### Fix
+
+- loads all units assigned to user first
+
 ## v1.11.4 (2026-11-04)
 
 ### Fix
