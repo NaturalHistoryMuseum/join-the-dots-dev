@@ -1,3 +1,9 @@
+## v1.11.6 (2026-11-13)
+
+### Fix
+
+- add error handling to the progressive loading
+
 ## v1.11.5 (2026-11-13)
 
 ### Fix
