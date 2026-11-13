@@ -289,8 +289,16 @@ def get_units_by_page(page, per_page):
     user_id = get_jwt_identity()
     # get units assigned to the user
     user = get_user_by_id(user_id)
-    assigned_units = json.loads(user['assigned_units'])
-    responsible_units = json.loads(user['responsible_units'])
+    if user:
+        assigned_units = (
+            json.loads(user['assigned_units']) if user['assigned_units'] else []
+        )
+        responsible_units = (
+            json.loads(user['responsible_units']) if user['responsible_units'] else []
+        )
+    else:
+        assigned_units = []
+        responsible_units = []
     all_assigned_units = list(set(assigned_units + responsible_units))
     # get page options for split return
     page = int(page) if page else 1
